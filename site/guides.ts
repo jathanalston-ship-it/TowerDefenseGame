@@ -3,7 +3,7 @@
 // breadcrumb JSON-LD and the in-article ad seam. Guides that benefit from live game data
 // (towers/heroes) splice in the encyclopedia tables, so they expand with the roster for free.
 
-import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
+import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, DRAFT_FEATURES, ENDLESS_RUN, ENDLESS_SQUEEZE, MODE_UNLOCKS, READINESS, RUSH } from '../src/core/config';
 import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../src/core/classBonds';
 import { COMBAT_CLASSES, COMBAT_CLASS_ORDER } from '../src/core/combatClass';
 import { MAP_LAYOUTS } from '../src/core/mapLayouts';
@@ -200,6 +200,7 @@ export const GUIDES: Guide[] = [
       { h: 'How it escalates', body: [
         'Infinite composes waves from a depth-scaled threat budget — the deeper you go, the smarter and heavier the composition. Biomes rotate as you descend, each warping the rules, and the battlefield changes with every biome: the run starts on the classic map and moves through the others. Your best wave is a permanent record and unlocks reward tiers.',
         'Hive Intelligence works here — Infinite is content you have proven — and once you have reached deep enough, the Threat ladder adds harder rungs with their own records.',
+        'You do not have to wait for the Core to fall: pause and choose <b>End Early</b> to bank the run at ' + Math.round(ENDLESS_RUN.endEarlyRewardMult * 100) + '% of its Genome Cores, mastery and XP. Depth records, contracts and containers you already filled pay in full.',
       ] },
       { h: 'Building for depth', body: [
         'Infinite rewards compounding economies: income organs early, damage conversion late. The run that reaches wave 40 usually looks greedy at wave 10. Draft economy genes in the first third, control in the second, and pure damage only when the composition demands it.',

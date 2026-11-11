@@ -576,6 +576,9 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   Fewer words: icon tiles (`ActionTile` — system glyph, count badge, name, action) for the Ready Chain and
   Recommended; glyph vitals; Growth rows `glyph · +N ⚡`; the unlock card is a medallion + one line (details folded);
   the Update Briefing is 3 glyph tiles. Long explanations live in hover titles / aria-labels.
+  Second list: act-only notifications + gated best moves greyed (`towerStarBlock` / `canBuyNow`,
+  BUGFIX #131), Results' Continue locked (#132), the Hive pill docked in the build console,
+  Infinite containers at 1/5 pace + ⏹ End Early at 60 % (`ENDLESS_RUN`, MODE-IDENTITY.md §pace).
 - ✅ **HIVE CALL + 3 s AUTO GENE** (2026-11-11, HIVE-MIND.md §hive-call) — with Auto Wave on, on solved
   content (the automation gate), the Hive calls the next wave EARLY mid-fight when its forecast says the
   board holds the overlap comfortably: the deepest point enemies reached past first contact × the load the

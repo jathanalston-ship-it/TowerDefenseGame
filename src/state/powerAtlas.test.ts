@@ -4,7 +4,11 @@
 
 import { describe, expect, it } from 'vitest';
 import { powerAtlas } from './powerAtlas';
-import { bestPurchase } from './bestPurchase';
+import { bestPurchase, canBuyNow, purchaseCandidates } from './bestPurchase';
+import { evolutionStarCap } from './meta';
+import { notifications } from './notifications';
+import { recommendationsFor } from './recommendations';
+import './notificationSources';
 import { defaultSave } from '../save/saveStore';
 import { TOWER_ORDER } from '../core/config';
 import { isOpenNav } from './unlocks';
@@ -75,5 +79,55 @@ describe('powerAtlas', () => {
     const atlas = powerAtlas(defaultSave());
     expect(atlas.slices.map((x) => x.id)).toEqual(['towers', 'heroes', 'equipment', 'meta', 'collection', 'mulligans']);
     expect(atlas.score).toBeGreaterThanOrEqual(1000);
+  });
+});
+
+describe('gated moves — the Evolution Cap (owner playtest 2026-11-11: a Buy that did nothing)', () => {
+  // A tower AT the Evolution Cap with Strain Samples to spare is
+  // "affordable" by wallet but refused by buyStar — it must read as blocked everywhere.
+  const capped = () => {
+    const s = defaultSave();
+    s.campaign.cleared = { standard: 10 }; // the Tower Lab + Evolution HQ wings are open; the cap still bites
+    const k = TOWER_ORDER[0];
+    s.towerStars = { ...s.towerStars, [k]: evolutionStarCap(s) };
+    s.towerShards = { ...s.towerShards, [k]: 1e6 };
+    return { s, k };
+  };
+
+  it('a capped ★ carries its gate and is never the buyable pick', () => {
+    const { s, k } = capped();
+    const c = purchaseCandidates(s, 'towers').find((x) => x.id === k)!;
+    expect(c.affordable).toBe(true); // the wallet covers it …
+    expect(c.blocked).toMatch(/Evolution Cap/); // … the campaign does not
+    expect(canBuyNow(c)).toBe(false);
+    expect(bestPurchase(s, 'towers').bestAffordable?.id).not.toBe(k);
+  });
+
+  it('the headline prefers an actionable move; a gated one only shows (greyed) when nothing else is buyable', () => {
+    const { s } = capped();
+    const atlas = powerAtlas(s);
+    expect(atlas.systems.find((x) => x.id === 'towers')!.readyCount).toBe(0); // not "ready"
+    if (atlas.headline && !atlas.headline.move.blocked) expect(atlas.headline.move.affordable).toBe(true);
+    // Nothing else affordable ⇒ the gated star may be the headline — then it carries its reason.
+    if (atlas.headline?.move.blocked) expect(atlas.headline.move.blocked).toMatch(/Evolution Cap/);
+    s.shards = 1e6; // now an Evolution HQ upgrade is buyable → it outranks the gated star
+    const rich = powerAtlas(s);
+    expect(rich.headline).not.toBeNull();
+    expect(rich.headline!.move.blocked).toBeUndefined();
+  });
+
+  it('the Tower Lab badge does not count a capped ★ (it does once the star is under the cap)', () => {
+    const { s, k } = capped();
+    const broke = { ...s, towerShards: { ...s.towerShards, [k]: 0 } }; // same save, no Strain Samples
+    const base = notifications.badges(broke).towers ?? 0;
+    expect(notifications.badges(s).towers ?? 0).toBe(base); // capped + rich ⇒ no extra badge
+    const under = { ...s, towerStars: { ...s.towerStars, [k]: evolutionStarCap(s) - 1 } };
+    expect(notifications.badges(under).towers ?? 0).toBe(base + 1); // a real decision ⇒ it badges
+  });
+
+  it('recommendations never advise a locked teaser', () => {
+    const s = defaultSave();
+    s.campaign.cleared = { standard: 2 };
+    expect(recommendationsFor(s, { limit: 20 }).some((r) => r.kind === 'unlock')).toBe(false);
   });
 });

@@ -76,6 +76,7 @@ export interface CoreShardInputs {
   modeCoreMult: number; // mode reward identity (difficultyDirector.modeCoreMult)
   doctrineRewardMult: number; // doctrine protocol run-end warp (1 without)
   threatRewardMult?: number; // THREAT LADDER bonus (difficultyDirector.threatEconomy — docs/THREAT.md); omitted/1 ⇒ identity
+  endEarlyMult?: number; // End Early settle (ENDLESS_RUN.endEarlyRewardMult); omitted/1 ⇒ identity
   adaptive?: EconomyAdaptiveInputs;
 }
 
@@ -89,6 +90,7 @@ export function coreShardIncome(i: CoreShardInputs): Income {
     { id: 'mode.core', value: i.modeCoreMult },
     { id: 'doctrine.reward', value: i.doctrineRewardMult },
     { id: 'threat.reward', value: i.threatRewardMult ?? 1 }, // the Threat ladder (identity at Threat 0)
+    { id: 'endless.endEarly', value: i.endEarlyMult ?? 1 }, // End Early pays 60 % (identity otherwise)
     { id: 'adaptive.income', value: adaptiveIncomeMult(i.adaptive) },
   ]);
 }
@@ -104,6 +106,8 @@ export interface LootPointInputs {
   containerRateMult: number; // difficulty economy axis (containers fill faster)
   bossLootMult: number; // Bosses codex bonus (×1 on a fresh account)
   endlessTaperMult?: number; // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind); omitted/1 ⇒ identity
+  endlessMeterRate?: number; // Infinite's loot-meter pace (ENDLESS_RUN.lootMeterRate); omitted/1 ⇒ identity
+  endEarlyMult?: number; // End Early settle (ENDLESS_RUN.endEarlyRewardMult); omitted/1 ⇒ identity
   threatRewardMult?: number; // THREAT LADDER bonus (docs/THREAT.md); omitted/1 ⇒ identity
   adaptive?: EconomyAdaptiveInputs;
 }
@@ -118,6 +122,8 @@ export function lootPointIncome(i: LootPointInputs): Income {
     { id: 'difficulty.containerRate', value: i.containerRateMult },
     { id: 'collection.bossLoot', value: i.bossLootMult },
     { id: 'endless.taper', value: i.endlessTaperMult ?? 1 }, // Infinite depth-camping taper (identity elsewhere)
+    { id: 'endless.meterRate', value: i.endlessMeterRate ?? 1 }, // Infinite fills containers at 1/5 pace (identity elsewhere)
+    { id: 'endless.endEarly', value: i.endEarlyMult ?? 1 }, // End Early pays 60 % (identity otherwise)
     { id: 'threat.reward', value: i.threatRewardMult ?? 1 }, // the Threat ladder (identity at Threat 0)
     { id: 'adaptive.income', value: adaptiveIncomeMult(i.adaptive) },
   ]);

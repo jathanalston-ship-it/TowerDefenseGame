@@ -7,7 +7,7 @@
 // existing meta + notification systems; the card set is data-driven so a new progression
 // system is one array entry.
 
-import { meta, nextStarCost } from '../state/meta';
+import { meta, nextStarCost, towerStarBlock } from '../state/meta';
 import { audio } from '../audio/sound';
 import { notifications } from '../state/notifications';
 import { HERO_ORDER, TOWER_ORDER } from '../core/config';
@@ -60,7 +60,7 @@ export function ProgressDashboard({ go }: { go: (k: NavKey) => void }): JSX.Elem
   // Tower Evolution — towers whose next star you can afford right now.
   const towersReady = TOWER_ORDER.reduce((n, k) => {
     const cost = nextStarCost(save, k);
-    return n + (cost !== null && (save.towerShards[k] ?? 0) >= cost ? 1 : 0);
+    return n + (cost !== null && (save.towerShards[k] ?? 0) >= cost && !towerStarBlock(save, k) ? 1 : 0);
   }, 0);
 
   // Mastery Evolution helixes with value waiting (docs/MASTERY.md §evolution track):

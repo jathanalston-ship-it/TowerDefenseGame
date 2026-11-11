@@ -83,6 +83,10 @@ profile (`src/index.css` §RUN LAYOUT v2; profiles in docs/RESPONSIVE-DESIGN.md 
   free left end as a two-line log. The wave briefing and the boss/mega bars start BELOW the
   strip (`--strip`), so they can never collide again (the pill used to sit on Start Wave and
   the boss bar; the ticker covered the briefing). A burrowed Mega waits mid-board during prep.
+  **Hive dock (2026-11-11):** while the build console is up (`buildConsoleVisible` — prep with a
+  wave to launch) Hive Intelligence lives IN the console's automation row (`◈ Hive`, beside Auto
+  Wave / Auto Gene — `BuildControls` `hive`); the strip carries it only mid-wave. At the run's
+  start the pill sat on the board's top edge over the spawn lane (owner playtest).
   Mid-wave the strip also carries **⏩ Call early +N** (docs/EARLY-CALL.md) — the Start Wave
   control's in-fight form, Biomass-green, at the LEFT of the right-anchored cluster so its
   arrival never shifts speed/Hive/Pause; Space triggers it too. The wave briefing gains a

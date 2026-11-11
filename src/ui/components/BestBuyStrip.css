@@ -8,4 +8,6 @@
 
 .bbs-buy:hover { transform: translateY(-1px); box-shadow: 0 0 12px color-mix(in srgb, var(--gold) 45%, transparent); }
 
+.bbs-buy.is-blocked, .bbs-buy.is-blocked:hover { color: var(--dim); background: rgba(255, 255, 255, 0.06); border-color: var(--line); box-shadow: none; transform: none; cursor: not-allowed; }
+
 .bbs-buy { padding: 3px 12px; }

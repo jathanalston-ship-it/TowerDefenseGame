@@ -3192,6 +3192,14 @@ export const ENDLESS_TAPER = {
   halfLife: 15, // … halving the above-floor part every this many waves past startWave
 };
 
+// ── Infinite run pace (owner playtest 2026-11-11) ──
+// The Bio-Container meter filled far faster in Infinite than anywhere else (the farm mode out-paced
+// the whole container economy), and a deep run had no way out but the Core falling.
+export const ENDLESS_RUN = {
+  lootMeterRate: 0.2, // Infinite fills the loot meter at 1/5 the pace — live AND at run end (one factor, both paths)
+  endEarlyRewardMult: 0.6, // End Early (pause menu, Infinite only): settle now at 60 % of the run's income
+};
+
 /** Per-wave diminishing-returns factor for DEEP endless farming. 1.0 through `startWave`, then a
  *  smooth exponential decay toward `floor`. Endless ONLY; identity (×1) for wave ≤ startWave. */
 export function endlessTaper(wave: number): number {

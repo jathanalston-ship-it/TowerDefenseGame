@@ -2,8 +2,8 @@
 // answered as a ranked list of concrete actions, rendered by the hub landing pages and the
 // Command Center. Foundational by construction: the candidates DERIVE from registries that
 // already exist — every notification source with a reason() is automatically a candidate
-// (its channel classifies the action), progression teasers surface as "almost unlocked"
-// pulls, and a play action backstops the list so it is NEVER empty (no dead ends — the
+// (its channel classifies the action) — only things the player can DO now, never a locked
+// teaser (2026-11-11) — and a play action backstops the list so it is NEVER empty (no dead ends — the
 // reward loop always has a next step). A future system that registers a notification gets
 // recommended for free; bespoke candidates are one registerRecSource() call.
 //
@@ -11,7 +11,7 @@
 
 import { notifications } from './notifications';
 import './notificationSources'; // the default sources are this engine's candidate pool — register them
-import { isOpenNav, nextReveals } from './unlocks';
+import { isOpenNav } from './unlocks';
 import { highestCampaignStage } from '../save/derive';
 import { loopOfNav } from '../core/rewardLoops';
 import type { LoopId } from '../core/rewardLoops';
@@ -108,19 +108,9 @@ export function recommendationsFor(
     });
   }
 
-  // 2) Almost-unlocked features pull forward (anticipation → guidance). Stage-gated teasers
-  //    route to the Campaign — the action is playing toward the gate, not staring at a lock.
-  for (const teaser of nextReveals(save, 2)) {
-    if (teaser.progress < 0.5) continue;
-    out.push({
-      id: `unlock:${teaser.def.id}`,
-      nav: (teaser.label.includes('Stage') ? 'campaign' : 'home') as NavKey,
-      kind: 'unlock',
-      label: `Almost unlocked — ${teaser.def.name}`,
-      why: teaser.label || teaser.def.blurb,
-      score: 30 + Math.round(teaser.progress * 20), // 80% there ≈ a mid spend action
-    });
-  }
+  // 2) (Removed 2026-11-11, owner playtest: "notifications for things I can't unlock".) Almost-
+  //    unlocked TEASERS no longer surface here — a recommendation is something you can DO now. The
+  //    road to the next wing lives on the Command Center's objectives / Next-Goal spine instead.
 
   // 3) Bespoke registered sources.
   for (const src of extraSources) out.push(...src.recs(save));

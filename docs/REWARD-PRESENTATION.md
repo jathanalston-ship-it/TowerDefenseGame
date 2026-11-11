@@ -106,6 +106,12 @@ Skip (reveal all instantly), click-anywhere to fast-forward one beat, manual
 expand/collapse of any category (re-expanding replays its count-up/celebrate —
 the "replay milestone" affordance), `prefers-reduced-motion` → instant.
 
+**Continue never moves (2026-11-11).** On Results the capsule is a FIXED height (the viewport
+minus the screen's padding — `.results-screen > .rr-capsule { height }`) and the action row sits on
+its bottom edge (`margin-top: auto`, sticky when the body scrolls), right-aligned with Continue in
+the last slot (`order: 9`). Revealing categories, the debrief, achievements, the cliffhanger,
+Replay and the next-stage button can't shift it (it used to ride the content's edge).
+
 ## Known limitations / future hooks
 
 - Discoveries surfaces achievements + new masteries today; **collection entries

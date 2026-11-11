@@ -12,7 +12,7 @@
 import type { SaveData } from '../save/saveStore';
 import { powerBreakdown } from './profile';
 import type { PowerSlice } from './profile';
-import { bestPurchase } from './bestPurchase';
+import { bestPurchase, canBuyNow } from './bestPurchase';
 import { adaptableUnits, adaptationPicks } from './adaptationAdvisor';
 import { equipUpgrades } from './equipAdvisor';
 import { isOpenNav } from './unlocks';
@@ -36,6 +36,9 @@ export interface AtlasMove {
   price: string; // for how much ("25 Cores" / "1 Antigen pick")
   powerDelta: number; // EXACT Power gained (advisor math)
   affordable: boolean;
+  /** A gate the wallet can't buy past (bestPurchase `blocked`, e.g. the Evolution Cap) — the
+   *  quick-buy greys out and names it instead of silently refusing. */
+  blocked?: string;
   action: AtlasAction; // the executable payload (UI shows quick-buy only when affordable)
 }
 
@@ -66,11 +69,11 @@ function buyRow(
 ): AtlasSystem {
   const { best, bestAffordable, ranked } = bestPurchase(save, id);
   const pick = bestAffordable ?? best;
-  const readyCount = ranked.filter((c) => c.affordable).length;
+  const readyCount = ranked.filter(canBuyNow).length;
   return {
     id, label, nav, kind: 'buy',
     move: pick
-      ? { label: pick.label, price: pick.buyLabel, powerDelta: pick.powerDelta, affordable: pick.affordable, action: { type: 'purchase', surface: id, id: pick.id } }
+      ? { label: pick.label, price: pick.buyLabel, powerDelta: pick.powerDelta, affordable: pick.affordable, blocked: pick.blocked, action: { type: 'purchase', surface: id, id: pick.id } }
       : null,
     readyCount,
     note: pick ? (readyCount > 0 ? `${readyCount} affordable now` : 'save up — best value shown') : emptyNote,
@@ -94,8 +97,8 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
     move: topPick
       ? { label: `${topPick.unitName} — ${topPick.nodeName}`, price: '1 Antigen pick', powerDelta: topPick.powerDelta, affordable: true, action: { type: 'adapt', subject: topPick.subject, unit: topPick.unit, nodeId: topPick.nodeId } }
       : null,
-    readyCount: freeAntigen,
-    note: freeAntigen > 0 ? `${freeAntigen} free Antigen ready` : 'earn Antigen from Mastery Ranks and the campaign',
+    readyCount: topPick ? freeAntigen : 0, // banked points with no open rung (stage-gated) aren't "ready"
+    note: topPick ? `${freeAntigen} free Antigen ready` : freeAntigen > 0 ? `${freeAntigen} Antigen banked — next rungs open with Campaign progress` : 'earn Antigen from Mastery Ranks and the campaign',
   });
 
   // Equipment — gear comes from drops, but EQUIPPING is a free exact move: the equip advisor
@@ -139,12 +142,17 @@ export function powerAtlas(save: SaveData): PowerAtlasModel {
   // Adaptation Chamber opened, reported 2026-11-06).
   const open = systems.filter((s) => isOpenNav(save, s.nav));
   // Best move now = the biggest AFFORDABLE exact gain anywhere (powerDelta is currency-free,
-  // so cross-system comparison is honest — unlike per-1k value, which stays per-surface).
+  // so cross-system comparison is honest — unlike per-1k value, which stays per-surface). A GATED
+  // move (`blocked`) only takes the headline when nothing actionable is affordable — then the
+  // quick-buy greys out with its reason rather than offering a Buy that does nothing.
   let headline: PowerAtlasModel['headline'] = null;
+  let gated: PowerAtlasModel['headline'] = null;
   for (const sys of open) {
-    if (sys.move && sys.move.affordable && sys.move.powerDelta > 0 && (!headline || sys.move.powerDelta > headline.move.powerDelta)) {
-      headline = { system: sys, move: sys.move };
-    }
+    const m = sys.move;
+    if (!m || !m.affordable || m.powerDelta <= 0) continue;
+    if (m.blocked) { if (!gated || m.powerDelta > gated.move.powerDelta) gated = { system: sys, move: m }; continue; }
+    if (!headline || m.powerDelta > headline.move.powerDelta) headline = { system: sys, move: m };
   }
+  headline ??= gated;
   return { score, slices, systems: open, headline };
 }

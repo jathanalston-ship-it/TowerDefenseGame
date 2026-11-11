@@ -20,7 +20,7 @@ import type { HeroSymbioteRender } from '../render/heroSymbiotes';
 import { activeSets, itemDef } from '../core/equipment';
 import { BRANCH_COLOR } from '../render/towerEvolution';
 import { HEIGHT, WIDTH } from '../core/map';
-import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { ENDLESS_RUN, HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY, motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
@@ -69,7 +69,7 @@ import { Hud } from './Hud';
 import { setInRun, useLayoutProfile } from './layoutProfile';
 import { HeroSelectPanel } from './HeroSelectPanel';
 import { Toolbar } from './Toolbar';
-import { BuildControls } from './BuildControls';
+import { BuildControls, buildConsoleVisible } from './BuildControls';
 import { BuildPanel } from './BuildPanel';
 import { HeroEvolutionPanel } from './HeroEvolutionPanel';
 import { Inspector } from './Inspector';
@@ -301,9 +301,11 @@ export function GameView({
   const pausedRef = useRef(false);
   const [paused, setPaused] = useState(false);
   const [confirmAbandon, setConfirmAbandon] = useState(false); // 2-step guard on the destructive quit
+  const [confirmEarly, setConfirmEarly] = useState(false); // 2-step guard on Infinite's End Early
   const togglePause = useCallback(() => {
     setPaused((p) => { pausedRef.current = !p; return !p; });
     setConfirmAbandon(false); // reset the abandon guard whenever pause toggles
+    setConfirmEarly(false);
   }, []);
   // Browser/Android BACK mid-run opens the Pause sheet instead of leaving (ui/browserBack.ts).
   useEffect(() => runBus.onPause(() => { if (!pausedRef.current) togglePause(); }), [togglePause]);
@@ -648,6 +650,14 @@ export function GameView({
   );
 
   const refresh = (): void => setHud(game.getSnapshot());
+  // HIVE INTELLIGENCE's one press (docs/HIVE-MIND.md) — shared by the build console's dock and the
+  // mid-wave strip button: evaluate every Biomass purchase, execute the best, report on the ticker.
+  const hivePulse = (): void => {
+    audio.resume();
+    const rep = game.hivePulse();
+    if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
+    refresh();
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1201,7 +1211,7 @@ export function GameView({
             refresh();
           }}
         />
-        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
+        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} hive={tutorial ? null : { allowed: automation.allowed, reason: automation.reason ?? '', ready: !!hud.hiveReady, onPulse: hivePulse }} />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
         {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
         {/* FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes): in-run controls teach themselves the first
@@ -1244,16 +1254,13 @@ export function GameView({
         {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): one press evaluates EVERY biomass purchase
             and executes the best ones — glowing whenever something worthwhile is affordable.
             Manual play is untouched; the ticker names each action the hive took. */}
-        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
+        {/* Docked in the build console's automation row while that is up (BuildControls hive) —
+            off the board's top edge at the run's start; the strip carries it mid-wave. */}
+        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && !buildConsoleVisible(hud) && (
           <button
             className={`hive-mind-btn${hud.hiveReady ? ' is-ready' : ''}`}
             disabled={!automation.allowed}
-            onClick={() => {
-              audio.resume();
-              const rep = game.hivePulse();
-              if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
-              refresh();
-            }}
+            onClick={hivePulse}
             title={!automation.allowed
               ? `Hive Intelligence — ${automation.reason}`
               : hud.hiveReady
@@ -1315,7 +1322,23 @@ export function GameView({
                 <span><i>Biomass</i><b>{hud.biomass}</b></span>
                 <span><i>Integrity</i><b>{Math.min(Math.round(hud.integrity), Math.round(hud.maxIntegrity))}/{Math.round(hud.maxIntegrity)}</b></span>
               </div>
-              {confirmAbandon ? (
+              {confirmEarly ? (
+                <>
+                  <div className="pause-warn">
+                    End the run now? You bank <b className="is-keep">{Math.round(ENDLESS_RUN.endEarlyRewardMult * 100)}%</b> of its Genome Cores,
+                    mastery and XP. Containers already filled and records stay yours.
+                  </div>
+                  <div className="pause-row">
+                    <button className="primary" onClick={(e) => {
+                      e.stopPropagation();
+                      if (endedRef.current) return;
+                      endedRef.current = true; // Infinite END EARLY (ENDLESS_RUN): settle now, no outro
+                      onEndRef.current({ wave: game.waveIndex, kills: game.kills, won: false, mastery: game.getMasteryAccrual(), heroMastery: game.getHeroMasteryAccrual(), stats: game.getRunStats(), endless: true, endedEarly: true, durationSec: game.time, doctrine, dailyReplay: packReplay(recorderRef.current, game) });
+                    }}>End &amp; Collect</button>
+                    <button onClick={(e) => { e.stopPropagation(); setConfirmEarly(false); }}>Keep Playing</button>
+                  </div>
+                </>
+              ) : confirmAbandon ? (
                 <>
                   <div className="pause-warn">
                     Abandon the run? You <b>forfeit ALL rewards</b> from this run — no Genome Cores,
@@ -1334,6 +1357,11 @@ export function GameView({
                     <AudioToggles compact />
                     <MotionSettings compact />
                   </div>
+                  {game.mode === 'endless' && !tutorial && (
+                    <button className="pause-early" onClick={(e) => { e.stopPropagation(); setConfirmEarly(true); }} title={`Stop here and bank ${Math.round(ENDLESS_RUN.endEarlyRewardMult * 100)}% of this run's rewards`}>
+                      ⏹ End Early <span>keep {Math.round(ENDLESS_RUN.endEarlyRewardMult * 100)}%</span>
+                    </button>
+                  )}
                   <button className="pause-abandon" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(true); }}>Abandon Run</button>
                   <div className="pause-hint">P or tap outside to resume</div>
                 </>

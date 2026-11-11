@@ -182,6 +182,14 @@ one-click equip in the Armory); the remaining tend-systems (Mulligans, the Archi
 honest status line instead of a fake price. The cross-system **headline** compares raw `powerDelta` of
 affordable picks (currency-free, so the comparison is honest — per-1k value stays per-surface).
 
+**Gated moves (2026-11-11).** A candidate the wallet covers but a gate refuses carries
+`blocked` (today: the Campaign Evolution Cap on tower ★ — `meta.towerStarBlock`, exactly
+`buyStar`'s cap check; `nextStarCost` is the cost ladder only). `canBuyNow(c)` = affordable AND
+unblocked: it picks `bestAffordable`, the atlas `readyCount`, the advisor plan and the Tower Lab
+badge. The headline prefers the biggest ACTIONABLE gain; a gated move takes it only when nothing
+actionable is affordable, and then the quick-buy (Growth panel + BestBuyStrip) greys out with the
+gate as its title — never a Buy that silently does nothing (the playtest report).
+
 `GrowthPanel` (ui/components) renders it as the Command Center's `growth` side organ (gated on
 the towers reveal): Power headline + weekly trend + 30-day sparkline, the BEST MOVE strip, and
 one jump-row per system; the headline carries a quick-buy (`AtlasAction` → purchase / adapt /

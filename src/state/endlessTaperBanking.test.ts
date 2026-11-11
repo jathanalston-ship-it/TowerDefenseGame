@@ -7,7 +7,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { meta } from './meta';
 import type { RunResult } from './meta';
 import { gameEvents } from '../core/events';
-import { HERO_ORDER, TOWER_ORDER, endlessTaper } from '../core/config';
+import { ENDLESS_RUN, HERO_ORDER, TOWER_ORDER, endlessTaper } from '../core/config';
+import { costOf } from '../core/loot';
 import { Rng } from '../core/rng';
 import { defaultLifetimeStats } from '../save/saveStore';
 import type { RunStats } from '../core/types';
@@ -67,11 +68,16 @@ describe('endless taper — live loot banking (syncRunLoot)', () => {
     expect(endless).toBeLessThan(flat); // deep camping banks visibly LESS meter
   });
 
-  it('is byte-identical for SHALLOW endless (≤ startWave) and for non-endless', () => {
-    // Wave 25 sits under ENDLESS_TAPER.startWave, so the endless flag must change nothing there.
-    const flat = freshRun(0x2ea, false, 25, 40);
-    const shallowEndless = freshRun(0x2ea, true, 25, 40); // identical points ⇒ identical container count
-    expect(shallowEndless).toBe(flat);
+  it('SHALLOW endless (≤ startWave) has no taper — only Infinite\'s 1/5 meter pace (ENDLESS_RUN.lootMeterRate)', () => {
+    // Meter points banked = the awarded boxes' costs + the progress left on the meter.
+    const points = (seed: number, endless: boolean): number => {
+      freshRun(seed, endless, 25, 40);
+      return meta.pendingContainers().reduce((a, c) => a + (c.kind === 'loot' ? costOf(c.rarity) : 0), 0) + meta.lootQueue().progress;
+    };
+    const flat = points(0x2ea, false);
+    const shallowEndless = points(0x2ea, true); // wave 25 < ENDLESS_TAPER.startWave ⇒ the rate is the only factor
+    expect(Math.abs(shallowEndless - flat * ENDLESS_RUN.lootMeterRate)).toBeLessThanOrEqual(1);
+    expect(ENDLESS_RUN.lootMeterRate).toBe(0.2); // owner playtest 2026-11-11: Infinite fills containers 1/5 as fast
   });
 
   it('within a wave, banking is monotonic as kills climb (no negative delta)', () => {
@@ -101,6 +107,40 @@ describe('endless taper — run-end Mastery XP (finishRun)', () => {
       const deep = meta.finishRun(endlessResult(50, 400)).mastery[TOWER_ORDER[0]].xpGained; // taper < 1
       expect(deep).toBeLessThan(shallow);
       expect(deep / shallow).toBeCloseTo(endlessTaper(50), 2); // exactly the per-wave taper at the final wave
+    } finally { restore(); }
+  });
+});
+
+describe('Infinite END EARLY (finishRun, ENDLESS_RUN.endEarlyRewardMult)', () => {
+  afterEach(() => meta.reset());
+
+  it('settles the run\'s income at 60 %: Genome Cores and Mastery XP (deeds — contracts, hunts — pay in full)', () => {
+    const restore = seedRandom(0x5e1);
+    try {
+      const settle = (kills: number, endedEarly: boolean) => { meta.reset(); return meta.finishRun({ ...endlessResult(30, kills), endedEarly }); };
+      const full = settle(400, false);
+      const early = settle(400, true);
+      const k = TOWER_ORDER[0];
+      expect(early.mastery[k].xpGained / full.mastery[k].xpGained).toBeCloseTo(ENDLESS_RUN.endEarlyRewardMult, 2);
+      expect(early.reward.shardsEarned).toBeLessThan(full.reward.shardsEarned);
+      // Flat deed payouts are identical in both settles, so the kill-driven INCOME slope isolates the scalar.
+      const fullSlope = settle(1200, false).reward.shardsEarned - full.reward.shardsEarned;
+      const earlySlope = settle(1200, true).reward.shardsEarned - early.reward.shardsEarned;
+      expect(fullSlope).toBeGreaterThan(0);
+      expect(earlySlope / fullSlope).toBeCloseTo(ENDLESS_RUN.endEarlyRewardMult, 1);
+    } finally { restore(); }
+  });
+
+  it('is ignored outside Infinite (a non-endless result with the flag pays in full)', () => {
+    const restore = seedRandom(0x5e2);
+    try {
+      meta.reset();
+      const base = { ...endlessResult(10, 200), endless: false };
+      const full = meta.finishRun(base);
+      meta.reset();
+      const flagged = meta.finishRun({ ...base, endedEarly: true });
+      expect(flagged.reward.shardsEarned).toBe(full.reward.shardsEarned);
+      expect(flagged.mastery[TOWER_ORDER[0]].xpGained).toBe(full.mastery[TOWER_ORDER[0]].xpGained);
     } finally { restore(); }
   });
 });

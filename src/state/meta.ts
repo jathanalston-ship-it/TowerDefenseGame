@@ -23,7 +23,7 @@ import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnloc
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, campaignSurveyBonus, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, chestForWave, endlessLootTaper, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, campaignSurveyBonus, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, nextEvolutionUnlock, chestForWave, endlessLootTaper, ENDLESS_RUN, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { flashOverview, flashPopupCandidate, flashStatus } from './flashOffers';
@@ -1407,6 +1407,18 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
 }
 
+/** The gate a wallet can't buy past on the next ★ — the Campaign Evolution Cap — as a short reason,
+ *  or null when only Strain Samples stand in the way. EXACTLY buyStar's cap check, readable by the
+ *  advisors and the Tower Lab badge (an "affordable" capped star is not a decision — owner playtest
+ *  2026-11-11: the hub offered capped stars as the best move and the Buy did nothing). */
+export function towerStarBlock(save: SaveData, kind: TowerKind): string | null {
+  const stars = save.towerStars[kind] ?? 0;
+  const cap = evolutionStarCap(save);
+  if (stars >= STAR.maxTowerStars || stars < cap) return null;
+  const next = nextEvolutionUnlock(cap);
+  return next ? `Evolution Cap ◈${cap} — clear Stage ${next.stage}` : `Evolution Cap ◈${cap}`;
+}
+
 /** The next PRIME level's price (docs/PRIME-STRAINS.md), or null while the ★ ladder is
  *  unfinished — Prime is the CONTINUATION of the star seam, never a bypass. */
 export interface PrimeQuote { toLevel: number; shards: number; catalyst: number }
@@ -1872,6 +1884,7 @@ export interface RunResult {
   campaignStage?: number; // the stage number played (winning it unlocks the next)
   difficulty?: string; // the difficulty variant id (the per-difficulty campaign track)
   rewardMult?: number; // stage reward multiplier → scales end-of-run shards + loot quality
+  endedEarly?: boolean; // Infinite END EARLY (pause menu): settles now at ENDLESS_RUN.endEarlyRewardMult of the run's income
   durationSec?: number; // run length (sim seconds) — drives the campaign fastest-clear ledger
   doctrine?: string; // the run's doctrine — protocols pay run-end rewards (docs/MODE-IDENTITY.md §doctrines)
   threat?: number; // THREAT LADDER level (docs/THREAT.md) — set by App on Campaign replays / Infinite / Boss Rush; ignored elsewhere
@@ -2737,6 +2750,10 @@ export const meta = {
     const econDiff = economyFor(result.difficulty);
     // Infinite core reward = the difficulty scalar × the Ascendant Infinity bonus (×1 without it).
     const endlessRewardMult = result.endless ? econDiff.rewardMult * asc.endlessBonusMult : 1;
+    // Infinite END EARLY (pause menu): the run's own income — Cores, mastery XP, play XP and the loot
+    // meter — settles at 60 %. Records, contracts, hunts and the run cache are deeds, not income: they
+    // pay in full (the depth reached is real). ×1 for every run that played out.
+    const earlyMult = result.endless && result.endedEarly ? ENDLESS_RUN.endEarlyRewardMult : 1;
 
     // Mode reward identity (docs/MODE-IDENTITY.md): Campaign pays the account currency (most on a
     // FIRST clear) + first-clear bonuses; Infinite pays the loot meter + a mastery bonus; Stage (the
@@ -2764,7 +2781,7 @@ export const meta = {
       researchBoost.heroXpMult *= b.heroXpMult ?? 1;
       researchBoost.coresMult *= b.coresMult ?? 1;
     }
-    const xpMults = { tower: xpMultsRaw.tower * masteryTaper * researchBoost.towerXpMult, hero: xpMultsRaw.hero * masteryTaper * researchBoost.heroXpMult };
+    const xpMults = { tower: xpMultsRaw.tower * masteryTaper * researchBoost.towerXpMult * earlyMult, hero: xpMultsRaw.hero * masteryTaper * researchBoost.heroXpMult * earlyMult };
     // One-time discovery payout on a brand-new stage clear (+ the Sector Survey drip — the
     // old every-5th milestone lump paid evenly per stage, docs/REWARD-ARCHITECTURE.md).
     const firstClearBonus = firstClear
@@ -2928,6 +2945,7 @@ export const meta = {
       modeCoreMult: coreMult,
       doctrineRewardMult: docEcon.rewardMult,
       threatRewardMult: threatEcon.rewardMult,
+      endEarlyMult: earlyMult,
       adaptive,
     }).total() * researchBoost.coresMult
       // LiveOps spotlight weeks: the live mode's lane gets its window multiplier.
@@ -3001,6 +3019,8 @@ export const meta = {
       // Infinite depth-camping taper (docs/MODE-IDENTITY.md §anti-grind) — same curve as the live
       // meter, keyed on result.wave so run-end and live banking agree. Identity for non-endless.
       endlessTaperMult: result.endless ? endlessLootTaper(result.wave) : 1,
+      endlessMeterRate: result.endless ? ENDLESS_RUN.lootMeterRate : 1, // Infinite fills containers at 1/5 pace — the live meter folds the same rate
+      endEarlyMult: earlyMult,
       threatRewardMult: threatEcon.rewardMult, // Threat ladder (identity at Threat 0)
       adaptive, // the same seam as cores — behind-the-bar accounts fill containers faster
     }).total()) + rushLootBonus;
@@ -3190,7 +3210,7 @@ export const meta = {
     // scales with the account's depth at run start (§depth); contract bonuses stay flat — their
     // ContractsCard previews quote the table value (previews == outcomes).
     const depthMult = depthXpMult(accountDepth(highestCampaignStage(save), save.bestWave));
-    const playXp =
+    const playXp = earlyMult * (
       result.kills * ACCOUNT_XP.kill +
         bossKills * ACCOUNT_XP.bossKill +
         (result.stats.megaKills?.length ?? 0) * ACCOUNT_XP.megaKill +
@@ -3198,7 +3218,7 @@ export const meta = {
         (isRush ? result.wave * ACCOUNT_XP.bossRushWavePremium : 0) +
         (result.won ? ACCOUNT_XP.win : 0) +
         (isCampaign && result.won ? stageNo * ACCOUNT_XP.campaignClearPerStage + (firstClear ? ACCOUNT_XP.campaignFirstClear : 0) : 0) +
-        (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0);
+        (isDaily && result.won ? ACCOUNT_XP.dailyComplete : 0));
     const flatXp = contractHits.length * ACCOUNT_XP.contract + (perfectWeek ? ACCOUNT_XP.perfectWeek : 0);
     const runXp = playXp * depthMult + flatXp;
     const periodXp = playXp + flatXp; // the weekly/monthly boards count activity, before the depth multiplier
@@ -3432,7 +3452,7 @@ export const meta = {
     // falling toward its floor — so per-wave banking shrinks the deeper you camp and depth-camping
     // can't out-earn re-running. Non-endless callers pass 1 ⇒ byte-identical (the conservation test
     // + every other mode are unchanged). Monotonic: the delta guard below is a high-water mark.
-    const taper = endless ? endlessLootTaper(wave) : 1;
+    const taper = endless ? endlessLootTaper(wave) * ENDLESS_RUN.lootMeterRate : 1; // + Infinite's 1/5 meter pace (same factor as the settle)
     const total = Math.floor(Math.max(0, wave * LOOT_EARN.pointsPerWave + kills * LOOT_EARN.pointsPerKill) * taper * asc.lootGainMult);
     if (total < runLootBanked) { runLootBanked = 0; runContainersBanked = []; } // a new run began → fresh cycle
     const delta = total - runLootBanked;

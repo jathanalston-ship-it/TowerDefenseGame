@@ -84,12 +84,17 @@ export function GrowthPanel({ save, go }: { save: SaveData; go: (nav: string) =>
           </button>
           {/* Quick-buy: executes the move in place (same guarded action the wing calls); the
               atlas recomputes on the save change, so the NEXT best move slides in. */}
+          {/* A GATED best move (affordable, but e.g. past the Evolution Cap) greys out and names
+              its gate — a Buy that silently did nothing was the 2026-11-11 playtest report. */}
           <button
-            className="gp-buy"
-            title={`${ACTION_VERB[atlas.headline.move.action.type]} now — ${atlas.headline.move.price}`}
+            className={`gp-buy${atlas.headline.move.blocked ? ' is-blocked' : ''}`}
+            disabled={!!atlas.headline.move.blocked}
+            title={atlas.headline.move.blocked
+              ? `🔒 ${atlas.headline.move.blocked}`
+              : `${ACTION_VERB[atlas.headline.move.action.type]} now — ${atlas.headline.move.price}`}
             onClick={() => { if (runAtlasAction(atlas.headline!.move.action)) audio.cue('ui'); }}
           >
-            {ACTION_VERB[atlas.headline.move.action.type]}
+            {atlas.headline.move.blocked ? '🔒' : ACTION_VERB[atlas.headline.move.action.type]}
           </button>
         </div>
       )}

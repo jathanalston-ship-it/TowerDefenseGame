@@ -21,7 +21,7 @@ import { geneArchiveRows } from './geneArchive';
 import { HIVE_ORGANS, hiveCost } from '../core/hiveOrgans';
 import { labEra, labScore } from '../ui/homeBaseTiers';
 import { sumValues } from '../core/math';
-import { adaptationView, isHeroUnlocked, isTowerUnlocked, nextStarCost } from './meta';
+import { adaptationView, isHeroUnlocked, isTowerUnlocked, nextStarCost, towerStarBlock } from './meta';
 import { HERO_ORDER, IDLE, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { marketWindow } from '../core/market';
 import { dailyKey } from '../core/daily';
@@ -159,7 +159,9 @@ registerNotification({
         return n + ((s.towerShards[k] ?? 0) >= unlock ? 1 : 0); // synthesis ready
       }
       const cost = nextStarCost(s, k);
-      return n + (cost !== null && (s.towerShards[k] ?? 0) >= cost ? 1 : 0);
+      // Capped by the Campaign Evolution Cap ⇒ not a decision yet (buyStar refuses it), however
+      // many Strain Samples are banked — owner playtest 2026-11-11.
+      return n + (cost !== null && (s.towerShards[k] ?? 0) >= cost && !towerStarBlock(s, k) ? 1 : 0);
     }, 0),
   reason: (_s, n) => `${n} tower Star${n === 1 ? '' : 's'} affordable`,
 });
@@ -187,8 +189,11 @@ registerNotification({
   channel: 'adaptation',
   count: memoPerSave((s) => { // pure over the save — memoized per snapshot (an adaptationView per unit)
     let n = 0;
-    for (const k of TOWER_ORDER) if (isTowerUnlocked(s, k) && adaptationView(s, 'tower', k).pointsAvailable > 0) n++;
-    for (const h of HERO_ORDER) if (isHeroUnlocked(s, h) && adaptationView(s, 'hero', h).pointsAvailable > 0) n++;
+    // Free points AND a node they can buy now — points with every open rung taken (the rest gated
+    // by Campaign stage) are not a decision (owner playtest 2026-11-11: no badge you can't act on).
+    const spendable = (v: ReturnType<typeof adaptationView>): boolean => v.pointsAvailable > 0 && v.nodes.some((x) => !x.chosen && x.canPick);
+    for (const k of TOWER_ORDER) if (isTowerUnlocked(s, k) && spendable(adaptationView(s, 'tower', k))) n++;
+    for (const h of HERO_ORDER) if (isHeroUnlocked(s, h) && spendable(adaptationView(s, 'hero', h))) n++;
     return n;
   }),
   reason: (_s, n) => `${n} unit${n === 1 ? '' : 's'} holding unspent Antigen`,

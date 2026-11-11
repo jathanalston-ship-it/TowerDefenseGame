@@ -13,7 +13,7 @@ import { DIFFICULTIES, DIFFICULTY_IDS, resolveDifficulty } from '../core/difficu
 import { DOCTRINES } from '../core/doctrines';
 import { DoctrinePicker } from './components/DoctrinePicker';
 import { BIOMES } from '../core/biomes';
-import { DIRECTOR, ENDLESS, ENDLESS_TAPER, endlessTaper } from '../core/config';
+import { DIRECTOR, ENDLESS, ENDLESS_RUN, ENDLESS_TAPER, endlessTaper } from '../core/config';
 import { createDirector, doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
@@ -185,7 +185,8 @@ export function InfiniteScreen({
           without end. Biomes rotate as you descend; assembled bosses anchor the cadence. The home of{' '}
           <b style={{ color: 'var(--viral)' }}>Mastery XP</b> and the{' '}
           <b style={{ color: 'var(--gold)' }}>Loot Box Meter</b>. When the deep waves stop paying,
-          bank the run and spend the power on the Campaign frontier.
+          bank the run and spend the power on the Campaign frontier: <b style={{ color: 'var(--gold)' }}>⏹ End Early</b>{' '}
+          in the pause menu settles it at {Math.round(ENDLESS_RUN.endEarlyRewardMult * 100)}%.
         </div>
       </aside>
     </div>

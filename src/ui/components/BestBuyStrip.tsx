@@ -25,12 +25,14 @@ export function BestBuyStrip({ surface }: { surface: PurchaseSurface }): JSX.Ele
       <span className="bbs-k">⚡ BEST VALUE</span>
       <span className="bbs-pick">
         <b>{pick.label}</b> — +{fmt(pick.powerDelta)} Power for {pick.buyLabel}
-        {!pick.affordable && <i className="bbs-save"> · save up</i>}
+        {pick.blocked ? <i className="bbs-save"> · 🔒 {pick.blocked}</i> : !pick.affordable && <i className="bbs-save"> · save up</i>}
       </span>
       {pick.affordable && (
+        // Gated (e.g. the Evolution Cap): the Buy greys out instead of silently refusing.
         <button
-          className="bbs-buy"
-          title={`Buy ${pick.label} — ${pick.buyLabel} (+${fmt(pick.powerDelta)} Power)`}
+          className={`bbs-buy${pick.blocked ? ' is-blocked' : ''}`}
+          disabled={!!pick.blocked}
+          title={pick.blocked ? `🔒 ${pick.blocked}` : `Buy ${pick.label} — ${pick.buyLabel} (+${fmt(pick.powerDelta)} Power)`}
           onClick={() => { if (executePurchase(surface, pick.id)) audio.cue('ui'); }}
         >
           Buy

@@ -19,18 +19,24 @@ export const POSTS: BlogPost[] = [
   {
     slug: 'a-lighter-hub',
     date: '2026-11-11',
-    title: 'A lighter hub: fewer words, more buttons',
+    title: 'Playtest fixes: a lighter hub, End Early and quieter notifications',
     category: 'Tech',
-    tags: ['hub', 'performance', 'ui'],
-    summary: 'A playtest pass on the hub. Buy best-upgrade no longer freezes the screen, and the hub, the unlock card and the update briefing trade paragraphs for icons and tiles.',
+    tags: ['hub', 'performance', 'ui', 'infinite'],
+    summary: 'A playtest pass. Buy best-upgrade no longer freezes the screen, the hub trades paragraphs for icons and tiles, notifications only point at things you can do, and Infinite gets an End Early option.',
     body: `
-<p>A recent playtest went well, and it turned up three things worth fixing straight away. All three are in this update.</p>
+<p>A recent playtest went well, and it turned up a list of things worth fixing straight away. All of them are in this update.</p>
 <h2>The quick-buy no longer stalls</h2>
 <p>Pressing <b>Buy</b> on the hub's best upgrade used to freeze everything for about half a second. Every panel on the screen was redoing the same Power maths for the new purchase, and some did it more than once. Each answer is now worked out once and shared. A purchase does about five times less work, and the screen responds to your click first while the advice panels catch up a moment later.</p>
 <h2>Unlock cards you can read at a glance</h2>
 <p>When you reach a new system, its card is now a big icon, a name and one line about what it does, with buttons to go there or carry on. The full explanation is still there under <b>Details</b>, and in Help, for anyone who wants it.</p>
 <h2>A hub that looks like a game</h2>
 <p>The things you can do right now are big icon tiles instead of sentences: each one shows the screen's icon, how many things are waiting there and what pressing it does (claim, upgrade, open). Your headline stats carry icons, Growth shows each system's Power gain as <b>+N ⚡</b>, and the update briefing shows the three biggest changes as tiles with a link to the full notes. The longer explanations haven't gone anywhere. Hover a tile or row, or read it with a screen reader, to see them.</p>
+<h2>Notifications you can act on</h2>
+<p>A badge now means there is something you can actually do. Tower Stars past your Evolution Cap no longer light up the Tower Lab however many Strain Samples you hold, Antigen only badges when there is a rung you can buy, and the hub stopped showing "almost unlocked" tiles for systems you can't reach yet. The Best Move button follows the same rule: it skips upgrades you can afford but can't take yet. If that's all you have, it greys out and tells you what's in the way.</p>
+<h2>End Early in Infinite</h2>
+<p>A deep Infinite run used to end only when your Core fell. Now you can pause and choose <b>End Early</b> to bank the run right away at <b>60%</b> of its Genome Cores, mastery and XP. Depth records, contracts and any containers you already filled pay in full. Infinite also fills Bio-Containers at a fifth of its old pace, so a long farm no longer outpaces every other way of earning them.</p>
+<h2>Small things</h2>
+<p>The post-run summary's Continue button stays in one place while your rewards reveal. And at the start of each wave, Hive Intelligence now sits on the build console with Auto Wave and Auto Gene instead of on the edge of the battlefield.</p>
 `,
   },
   {

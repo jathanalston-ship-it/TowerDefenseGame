@@ -229,7 +229,13 @@
    row rests on the viewport's bottom edge and the PAGE itself never scrolls (phones included). */
 .results-screen > .rr-capsule {
   max-height: calc(var(--app-h) - clamp(16px, 5vh, 56px) - 16px);
+  /* LOCKED ACTION ROW (owner playtest 2026-11-11): the capsule is a FIXED height, not a content-sized
+     one, so the reveal can add categories, a debrief, achievements and the cliffhanger without the
+     Continue row riding the content's edge — it rests on the capsule's bottom from the first frame. */
+  height: calc(var(--app-h) - clamp(16px, 5vh, 56px) - 16px);
 }
+
+.results-screen > .rr-capsule > .rr-actions { margin-top: auto; }
 
 .rr-title { animation: rr-title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
@@ -378,6 +384,7 @@
 .rr-cliff-slot:has(> .threat-result) { flex-wrap: wrap; }
 
 .rr-doctrine { margin-top: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--viral); opacity: 0.9; }
+.rr-early { margin-top: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
 
 .rr-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
 
@@ -409,10 +416,17 @@
 
 .rr-btn.rr-continue { min-width: 0; }
 
+/* Continue keeps ONE slot — last in the row, right-aligned — so Replay / the next stage appear
+   BESIDE it (the boon choice already takes its own line above) instead of re-centering it. */
+.results-screen .rr-actions { justify-content: flex-end; }
+
+.results-screen .rr-actions .rr-continue { order: 9; }
+
 @media (max-width: 480px) {
   .rr-skip { top: 0; padding: 3px 10px; } /* clear of the verdict headline on a phone-width capsule */
   .rr-actions { gap: 8px; }
   .rr-next, .rr-continue { min-width: 0; flex: 1 1 auto; }
+  .results-screen .rr-actions .rr-continue { flex: 0 0 auto; min-width: 120px; } /* a fixed slot on phones too */
 }
 
 /* ── #288 VISUAL OVERHAULS: end-of-run Results + the Genetic Vault (pure CSS layers) ─────

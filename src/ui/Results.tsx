@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import { meta } from '../state/meta';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
-import { DEBRIEF, MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
+import { DEBRIEF, ENDLESS_RUN, MASTERY, HERO_DEFS, HERO_ORDER, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { DOCTRINES } from '../core/doctrines';
 import { recommendedPowerScore } from '../core/campaign';
 import { MEGA_HUNT } from '../core/megaboss';
@@ -573,11 +573,12 @@ export function Results({
   const doc = result.doctrine && result.doctrine !== 'none' ? DOCTRINES[result.doctrine] : null;
   const title = (
     <div className={`rr-title ${result.won ? 'win' : 'lose'}`}>
-      <div className="rr-eyebrow">{result.won ? 'RUN COMPLETE' : 'RUN ENDED'}</div>
+      <div className="rr-eyebrow">{result.won ? 'RUN COMPLETE' : result.endedEarly ? 'ENDED EARLY' : 'RUN ENDED'}</div>
       <div className="rr-headline">
         {result.endless ? `DEPTH ${result.wave} REACHED` : result.won ? 'EXTRACTION COMPLETE' : 'NUCLEUS LOST'}
       </div>
       {doc && <div className="rr-doctrine" title={doc.blurb}>{doc.icon} {doc.name}</div>}
+      {result.endedEarly && <div className="rr-early" title="You ended this Infinite run from the pause menu">⏹ {Math.round(ENDLESS_RUN.endEarlyRewardMult * 100)}% rewards</div>}
       <AutoClaimSummary settle={result} />
     </div>
   );

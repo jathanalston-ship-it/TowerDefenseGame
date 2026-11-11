@@ -81,6 +81,22 @@ Identity (×1) at/below wave 30 ⇒ shallow Infinite and **every other mode are 
 Rush reward lanes and `INFINITE_REWARD_QUALIFY_FRAC` are untouched. Net: past the wall a run still
 pays, but re-running from the top out-earns camping ever deeper.
 
+### §pace — Infinite's container pace + End Early (owner playtest 2026-11-11)
+
+`config.ENDLESS_RUN` holds the two Infinite-only run levers:
+
+- **`lootMeterRate: 0.2`** — Infinite fills the Bio-Container meter at **1/5** the pace. One factor
+  on BOTH paths: live banking (`syncRunLoot`: `endlessLootTaper(wave) × lootMeterRate`) and the
+  run-end settle (`lootPointIncome` factor `endless.meterRate`), so the live meter and the settle
+  still agree. The taper above stacks on top. Every other mode is unchanged (×1).
+- **`endEarlyRewardMult: 0.6`** — **End Early** (pause menu, Infinite only — `GameView`
+  `.pause-early`, a two-step confirm) settles the run NOW with `RunResult.endedEarly`: the run's
+  INCOME — Genome Cores (`coreShardIncome` factor `endless.endEarly`), Mastery XP, play Account XP
+  and the loot-meter remainder — pays at 60 %. DEEDS pay in full: depth records (+ their Ichor),
+  contracts, hunts and the run cache (the depth reached is real; the qualify gate still applies).
+  Containers already banked live stay banked. Results reads "ENDED EARLY · 60% rewards". The flag
+  is ignored outside Infinite (tested). Abandon still forfeits everything.
+
 ---
 
 ## 3. Campaign World Map — a living, infected planet

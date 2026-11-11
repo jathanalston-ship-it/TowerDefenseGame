@@ -12,7 +12,7 @@
 // the Advisor never promises Power the player cannot bank right now.
 
 import type { SaveData } from '../save/saveStore';
-import { bestPurchase } from './bestPurchase';
+import { bestPurchase, canBuyNow } from './bestPurchase';
 import type { PurchaseSurface } from './bestPurchase';
 import { adaptationPicks } from './adaptationAdvisor';
 import { equipUpgrades } from './equipAdvisor';
@@ -59,8 +59,8 @@ export function advisorPlan(save: SaveData, k = 5): AdvisorPlan {
         label: c.label, system, nav, price: c.buyLabel, powerDelta: c.powerDelta,
         affordable: c.affordable, action: { type: 'purchase', surface, id: c.id },
       };
-      if (c.affordable) affordable.push(move);
-      else if (!saveUp || c.powerDelta > saveUp.powerDelta) saveUp = move;
+      if (canBuyNow(c)) affordable.push(move);
+      else if (!c.blocked && (!saveUp || c.powerDelta > saveUp.powerDelta)) saveUp = move; // a gated move is no save-up target
     }
   }
   for (const p of isOpenNav(save, 'adaptation') ? adaptationPicks(save, k) : []) {

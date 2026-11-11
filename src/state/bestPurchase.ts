@@ -16,7 +16,7 @@ import { memoPerSaveKeyed } from './saveMemo';
 import { geneArchiveRows } from './geneArchive';
 import { HERO_DEFS, HERO_ORDER, META_UPGRADES, STAR, TOWER_DEFS, TOWER_ORDER } from '../core/config';
 import { primeCatalystCost, primeCost } from '../core/prime';
-import { heroStarCost, isHeroUnlocked, isTowerUnlocked, meta, nextStarCost, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
+import { heroStarCost, isHeroUnlocked, isTowerUnlocked, meta, nextStarCost, towerStarBlock, upgradeCost, upgradeLevel, upgradeUnlocked } from './meta';
 
 export type PurchaseSurface = 'genes' | 'evolution' | 'towers' | 'heroes';
 
@@ -26,7 +26,10 @@ export interface PurchaseCandidate {
   label: string; // player-facing "what"
   buyLabel: string; // player-facing "for how much" (currency-aware)
   cost: number;
-  affordable: boolean; // wallet covers it right now (gates already filtered out)
+  affordable: boolean; // wallet covers it right now
+  /** A gate the wallet can't buy past (the Campaign Evolution Cap on tower ★) — the guarded action
+   *  refuses it until the gate clears, so it is never "ready" and never the quick-buy pick. */
+  blocked?: string;
   powerDelta: number; // EXACT Power gained by this single purchase
   valuePer1k: number; // powerDelta per 1000 currency — the per-surface ranking key
 }
@@ -75,13 +78,14 @@ function computeCandidates(save: SaveData, surface: PurchaseSurface): PurchaseCa
   } else if (surface === 'towers') {
     for (const k of TOWER_ORDER) {
       if (!isTowerUnlocked(save, k)) continue;
-      const cost = nextStarCost(save, k); // null = maxed or campaign-capped
+      const cost = nextStarCost(save, k); // null = maxed (the Evolution Cap rides `blocked`)
       if (cost !== null) {
         const stars = save.towerStars[k] ?? 0;
         const delta = score({ ...save, towerStars: { ...save.towerStars, [k]: stars + 1 } });
         out.push({
           surface, id: k, label: `${TOWER_DEFS[k].name} ◈${stars + 1}`,
           buyLabel: `${cost} Strain Samples`, cost, affordable: (save.towerShards[k] ?? 0) >= cost,
+          blocked: towerStarBlock(save, k) ?? undefined,
           powerDelta: delta, valuePer1k: cost > 0 ? (delta / cost) * 1000 : 0,
         });
       } else if ((save.towerStars[k] ?? 0) >= STAR.maxTowerStars) {
@@ -144,7 +148,13 @@ export function executePurchase(surface: PurchaseSurface, id: string): boolean {
   }
 }
 
-/** The surface's headline: best value overall + best you can afford RIGHT NOW (often the same). */
+/** A candidate the player can act on right now: wallet covers it AND no gate refuses it. */
+export function canBuyNow(c: PurchaseCandidate): boolean {
+  return c.affordable && !c.blocked;
+}
+
+/** The surface's headline: best value overall + best you can buy RIGHT NOW (often the same). A
+ *  gated pick (`blocked`) is never the buyable one — the surfaces grey it out with its reason. */
 export function bestPurchase(save: SaveData, surface: PurchaseSurface): {
   best: PurchaseCandidate | null;
   bestAffordable: PurchaseCandidate | null;
@@ -153,7 +163,7 @@ export function bestPurchase(save: SaveData, surface: PurchaseSurface): {
   const ranked = purchaseCandidates(save, surface).filter((c) => c.powerDelta > 0);
   return {
     best: ranked[0] ?? null,
-    bestAffordable: ranked.find((c) => c.affordable) ?? null,
+    bestAffordable: ranked.find(canBuyNow) ?? null,
     ranked,
   };
 }

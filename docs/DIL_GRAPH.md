@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 1002 nodes · 1955 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1002 nodes · 1957 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -208,6 +208,7 @@ graph LR
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_living_battlefield["Living Battlefield"] -->|consumes| system_biomes["Biomes"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
+  system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
 ```
 
 ### Power Score Map
@@ -675,6 +676,7 @@ graph LR
   system_towers["Towers, Stars, Branches, Strain & Codex"] -->|modifies| system_difficulty["Difficulty"]
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
+  system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
 ```
 
 ## Concepts (8)
@@ -1046,6 +1048,7 @@ _at: src/ui/InfiniteScreen.tsx_
   - consumes → `system:meta-store` — owns save field 'bestWave'
   - rewards → `currency:genome-cores` — depth records + chest tiers
   - consumes → `system:map-layouts` — layoutIdForDepth: biome period 0 = classic, then registry order per BIOME_PERIOD; switched at wave start (field clear). Arena runs endless rules ⇒ rotates too (both sides share the seed ⇒ fair)
+  - modifies → `system:loot` — INFINITE PACE (config.ENDLESS_RUN, MODE-IDENTITY.md §pace): lootMeterRate 0.2 folds into BOTH the live meter (syncRunLoot taper × rate) and the settle (lootPointIncome endless.meterRate) — change one path, change both. END EARLY (RunResult.endedEarly, pause menu) pays endEarlyRewardMult 0.6 on run INCOME (cores/XP/play XP/meter remainder); deeds (records, contracts, hunts, run cache) pay in full.
   - requiredBy ← `system:threat`
   - taughtBy ← `help:infinite`
   - documentedBy ← `doc:ENDLESS-SCALING.md`
@@ -1341,7 +1344,7 @@ _at: src/core/stars.ts, src/core/branches.ts, src/core/branchTree.ts, src/core/s
   - contains ← `tower:parasite`
   - contains ← `tower:obelisk`
   - contains ← `tower:maw`
-  - _…48 more (query: `npm run dil -- node system:towers`)_
+  - _…49 more (query: `npm run dil -- node system:towers`)_
 
 ### `system:mastery` — Mastery / Adaptation
 
@@ -1495,7 +1498,7 @@ _at: src/core/loot.ts, src/core/lootQueue.ts, src/core/progressionLoot.ts, src/s
   - documentedBy ← `doc:LOOT-PROGRESSION.md`
   - documentedBy ← `doc:REWARD-PRESENTATION.md`
   - testedBy ← `test:src/core/loot.test.ts`
-  - _…7 more (query: `npm run dil -- node system:loot`)_
+  - _…8 more (query: `npm run dil -- node system:loot`)_
 
 ### `system:gene-cards` — Gene Cards (draft + permanent evolution)
 
@@ -2340,6 +2343,7 @@ _at: src/state/notifications.ts, src/state/notificationSources.ts, src/state/rew
   - modifies → `system:hub-shell` — READY CHAIN (state/readyChain.ts — docs/HUB-FLOW.md): the hub's live harvest queue derives from notifications.live() (NO seen-watermark — badges/reasons stay the attention lane, the chain is the truth lane; a visited-but-unclaimed reward must never go dark) classified by the SAME exported CHANNEL_CLASS claim/open vocabulary as recommendations. Surfaces: Command Center centerpiece leads the recommend widget, hub doors + landing cards + portrait tabs/rows pulse via chainNavs() (readiness BREATHES via .is-ready, novelty stays the numeric badge), NextUp hands node→node with the remaining count before falling back to rotated recommendations. A future claim surface joins by registering a notification source — no chain wiring.
   - modifies → `system:run-ui` — AUTO-CLAIM (state/autoClaim.ts, NOTIFICATIONS.md §auto-claim): Results mounts AutoClaimSummary once per result (WeakMap settle-once) → quest missions / pass levels / metabolism tiers / evolution-track nodes on REVEALED systems claim inside rewardToast.capture() and read back as ONE "Also earned" row; finales + EVOLVE stay manual; tier-3 rewards still toast; prefs.autoClaimPref (Settings) switches it off
   - provides → `system:hub-shell` — THE CLAIM POPUP (2026-07, NOTIFICATIONS.md §claim-popups): every hub claim — quest missions/finales, pass levels/claim-all/premium unlock, weekly directives, wardrobe milestones — pushes its PremiumReceiptLine[] to state/rewardToast; ONE RewardToaster (App, menu only) presents it bold + itemized. The "view it" jump derives from receipt ICONS (single-sourced in meta.applyRewardList/rewardLabel — change an icon there and update rewardToast DESTINATIONS) and routes via navBus. Ceremonial reveals (BioCache, VaultReveal, WardrobeReveal, PremiumStore, SpoilsCard, GenomePromotion) deliberately stay bespoke — the popup is the RECEIPT layer, not the ceremony layer
+  - conflictsWith → `system:towers` — ACT-ONLY BADGES + GATED MOVES (2026-11-11, BUGFIX #131): nextStarCost is the COST LADDER only — the Campaign Evolution Cap lives in buyStar. Anything that calls a ★ "affordable" (towers.stars badge, bestPurchase → canBuyNow, ProgressDashboard) must also read meta.towerStarBlock, or a capped star badges and the Best Move Buy silently refuses. A new gate on a buy action ⇒ surface it as PurchaseCandidate.blocked.
   - requiredBy ← `system:metabolism`
   - requiredBy ← `system:hub-shell`
   - taughtBy ← `help:hive-intel`

@@ -32,12 +32,27 @@ function roleTag(def: EnemyDef): string | null {
   return null;
 }
 
+/** The build console is up: prep, with a next wave to launch. GameView reads the same rule to
+ *  dock Hive Intelligence here instead of on the board's top edge (owner playtest 2026-11-11). */
+export function buildConsoleVisible(hud: HudSnapshot): boolean {
+  return hud.phase === 'prep' && (hud.endless || hud.bossRush || hud.wave < hud.totalWaves);
+}
+
+/** Hive Intelligence's one-press purchase pass, docked in the console's automation row. */
+export interface HiveDock {
+  allowed: boolean;
+  reason: string;
+  ready: boolean;
+  onPulse: () => void;
+}
+
 export function BuildControls({
   game,
   hud,
   refresh,
   tutorialLock = false,
   autoGeneLock = null,
+  hive = null,
 }: {
   game: Game;
   hud: HudSnapshot;
@@ -48,8 +63,10 @@ export function BuildControls({
   /** THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): non-null ⇒ Auto Gene is off for this
    *  run (frontier content) and this is the reason shown. Auto Wave is never gated. */
   autoGeneLock?: string | null;
+  /** Hive Intelligence in the automation row (null ⇒ not offered, e.g. the tutorial). */
+  hive?: HiveDock | null;
 }): JSX.Element {
-  const visible = hud.phase === 'prep' && (hud.endless || hud.bossRush || hud.wave < hud.totalWaves);
+  const visible = buildConsoleVisible(hud);
   // The preview only changes per wave — memo it so the ~10 Hz HUD refresh never re-aggregates.
   const preview = useMemo(
     () => (visible ? game.getNextWavePreview() : null),
@@ -210,6 +227,25 @@ export function BuildControls({
               ◆ Auto Gene
               <b>{autoGeneLock ? 'LOCKED' : autoGene ? 'ON' : 'OFF'}</b>
             </button>
+            {hive && (
+              <button
+                type="button"
+                className={`auto-btn hive-dock${hive.allowed && hive.ready ? ' is-ready' : ''}`}
+                tabIndex={visible ? 0 : -1}
+                disabled={!hive.allowed}
+                aria-label={!hive.allowed ? `Hive Intelligence — ${hive.reason}` : 'Hive Intelligence — spend Biomass on the best purchases now'}
+                title={!hive.allowed
+                  ? `Hive Intelligence — ${hive.reason}`
+                  : hive.ready
+                    ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
+                    : 'Hive Intelligence — nothing worthwhile is affordable right now'}
+                onClick={hive.onPulse}
+              >
+                <i className="wb-led" aria-hidden />
+                ◈ Hive
+                {!hive.allowed && <b>LOCKED</b>}
+              </button>
+            )}
           </div>}
         </div>
       </div>

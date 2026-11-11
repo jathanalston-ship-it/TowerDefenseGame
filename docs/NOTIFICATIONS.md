@@ -137,6 +137,12 @@ equip advisor's Power-raising swaps, not every piece in the rack). Removed as no
 `profile.achievements` (auto-granted, already toasted), `collection.discovered` /
 `collection.memories` (view counts), `store.rotation` (a daily "unseen" nag).
 
+**Only what you can act on (2026-11-11 playtest).** "Affordable" means the action would succeed:
+`towers.stars` skips a ★ past the Campaign Evolution Cap (`meta.towerStarBlock`), however many
+Strain Samples are banked; `adaptation.points` counts a unit only when its free Antigen has an
+open rung to buy (`canPick`), not points waiting on a stage gate. The Power advisors share the
+same rule (`bestPurchase.canBuyNow`, docs/POWER-SCORE.md §atlas).
+
 **Sealed screens never badge.** `notificationSources` installs a channel gate
 (`setChannelGate`): a channel whose screen hasn't revealed (docs/PROGRESSION-GATING.md) counts
 0 in `badges()`, `reasons()` and `live()`, so a hidden system never nags (the old portrait tab
@@ -194,9 +200,11 @@ back to "N new". Adding a reason is one line on the source.
 ranked concrete actions `{ nav, kind, label, why, score }`. Candidates DERIVE from
 registries: every notification source with a reason is a candidate (its channel classifies
 kind/score via `CHANNEL_CLASS` — claim 90 > open 80 > upgrade ~55 > spend ~45 > browse;
-unknown channels still surface as 'browse'), progression teasers ≥50% surface as
-"almost unlocked" pulls routed toward their gate, and a PLAY action backstops so the list
-is **never empty — no dead ends**. Bespoke candidates: `registerRecSource()`.
+unknown channels still surface as 'browse'), and a PLAY action backstops so the list
+is **never empty — no dead ends**. Bespoke candidates: `registerRecSource()`. (Locked "almost
+unlocked" teasers were candidates until 2026-11-11 — rendered as "Campaign · UNLOCK" tiles they
+read as notifications for things you can't do; the road to the next wing lives on the
+objectives / Next-Goal spine.)
 Rendered: hub landings, mobile tab indexes (compact), the Command Center 'recommend'
 widget, and the `NextUp` strip mounted on claim-surface empty states (vault empty,
 harvest warming). Tests: `src/state/recommendations.test.ts`.

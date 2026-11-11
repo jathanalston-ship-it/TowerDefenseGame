@@ -13,7 +13,15 @@
 > glyph medallion + title + one line, details folded (285 → 35 words); the Update Briefing is 3 glyph tiles with
 > short headlines + "See all changes ▸" (several hundred → 82); the hub's Ready Chain + Recommended are icon tiles
 > (system glyph · count badge · name · action), vitals carry glyphs, Growth rows show glyph + "+N ⚡", directive /
-> contract / mode / feed explanations moved to hover titles. Type-scale gate kept (sizes on the scale).)
+> contract / mode / feed explanations moved to hover titles. Type-scale gate kept (sizes on the scale).
+> SECOND PLAYTEST LIST (same batch): NOTIFICATIONS act-only — the Tower Lab badge and every Power
+> advisor skip a ★ past the Evolution Cap (BUGFIX #131: BEST MOVE's Buy did nothing), Adaptation
+> badges only with an open rung, locked "almost unlocked" teasers left the recommendation engine; a
+> gated best move greys out with its reason. RESULTS: Continue locked to the capsule's bottom-right
+> (BUGFIX #132). RUN START: Hive Intelligence docked in the build console beside Auto Wave / Auto
+> Gene (it sat on the board's top edge). INFINITE (MODE-IDENTITY.md §pace): containers fill at 1/5
+> pace (ENDLESS_RUN.lootMeterRate, live + settle); ⏹ END EARLY in the pause menu settles at 60 %
+> of the run's income (deeds in full). Live-verified End Early → Results on desktop + phone.)
 >
 > **2026-11-11** (**HIVE CALL + 3 s AUTO GENE — validated; releasing in the 2026-11-11b batch.**
 > Owner ask: the hive "picks gene cards after only 3 seconds on autodraft and calls waves early if it calculates

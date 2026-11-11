@@ -1514,6 +1514,16 @@
 
 .wb-autos { display: flex; gap: 6px; }
 
+/* Hive Intelligence docked beside Auto Wave / Auto Gene while the console is up (it used to sit on
+   the board's top edge over the spawn lane at the run's start — owner playtest 2026-11-11). */
+.auto-btn.hive-dock { color: var(--dim); }
+
+.auto-btn.hive-dock.is-ready { color: #cfe9ff; border-color: color-mix(in srgb, #8fd0ff 55%, var(--line-strong)); box-shadow: 0 0 12px color-mix(in srgb, #8fd0ff 30%, transparent); }
+
+.auto-btn.hive-dock.is-ready .wb-led { opacity: 1; background: #8fd0ff; box-shadow: 0 0 6px #8fd0ff; }
+
+.auto-btn.hive-dock:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .auto-btn b { font-weight: 900; letter-spacing: 0.04em; color: inherit; margin-left: 5px; }
 
 .wb-led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.45; margin-right: 5px; display: inline-block; }
@@ -2316,6 +2326,16 @@
 .pause-abandon { width: 100%; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 700; background: transparent; border: 1px solid rgba(255, 93, 115, 0.5); color: var(--danger); }
 
 .pause-abandon:hover { background: rgba(255, 93, 115, 0.12); border-color: var(--danger); }
+
+/* Infinite END EARLY (ENDLESS_RUN.endEarlyRewardMult) — the honest exit: a deep run settles now at a
+   partial payout instead of only ever ending when the Core falls. Gold, not red: nothing is lost. */
+.pause-early { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 18px; border-radius: var(--r-sm); cursor: pointer; font-weight: 800; background: rgba(255, 210, 77, 0.08); border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); color: var(--gold); }
+
+.pause-early span { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); opacity: 0.8; }
+
+.pause-early:hover { background: rgba(255, 210, 77, 0.16); border-color: var(--gold); }
+
+.pause-warn b.is-keep { color: var(--gold); }
 
 .pause-warn { max-width: 340px; font-size: 13px; line-height: 1.5; color: var(--text); }
 
@@ -3131,7 +3151,7 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar .start-btn { width: 100%; justify-content: center; min-height: 44px; }
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-wrap: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; flex-wrap: nowrap; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; font-size: 11px; }
 
