@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { meta } from './meta';
 import type { RunResult } from './meta';
 import { defaultLifetimeStats } from '../save/saveStore';
-import { HERO_ORDER, TOWER_ORDER } from '../core/config';
+import { HERO_ORDER, INFINITE_REWARD_QUALIFY_FRAC, TOWER_ORDER, endlessWallDepth } from '../core/config';
 import { gameEvents } from '../core/events';
 import type { RunStats } from '../core/types';
 
@@ -29,6 +29,13 @@ function freshMeta(): void {
   // The loot meter is DORMANT until the first Mega Boss falls (docs/LOOTBOX.md §meter) — awaken
   // it so these suites measure ELIGIBILITY gating, not the awakening gate.
   gameEvents.emit('megaKilled', { defId: 'voraxis', tier: 1, encounter: 'campaign', killSec: 100, perfect: false, weakPoints: 0, interrupts: 0 });
+}
+
+/** Clear the Campaign deep enough that the INFINITE WALL (config.ENDLESS_WALL) sits past every
+ *  record these suites set, so they measure the record-keyed gate alone. */
+function wallBeyond(depth: number): void {
+  meta.finishRun(makeResult({ wave: 1, won: true, campaignStage: depth }));
+  meta.abandonRun(); // fresh live-bank cycle again
 }
 
 describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', () => {
@@ -58,6 +65,7 @@ describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', ()
   describe('Infinite — cache only at ≥ 50% of the personal best', () => {
     it('the FIRST infinite run qualifies (no prior best to fall short of)', () => {
       freshMeta();
+      wallBeyond(200);
       const out = meta.finishRun(makeResult({ wave: 10, kills: 100, won: false, endless: true }));
       expect(out.rewardBlocked).toBeUndefined();
       expect(hasCache(out.loot.banked)).toBe(true);
@@ -65,6 +73,7 @@ describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', ()
 
     it('a run below 50% of the personal best banks nothing and shows the message', () => {
       freshMeta();
+      wallBeyond(200);
       meta.finishRun(makeResult({ wave: 60, kills: 600, won: false, endless: true })); // best → 60
       expect(meta.get().bestWave).toBe(60);
       const out = meta.finishRun(makeResult({ wave: 20, kills: 200, won: false, endless: true })); // 20 < 30
@@ -74,6 +83,7 @@ describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', ()
 
     it('a run AT the 50% threshold qualifies', () => {
       freshMeta();
+      wallBeyond(200);
       meta.finishRun(makeResult({ wave: 60, won: false, endless: true })); // best → 60, threshold 30
       const out = meta.finishRun(makeResult({ wave: 30, kills: 300, won: false, endless: true })); // 30 == 30
       expect(out.rewardBlocked).toBeUndefined();
@@ -82,23 +92,39 @@ describe('reward eligibility — Stage Cache gating (docs/MODE-IDENTITY.md)', ()
 
     it('an unqualified run ROLLS BACK the loot it banked live — no exploit rewards', () => {
       freshMeta();
+      wallBeyond(200);
       meta.finishRun(makeResult({ wave: 60, won: false, endless: true })); // best → 60 (cycle reset after)
       const before = meta.pendingContainers().length;
       meta.syncRunLoot(25, 1200); // a wave-25 run fills the meter LIVE (25 < 30 threshold)
-      expect(meta.pendingContainers().length).toBeGreaterThan(before);
+      const live = meta.pendingContainers().slice(before);
+      expect(live.length).toBeGreaterThan(0);
       const out = meta.finishRun(makeResult({ wave: 25, kills: 1200, won: false, endless: true }));
       expect(out.rewardBlocked?.reason).toBe('infinite-short');
-      expect(meta.pendingContainers().length).toBe(before); // live loot rolled back, nothing new banked
+      expect(out.loot.banked).toEqual([]); // nothing banked by the run …
+      for (const c of live) expect(meta.pendingContainers()).not.toContain(c); // … and the live loot rolled back
+      // (one-off milestone rewards the deep Campaign unlocks may still auto-claim at the settle)
     });
 
     it('the threshold re-bases upward the moment a new personal best is set', () => {
       freshMeta();
+      wallBeyond(200);
       meta.finishRun(makeResult({ wave: 100, won: false, endless: true })); // best 100 → threshold 50
       const a = meta.finishRun(makeResult({ wave: 55, won: false, endless: true })); // 55 ≥ 50 → qualifies
       expect(a.rewardBlocked).toBeUndefined();
       meta.finishRun(makeResult({ wave: 140, won: false, endless: true })); // new best 140 → threshold 70
       const b = meta.finishRun(makeResult({ wave: 55, won: false, endless: true })); // 55 < 70 now → blocked
       expect(b.rewardBlocked).toEqual({ reason: 'infinite-short', qualifyWave: 70 });
+    });
+  
+    it('the gate is capped at the INFINITE WALL — a record set before the wall never locks a walled run out', () => {
+      freshMeta();
+      wallBeyond(12); // Campaign Stage 12 ⇒ wall at endlessWallDepth(12)
+      meta.finishRun(makeResult({ wave: 60, won: false, endless: true })); // a pre-wall record of 60
+      const qualify = Math.floor(Math.min(60, endlessWallDepth(12)) * INFINITE_REWARD_QUALIFY_FRAC);
+      expect(qualify).toBeLessThan(30);
+      const out = meta.finishRun(makeResult({ wave: qualify, kills: 100, won: false, endless: true }));
+      expect(out.rewardBlocked).toBeUndefined();
+      expect(hasCache(out.loot.banked)).toBe(true);
     });
   });
 

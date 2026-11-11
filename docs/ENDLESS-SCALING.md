@@ -211,6 +211,36 @@ keeps records within a few depths (one seed −17) while the end is a squeeze ov
 
 ---
 
+## 5c. The wall — Campaign progress sets it (§wall — owner playtest 2026-11-11)
+
+**Evidence:** the curves above are static, so an account that out-gears its Campaign stage rode them
+forever. The owner, at Campaign Stage 12 after opening every cache and taking every quick-buy, reached
+depth 60 "with no end in sight" and ~250 caches; target ≈ depth 20, a handful of caches. Reproduced
+with `npm run sim:infinite` (a real save, the client's own run setup — App.begin → GameView options —
+one Hive pulse per prep + every 4 s mid-wave, Auto Wave + Hive Call, the ◆ PICK draft card; the REAL
+settle counts the run's meter containers + run cache): the test save set to Stage 12 (Power ~25 k,
+≈6× the Stage-13 recommendation) was still standing at depth 56–57 after 90 sim-minutes.
+
+**The wall** (`config.ENDLESS_WALL`, Infinite only via `RunOptions.endlessWall`, set by GameView from
+`meta.endlessWallFor(save)`): `wallDepth = baseDepth (4) + perStage (1) × highest cleared Campaign
+stage`. Past it enemy HP × `hpGrowth` (2.0) per depth on top of `ENDLESS.hpGrowth`, uncapped, and enemy
+damage +`damageGrowth` (15 %) per depth. Gear buys a few depths past the wall; Campaign progress moves
+it — the §1 loop ("hit a wall → return to Campaign → push deeper") made literal. The Arena and headless
+probes never pass it; an account that falls before its wall is untouched.
+
+| `sim:infinite`, 3 seeds, 90-min cap | before | after |
+|---|---|---|
+| Stage 12, Power ~25 k (6× over-geared) | 56–57+ (time cap) | **19–24** (mean 21), 5–18 min |
+| …containers banked per run (meter + run cache) | 5–6 (with the 1/5 meter pace) | **3** |
+| Same save at Stage 30 (wall 34) | 56+ | 37–41 |
+
+**Everything that reads a depth knows the wall:** the qualify gate is `½ × min(best, wall)` (a record
+set before the wall never locks a walled run out of rewards — the Boss Rush capped-gate lesson);
+`predictInfinite(…, wall)` never estimates past `wall + predictPast` (5) — the prediction panel and
+the loop's "Farm Infinite (~Depth N)" advice; the Infinite screen's descent forecast adds a ▮ wall row
+and prices deeper rows with it, plus a one-line note. Tests: `core/endlessWall.test.ts`,
+`rewardEligibility.test.ts` (capped gate), `progressionLoop.test.ts` (farm depth ≤ wall + 5).
+
 ## 6. Anti-grind reward taper (§taper)
 
 **ENDLESS ONLY.** With a strong enough board a player can camp arbitrarily deep and grind the Loot Box

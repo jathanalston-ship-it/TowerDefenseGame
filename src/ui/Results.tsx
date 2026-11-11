@@ -158,7 +158,7 @@ export function Results({
   const blockedNote = outcome.rewardBlocked
     ? outcome.rewardBlocked.reason === 'campaign-loss'
       ? 'Stage failed — no Stage Cache awarded. Clear the stage to earn its cache.'
-      : `Run too short to qualify for Stage Cache rewards — reach Wave ${outcome.rewardBlocked.qualifyWave} (50% of your ${outcome.rewardBlocked.reason === 'rush-short' ? 'Boss Rush record' : 'best'}) to bank rewards.`
+      : `Run too short to qualify for Stage Cache rewards — reach Wave ${outcome.rewardBlocked.qualifyWave} (half your ${outcome.rewardBlocked.reason === 'rush-short' ? 'Boss Rush record' : 'best, or of your wall'}) to bank rewards.`
     : null;
   const front = rarityRegistry.get(outcome.loot.queue.queue[0]);
   const next = rarityRegistry.get(outcome.loot.queue.queue[1]);

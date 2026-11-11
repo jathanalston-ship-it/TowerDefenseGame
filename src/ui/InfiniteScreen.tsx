@@ -6,14 +6,14 @@
 // dropdown afterthought.
 
 import { Fragment, useMemo, useState, type MutableRefObject } from 'react';
-import { meta } from '../state/meta';
+import { endlessWallFor, meta } from '../state/meta';
 import { formatPower } from '../core/power';
 import { audio } from '../audio/sound';
 import { DIFFICULTIES, DIFFICULTY_IDS, resolveDifficulty } from '../core/difficulty';
 import { DOCTRINES } from '../core/doctrines';
 import { DoctrinePicker } from './components/DoctrinePicker';
 import { BIOMES } from '../core/biomes';
-import { DIRECTOR, ENDLESS, ENDLESS_RUN, ENDLESS_TAPER, endlessTaper } from '../core/config';
+import { DIRECTOR, ENDLESS, ENDLESS_RUN, ENDLESS_TAPER, ENDLESS_WALL, endlessTaper } from '../core/config';
 import { createDirector, doctrineEconomy, hazardRating, modeLootMult } from '../core/difficultyDirector';
 import { difficultyPref, setDifficultyPref } from '../state/prefs';
 import { PredictionPanel } from './PredictionPanel';
@@ -24,6 +24,9 @@ import './InfiniteScreen.css';
 
 /** Compact ×-multiplier for the forecast ladder (deep HP walls reach ×10⁷ under fast protocols). */
 function fmtMult(v: number): string {
+  // Past the INFINITE WALL (ENDLESS_WALL) the curve leaves any sane unit — the column says so.
+  if (v >= 1e15) return '×∞';
+  if (v >= 1e12) return `×${Number((v / 1e12).toPrecision(3))}T`;
   if (v >= 1e9) return `×${Number((v / 1e9).toPrecision(3))}B`;
   if (v >= 1e6) return `×${Number((v / 1e6).toPrecision(3))}M`;
   if (v >= 1e4) return `×${Number((v / 1e3).toPrecision(3))}k`;
@@ -60,14 +63,17 @@ export function InfiniteScreen({
     () => createDirector({ difficulty: resolveDifficulty(diff), warp: active.warp }),
     [diff, active],
   );
+  // The INFINITE WALL (ENDLESS_WALL): the account's depth past which enemy HP doubles per depth —
+  // its row joins the forecast and every deeper row is priced with it, like the run will be.
+  const wall = endlessWallFor(save).depth;
+  const wallHp = (w: number): number => (w > wall ? Math.pow(ENDLESS_WALL.hpGrowth, w - wall) : 1);
   const depths = useMemo(() => {
     const out = [...LADDER_DEPTHS];
-    if (save.bestWave > LADDER_DEPTHS[0] && !out.includes(save.bestWave)) {
-      out.push(save.bestWave);
-      out.sort((a, b) => a - b);
+    for (const extra of [save.bestWave, wall]) {
+      if (extra > LADDER_DEPTHS[0] && !out.includes(extra)) out.push(extra);
     }
-    return out;
-  }, [save.bestWave]);
+    return out.sort((a, b) => a - b);
+  }, [save.bestWave, wall]);
 
   const start = (): void => {
     audio.resume();
@@ -163,8 +169,8 @@ export function InfiniteScreen({
               const value = endlessTaper(w);
               return (
                 <Fragment key={w}>
-                  <span className={`inf-lad-w${isBest ? ' is-best' : ''}`} title={isBest ? 'Your deepest wave' : undefined}>{isBest ? '◈' : ''}{w}</span>
-                  <span className="inf-lad-v">{fmtMult(director.endlessHpMult(w))}</span>
+                  <span className={`inf-lad-w${isBest ? ' is-best' : ''}${w === wall ? ' is-wall' : ''}`} title={w === wall ? 'Your wall — past it enemy health doubles every depth' : isBest ? 'Your deepest wave' : undefined}>{w === wall ? '▮' : isBest ? '◈' : ''}{w}</span>
+                  <span className={`inf-lad-v${w > wall ? ' is-cap' : ''}`}>{fmtMult(director.endlessHpMult(w) * wallHp(w))}</span>
                   <span className={`inf-lad-v${speedCapped ? ' is-cap' : ''}`} title={speedCapped ? 'Speed cap reached' : undefined}>×{speed.toFixed(2)}</span>
                   <span className={`inf-lad-v${bossCapped ? ' is-cap' : ''}`} title={bossCapped ? 'Boss durability cap' : undefined}>×{boss.toFixed(1)}</span>
                   <span className={`inf-lad-v${value < 1 ? ' is-taper' : ''}`}>{Math.round(value * 100)}%</span>
@@ -173,6 +179,7 @@ export function InfiniteScreen({
             })}
           </div>
           <div className="inf-lad-notes">
+            <span className="inf-wall-note">▮ Your wall: depth {wall}. Past it enemy health doubles every depth. Each Campaign stage you clear pushes it one deeper.</span>
             <span>◆ Assembled boss every {DIRECTOR.bossEvery} waves; durability caps ×{ENDLESS.bossStrengthCap}.</span>
             <span>Value tapers past wave {ENDLESS_TAPER.startWave} toward a {Math.round(ENDLESS_TAPER.floor * 100)}% floor — deep camping stops out-earning a fresh run.</span>
             <span>Past depth {DIRECTOR.heavyCapMinDepth} the Director tilts composition toward swarms.</span>

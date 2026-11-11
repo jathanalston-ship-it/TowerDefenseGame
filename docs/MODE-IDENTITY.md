@@ -96,6 +96,10 @@ pays, but re-running from the top out-earns camping ever deeper.
   contracts, hunts and the run cache (the depth reached is real; the qualify gate still applies).
   Containers already banked live stay banked. Results reads "ENDED EARLY · 60% rewards". The flag
   is ignored outside Infinite (tested). Abandon still forfeits everything.
+- **The wall** (docs/ENDLESS-SCALING.md §wall): past `4 + highest cleared Campaign stage` enemy HP
+  doubles per depth, so a farm can't outrun the Campaign (Stage 12 ≈ depth 20, ~3 containers per run
+  with the pace above). The progression simulator's virtual player now banks its live meter with the
+  endless flag too (it skipped the taper and the pace — `progressionSim.playVirtualRun`).
 
 ---
 

@@ -308,7 +308,7 @@ export function playVirtualRun(rng: () => number, persona?: Persona, hero: HeroK
     const kills = Math.round(depth * WORLD.killsPerWave * (0.9 + rng() * 0.2) * luck);
     result = makeResult({ rng, waves: depth, kills, won: false, endless: true, hero });
   }
-  meta.syncRunLoot(result.wave, result.kills); // live loot banking, like a real run
+  meta.syncRunLoot(result.wave, result.kills, !!result.endless); // live loot banking, like a real run (Infinite's taper + pace included)
   // A real run's megaKilled event fires DURING play (it writes the megaProgress.slain ledger
   // that awakens the Bio-Container meter) — mirror it before finishRun, same order as live.
   for (const k of result.stats.megaKills ?? []) {

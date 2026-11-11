@@ -4,7 +4,7 @@
 // learned per-mode bias that quietly improves as real results come in. No DOM/save/sim imports.
 
 import { POWER_BASE } from './power';
-import { RUSH } from './config';
+import { ENDLESS_WALL, RUSH } from './config';
 
 /** Persisted, self-improving calibration for one prediction channel (campaign | infinite). */
 export interface PredictCalib {
@@ -75,11 +75,17 @@ export function predictCampaign(powerMult: number, clearedStage: number, difficu
   return assemble(raw, clearedStage + 1, calib, powerMult);
 }
 
-/** Estimated Infinite WAVE the account can expect to hold to. Floors near your best wave so far. */
-export function predictInfinite(powerMult: number, bestWave: number, difficultyMult: number, calib: PredictCalib): Prediction {
+/** Estimated Infinite WAVE the account can expect to hold to. Floors near your best wave so far.
+ *  `wall` = the account's INFINITE WALL depth (config.ENDLESS_WALL): past it enemy HP doubles per
+ *  depth, so neither a pre-wall record nor a big Power reach (nor a learned bias) predicts past
+ *  wall + ENDLESS_WALL.predictPast. Omitted ⇒ the pre-wall model exactly. */
+export function predictInfinite(powerMult: number, bestWave: number, difficultyMult: number, calib: PredictCalib, wall?: number): Prediction {
   const reach = (POW_TO_WAVE * doublings(powerMult)) / Math.max(1, difficultyMult);
   const raw = Math.max(bestWave * 0.9, 5 + reach);
-  return assemble(raw, 1, calib, powerMult);
+  const p = assemble(raw, 1, calib, powerMult);
+  if (wall === undefined) return p;
+  const cap = wall + ENDLESS_WALL.predictPast;
+  return { ...p, estimate: Math.min(p.estimate, cap), low: Math.min(p.low, cap), high: Math.min(p.high, cap) };
 }
 
 /** Estimated Boss Rush WAVE (docs/BOSS-RUSH.md). Wave N fields N bosses, so depth is far

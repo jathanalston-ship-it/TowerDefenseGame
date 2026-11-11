@@ -23,7 +23,7 @@ import { composePower } from '../core/power';
 import { recommendedPowerScore } from '../core/campaign';
 import { defaultSave } from '../save/saveStore';
 import type { SaveData } from '../save/saveStore';
-import { HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, META_UPGRADES, MODE_REWARDS, MODE_UNLOCKS, READINESS, STAR, TOWER_ORDER, campaignStarCap } from '../core/config';
+import { HERO_ORDER, HERO_SLOTS, INFINITE_REWARD_QUALIFY_FRAC, META_UPGRADES, MODE_REWARDS, MODE_UNLOCKS, READINESS, ENDLESS_WALL, STAR, TOWER_ORDER, campaignStarCap, endlessWallDepth } from '../core/config';
 import { GENE_LEVEL_GATES, geneLevelCapForStage } from '../core/geneCards';
 import { cardRegistry } from '../core/cards';
 import { prestigeMult, prestigeStageReq } from '../core/prestige';
@@ -136,10 +136,15 @@ describe('loop enforcement invariants', () => {
     expect(walled.powerShort).toBeGreaterThan(0);
     expect(loopAdvice(walled)).toContain('Farm Infinite');
 
-    // Farm depth rises with power (the frontier the farm advice points at).
-    const strong = { ...fresh, towerMasteryXp: { ...fresh.towerMasteryXp } };
+    // Farm depth rises with power (the frontier the farm advice points at) — up to the INFINITE WALL
+    // (config.ENDLESS_WALL): a deep Campaign gives the wall room, and no Power predicts past it.
+    const deep = { ...fresh, campaign: { ...fresh.campaign, cleared: { standard: 30 } } };
+    const strong = { ...deep, towerMasteryXp: { ...deep.towerMasteryXp } };
     for (const k of TOWER_ORDER) strong.towerMasteryXp[k] = 5_000_000;
-    expect(loopState(strong).farmDepth).toBeGreaterThan(loopState(fresh).farmDepth);
+    expect(loopState(strong).farmDepth).toBeGreaterThan(loopState(deep).farmDepth);
+    expect(loopState(strong).farmDepth).toBeLessThanOrEqual(endlessWallDepth(30) + ENDLESS_WALL.predictPast);
+    const hoard = { ...strong, campaign: { ...strong.campaign, cleared: { standard: 12 } } }; // same Power, shallow Campaign
+    expect(loopState(hoard).farmDepth).toBeLessThanOrEqual(endlessWallDepth(12) + ENDLESS_WALL.predictPast);
   });
 });
 

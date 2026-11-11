@@ -24,7 +24,7 @@ import { defaultCalib, predictInfinite } from '../core/predict';
 import { composePower } from '../core/power';
 import { resolveDifficulty } from '../core/difficulty';
 import { MODE_UNLOCKS, READINESS } from '../core/config';
-import { accountPowerParts } from './meta';
+import { accountPowerParts, endlessWallFor } from './meta';
 import { lastFlawlessClearPref } from './prefs';
 
 export type LoopPhase = 'advance-campaign' | 'farm-infinite';
@@ -52,6 +52,7 @@ export function loopState(save: SaveData, difficultyId = 'standard'): LoopState 
     save.bestWave,
     resolveDifficulty(difficultyId).enemyHealthMult,
     save.prediction?.infinite ?? defaultCalib(),
+    endlessWallFor(save).depth, // the INFINITE WALL caps where farming can reach (ENDLESS_WALL)
   ).estimate;
   return {
     phase: readiness >= 1 ? 'advance-campaign' : 'farm-infinite',

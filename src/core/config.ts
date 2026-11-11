@@ -3163,6 +3163,29 @@ export const ENDLESS = {
   bossStrengthCap: 6, // … up to ×6 (a durable centerpiece; calibrated against the endless probe's boss-TTK)
 };
 
+/** INFINITE WALL (docs/ENDLESS-SCALING.md §wall — owner playtest 2026-11-11): the curves above are
+ *  static, so an account that out-gears its Campaign stage (every cache opened, every quick-buy taken)
+ *  rode Infinite to depth 60 with hundreds of caches at Campaign Stage 12. Past the WALL DEPTH —
+ *  `baseDepth + perStage × highest cleared Campaign stage` (Stage 12 → 16) — enemy HP compounds an
+ *  extra ×`hpGrowth` per depth and damage +`damageGrowth` per depth, uncapped: gear buys a few depths
+ *  past the wall, Campaign progress moves it. Infinite only (RunOptions.endlessWall). */
+export const ENDLESS_WALL = {
+  baseDepth: 4, // wall = 4 + highest cleared Campaign stage (Stage 12 → depth 16; Stage 30 → 34) …
+  perStage: 1,
+  hpGrowth: 2.0, // … past it enemy HP ×2 per depth on top of ENDLESS.hpGrowth (uncapped) …
+  damageGrowth: 0.15, // … and +15 % enemy damage per depth past it.
+  predictPast: 5, // the depth predictions never read past wall + this (a strong board holds ~3–7 past it)
+  // Calibrated with `npm run sim:infinite` (real save, the client's run setup, Hive-pulse autopilot):
+  // a Stage-12 account geared 6× past its Campaign stage fell at depths 19–24 (was still standing at
+  // 56+ after 90 min) banking 2–3 meter containers + the run cache; the same save at Stage 30 falls
+  // ~37–41 (was 56+). An account that dies before its wall is untouched.
+};
+
+/** The Infinite wall depth for a highest-cleared Campaign stage (ENDLESS_WALL). */
+export function endlessWallDepth(clearedStage: number): number {
+  return ENDLESS_WALL.baseDepth + ENDLESS_WALL.perStage * Math.max(0, clearedStage);
+}
+
 /** INFINITE SQUEEZE (docs/ENDLESS-SCALING.md §squeeze — Batch G grind audit): Infinite was flawless
  *  for ~48 waves, then ONE wave wiped the Core. Two levers turn the cliff into attrition, Infinite
  *  only (RunOptions.squeeze — the Arena and headless probes that omit it are unchanged):

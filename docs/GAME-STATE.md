@@ -579,6 +579,8 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   Second list: act-only notifications + gated best moves greyed (`towerStarBlock` / `canBuyNow`,
   BUGFIX #131), Results' Continue locked (#132), the Hive pill docked in the build console,
   Infinite containers at 1/5 pace + ⏹ End Early at 60 % (`ENDLESS_RUN`, MODE-IDENTITY.md §pace).
+  The Infinite WALL (`ENDLESS_WALL`, ENDLESS-SCALING.md §wall): HP ×2/depth past 4 + cleared Campaign
+  stage; `npm run sim:infinite` is its calibration harness.
 - ✅ **HIVE CALL + 3 s AUTO GENE** (2026-11-11, HIVE-MIND.md §hive-call) — with Auto Wave on, on solved
   content (the automation gate), the Hive calls the next wave EARLY mid-fight when its forecast says the
   board holds the overlap comfortably: the deepest point enemies reached past first contact × the load the

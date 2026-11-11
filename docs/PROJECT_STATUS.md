@@ -21,7 +21,14 @@
 > (BUGFIX #132). RUN START: Hive Intelligence docked in the build console beside Auto Wave / Auto
 > Gene (it sat on the board's top edge). INFINITE (MODE-IDENTITY.md §pace): containers fill at 1/5
 > pace (ENDLESS_RUN.lootMeterRate, live + settle); ⏹ END EARLY in the pause menu settles at 60 %
-> of the run's income (deeds in full). Live-verified End Early → Results on desktop + phone.)
+> of the run's income (deeds in full). Live-verified End Early → Results on desktop + phone.
+> THIRD LIST: INFINITE WALL (ENDLESS-SCALING.md §wall) — past depth 4 + highest cleared Campaign stage
+> enemy HP ×2/depth (+15 % damage); measured with the new `npm run sim:infinite` (real save, client run
+> setup, Hive autopilot): a 6×-over-geared Stage-12 account fell at 19–24 with ~3 containers (was 56+
+> after 90 min), the qualify gate caps at the wall, predictions/farm advice never read past wall + 5, the
+> Infinite forecast shows the wall row. The "Enable Hive Intelligence" pill the owner meant was the one
+> already docked into the build console (confirmed). progressionSim now banks Infinite's live meter
+> with the endless flag.)
 >
 > **2026-11-11** (**HIVE CALL + 3 s AUTO GENE — validated; releasing in the 2026-11-11b batch.**
 > Owner ask: the hive "picks gene cards after only 3 seconds on autodraft and calls waves early if it calculates

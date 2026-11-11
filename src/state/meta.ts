@@ -23,7 +23,7 @@ import { hasSlainMega, highestCampaignStage, isBossRushUnlocked, isCutsceneUnloc
 import { CUTSCENES, cutsceneEffects, cutsceneForMega } from '../core/cutscenes';
 import type { CutsceneDef } from '../core/cutscenes';
 import { downloadText, readTextFile } from '../save/saveFile';
-import { TOWER_DEFS, CAMPAIGN_REWARDS, campaignSurveyBonus, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, nextEvolutionUnlock, chestForWave, endlessLootTaper, ENDLESS_RUN, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
+import { TOWER_DEFS, CAMPAIGN_REWARDS, campaignSurveyBonus, CHESTS, DAILY, ECON, ECONOMY_ADAPTIVE, EQUIP_DROP_CHANCE, HERO_DEFS, HERO_ORDER, HERO_SLOTS, IDLE, INFINITE_REWARD_QUALIFY_FRAC, MASTERY, META_UPGRADES, RUN_CHEST, RUSH, STAR, TOWER_ORDER, campaignStarCap, nextEvolutionUnlock, endlessWallDepth, chestForWave, endlessLootTaper, ENDLESS_RUN, endlessTaper, heroForkTiers, heroSkillCount, resolveHeroKit, upgradeEffectUnits } from '../core/config';
 import { dailyKey, isPrevDayKey } from '../core/daily';
 import { offerAvailable, offerValueIchor, premiumOfferById } from '../core/premium';
 import { flashOverview, flashPopupCandidate, flashStatus } from './flashOffers';
@@ -1405,6 +1405,12 @@ export function nextStarCost(save: SaveData, kind: TowerKind): number | null {
   const stars = save.towerStars[kind] ?? 0;
   if (stars >= STAR.maxTowerStars) return null;
   return towerStarCost(stars); // cost ladder only; the Campaign Evolution Cap is enforced in buyStar
+}
+
+/** The Infinite WALL this account runs into (config.ENDLESS_WALL): its depth follows the highest
+ *  cleared Campaign stage — GameView threads it into every Infinite run (RunOptions.endlessWall). */
+export function endlessWallFor(save: SaveData): { depth: number } {
+  return { depth: endlessWallDepth(highestCampaignStage(save)) };
 }
 
 /** The gate a wallet can't buy past on the next ★ — the Campaign Evolution Cap — as a short reason,
@@ -2989,7 +2995,7 @@ export const meta = {
     //    and Results shows why. The neutral quick-run is unchanged (golden/meta-test safe). Centralized
     //    here so every mode inherits it. ──
     const infiniteQualifyWave = result.endless
-      ? Math.floor(save.bestWave * INFINITE_REWARD_QUALIFY_FRAC)
+      ? Math.floor(Math.min(save.bestWave, endlessWallDepth(highestCampaignStage(save))) * INFINITE_REWARD_QUALIFY_FRAC) // capped at the INFINITE WALL (ENDLESS_WALL): a record set before the wall never locks a walled run out of rewards
       : isRush
         ? Math.floor(Math.min(save.rushBestWave, RUSH.qualifyRecordCap) * INFINITE_REWARD_QUALIFY_FRAC) // Boss Rush inherits the same anti-farm rule, keyed to ITS record (capped — docs/BOSS-RUSH.md §wall)
         : 0;
@@ -5984,7 +5990,7 @@ export const meta = {
       ? predictCampaign(powerMult, highestCampaignStage(save), diffMult, save.prediction.campaign)
       : mode === 'bossRush'
         ? predictBossRush(powerMult, save.rushBestWave, diffMult, save.prediction.bossRush)
-        : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite);
+        : predictInfinite(powerMult, save.bestWave, diffMult, save.prediction.infinite, endlessWallFor(save).depth);
     const advice = predictionRecommendations(save, mode, p.estimate);
     return { p, recommendations: advice.map((a) => a.text), advice };
   },

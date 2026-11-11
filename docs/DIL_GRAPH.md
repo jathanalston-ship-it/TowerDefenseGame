@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 1002 nodes · 1957 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1003 nodes · 1959 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -209,6 +209,7 @@ graph LR
   system_living_battlefield["Living Battlefield"] -->|consumes| system_biomes["Biomes"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
   system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
+  system_campaign["Campaign"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ### Power Score Map
@@ -677,6 +678,7 @@ graph LR
   system_difficulty["Difficulty"] -->|modifies| system_campaign["Campaign"]
   system_difficulty["Difficulty"] -->|modifies| system_infinite["Infinite Mode"]
   system_infinite["Infinite Mode"] -->|modifies| system_loot["Loot & Bio-Containers"]
+  system_campaign["Campaign"] -->|modifies| system_infinite["Infinite Mode"]
 ```
 
 ## Concepts (8)
@@ -952,7 +954,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
-  - _…251 more (query: `npm run dil -- node system:engine`)_
+  - _…252 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -1022,6 +1024,7 @@ _at: src/core/campaign.ts, src/core/campaignEvents.ts, src/core/hash.ts, src/ui/
   - conflictsWith → `concept:golden-test` — a new enemy whose DERIVED unlockStage is ≤ 3 re-rolls the pinned Stage 1–3 onboarding pools and moves campaignCurve.test — the puzzle fauna were tuned (EHP) to enter at ≥ 4; biome signatures also append to the Infinite director rosters while that biome is active
   - consumes → `system:towers` — LIVE PROBE (§6a v3→v4, campaign.ts LIVE_PROBE_ROLES + coverage.ts): every tower kind gets a DERIVED coverage vector (reach / area / pierce / burst / control from TowerDef + kit + status-framework traits — a new tower is graded by its numbers); the FIELDED board folds Strain-weighted and each probe role (air-pack, artillery, burrower, armored, sprinter, sustain — enemy-trait predicates) reads its answering axis as a GAP below the ROSTER mean coverage; a live Campaign wave swaps a share of its plain threat budget (same budget) for the lightest body of the largest-gap role; the live ratio excludes drafted cards (liveCardExp 0) so picks are pure gain; Game.liveWave feeds both the launch and the prep preview (the briefing chip names the role + the coverage it tests)
   - consumes → `system:towers` — OPENING ANSWER GIFT (core/conveyor.ts §opening): the stage ≥ 4 run-start gift rolls from owned kinds whose TOWER DATA answers the opening threats (drag-damage aura, then area damage) — a new tower is classified by its stats; Stages 1–3 keep the plain roll (campaignCurve)
+  - modifies → `system:infinite` — THE INFINITE WALL (config.ENDLESS_WALL, ENDLESS-SCALING.md §wall): wall depth = 4 + highest cleared Campaign stage; past it enemy HP ×2/depth (Game.wallHpMult via RunOptions.endlessWall, set by GameView from meta.endlessWallFor). Anything that reasons about Infinite depth must read the wall: the qualify gate (½·min(best, wall)), predictInfinite(…, wall), the Infinite forecast. Calibrate with npm run sim:infinite (real save + client run setup).
   - requiredBy ← `system:daily`
   - requiredBy ← `system:towers`
   - requiredBy ← `system:heroes`
@@ -1057,6 +1060,7 @@ _at: src/ui/InfiniteScreen.tsx_
   - balancedBy ← `system:difficulty` — endless threat curves
   - conflictsWith ← `system:campaign` — Run Identity invasions: campaign passes the STAGE enemyPool as invasionPool (an all-kinds pool dropped 8 colossi on stage 1); endless keeps ENEMY_KINDS
   - modifiedBy ← `system:difficulty` — INFINITE SQUEEZE (ENDLESS_SQUEEZE, RunOptions.squeeze): pressure band (flawless → HP pressure up to cap; bleeding → eased to floor) + per-wave breach ceiling in Game.braceHiveDamage; the Arena (also endless) forces it off
+  - modifiedBy ← `system:campaign` — THE INFINITE WALL (config.ENDLESS_WALL, ENDLESS-SCALING.md §wall): wall depth = 4 + highest cleared Campaign stage; past it enemy HP ×2/depth (Game.wallHpMult via RunOptions.endlessWall, set by GameView from meta.endlessWallFor). Anything that reasons about Infinite depth must read the wall: the qualify gate (½·min(best, wall)), predictInfinite(…, wall), the Infinite forecast. Calibrate with npm run sim:infinite (real save + client run setup).
 
 ### `system:pil` — Public Intelligence Layer
 
@@ -4202,7 +4206,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (348)
+## Tests (349)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4267,6 +4271,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/core/economyDirector.test.ts` — automated validation _(tests `system:currencies`)_
 - `test:src/core/effectLanguage.test.ts` — automated validation _(tests `system:gene-cards`)_
 - `test:src/core/endlessTaper.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/core/endlessWall.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/enemies.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/engagement.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/core/equipment.behavior.test.ts` — automated validation _(tests `system:engine`)_

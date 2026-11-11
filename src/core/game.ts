@@ -100,7 +100,7 @@ import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { nemesisTraits } from './nemesis';
-import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, MINES } from './config';
+import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, ENDLESS_WALL, MINES } from './config';
 import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, rushStrength, spawnCount } from './config';
@@ -237,6 +237,11 @@ export interface RunOptions {
   /** INFINITE SQUEEZE (config ENDLESS_SQUEEZE — docs/ENDLESS-SCALING.md §squeeze): the pressure band
    *  + the per-wave breach ceiling. The app passes it for Infinite; the Arena never. Omitted ⇒ off. */
   squeeze?: boolean;
+  /** INFINITE WALL (config ENDLESS_WALL — docs/ENDLESS-SCALING.md §wall): the depth past which enemy
+   *  HP and damage compound hard — set from the account's Campaign progress at run start
+   *  (meta.endlessWallFor). The app passes it for Infinite; the Arena and headless probes never.
+   *  Omitted ⇒ no wall (the pre-2026-11-11 curve exactly). */
+  endlessWall?: { depth: number };
 }
 
 /** Fold a declarative effect into the run modifiers (mul/add/flag; grants handled at boot). */
@@ -766,6 +771,7 @@ export class Game {
   private bondSig = -1;
   private readonly livePowerBase: number | null; // RunOptions.livePowerBase (§6a live adaptive threat; Campaign only)
   private readonly squeezeOn: boolean; // RunOptions.squeeze (ENDLESS_SQUEEZE; Infinite only)
+  private readonly wallDepth: number; // RunOptions.endlessWall (ENDLESS_WALL; Infinite only) — Infinity ⇒ off
   private waveLaunchedAt = 0; // sim time the latest wave launched (early-call minElapsed)
   private waveSpawnEnd = 0; // last scheduled spawn time of the waves on the field (early-call skip credit)
   private calledAhead = 0; // waves called early since the field last cleared (≤ EARLY_CALL.maxAhead)
@@ -928,6 +934,7 @@ export class Game {
     // §6a: from DIRECTOR_ADAPTIVE.liveFromStage on — the onboarding Stages 1–3 keep their calibrated curve (campaignCurve).
     this.livePowerBase = opts.mode === 'campaign' && (opts.stage?.stage ?? 0) >= DIRECTOR_ADAPTIVE.liveFromStage && opts.livePowerBase !== undefined && Number.isFinite(opts.livePowerBase) ? Math.max(0, opts.livePowerBase) : null;
     this.squeezeOn = opts.squeeze === true && opts.mode === 'endless';
+    this.wallDepth = opts.mode === 'endless' && opts.endlessWall ? Math.max(1, opts.endlessWall.depth) : Infinity;
     this.threat = Math.max(0, Math.floor(opts.threat ?? 0));
     this.ruleSlot = [...this.unlockedCardIds].some((id) => { const c = cardRegistry.get(id); return c !== undefined && isRuleChangingCard(c); });
     this.draftPool = opts.draftPool ? new Set(opts.draftPool) : undefined;
@@ -2256,7 +2263,13 @@ export class Game {
   // Endless intensity curves (docs/ENDLESS-SCALING.md) — director-owned; endless-only call sites.
 
   private endlessHpMult(depth: number): number {
-    return this.dd.endlessHpMult(depth) * this.mods.enemyHpRunMult;
+    return this.dd.endlessHpMult(depth) * this.mods.enemyHpRunMult * this.wallHpMult(depth);
+  }
+
+  /** INFINITE WALL (ENDLESS_WALL): past the account's wall depth, enemy HP compounds an extra
+   *  ×hpGrowth per depth — Campaign progress moves the wall, hoarded gear can only lean on it. */
+  private wallHpMult(depth: number): number {
+    return depth > this.wallDepth ? Math.pow(ENDLESS_WALL.hpGrowth, depth - this.wallDepth) : 1;
   }
 
   private endlessBountyMult(depth: number): number {
@@ -2268,7 +2281,7 @@ export class Game {
   }
 
   private endlessDamageMult(depth: number): number {
-    return this.dd.endlessDamageMult(depth);
+    return this.dd.endlessDamageMult(depth) * (depth > this.wallDepth ? 1 + ENDLESS_WALL.damageGrowth * (depth - this.wallDepth) : 1);
   }
 
   /** Composite tower-damage multiplier from the active KEYSTONES (Last Stand, Famine,

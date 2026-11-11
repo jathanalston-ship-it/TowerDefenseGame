@@ -23,7 +23,7 @@ import { HEIGHT, WIDTH } from '../core/map';
 import { ENDLESS_RUN, HERO_ORDER, TOWER_ORDER } from '../core/config';
 import type { ResolvedHeroKit } from '../core/config';
 import { AUTOSTART_KEY, motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
-import { masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
+import { endlessWallFor, masteryLevel, meta, equippedCosmeticThemes } from '../state/meta';
 import { featureRevealed } from '../state/unlocks';
 import { automationFor, highestCampaignStage } from '../save/derive';
 import { frontDeploy } from '../state/frontDeploy';
@@ -197,7 +197,7 @@ export function GameView({
     // the same fairness rule as Mulligans / the nemesis.
     ...(!tutorial && featureRevealed(meta.get(), 'bonds') ? { classBonds: daily ? {} : meta.bondLevels() } : {}),
     ...(mode === 'campaign' && stage && !tutorial ? { livePowerBase: meta.power().score / Math.max(1, recommendedPowerScore(stage.stage, stage.difficulty)) } : {}),
-    ...(mode === 'endless' && !tutorial ? { squeeze: true } : {}),
+    ...(mode === 'endless' && !tutorial ? { squeeze: true, endlessWall: endlessWallFor(meta.get()) } : {}), // + the INFINITE WALL (ENDLESS_WALL) at the account's Campaign depth
     // Daily Run (docs/DAILY-RUN.md): the day's 3-tower trial pool REPLACES the account roster for
     // this run (favorite = the pool's first kind so nothing leaks a 4th kind); its two modifiers
     // ride the dedicated option. Off-daily, the account's own favorite/roster apply as always.
