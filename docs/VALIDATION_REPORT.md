@@ -54,3 +54,7 @@
 ## 2026-11-11 00:40 UTC — growth/navigation release validated
 
 Full sealed v2026.11.10.16 Smoother Growth and Navigation validation92800 PASS at00:39UTC:3194tests, typecheck, production build/original mobile and doc anchors/references. Log smoother-growth-release-validation.log. All seven notes generated; all focused browser probes passed as recorded. Audit finished exit0 despite slow machine. No active build/test/browser processes. Prior Vite5174 stopped; restart for future probes. Release deployment pending.
+
+## 2026-11-11 00:43 UTC — smoother growth/navigation live
+
+LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.

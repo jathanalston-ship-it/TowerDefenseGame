@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Full sealed v2026.11.10.16 Smoother Growth and Navigation validation92800 PASS at00:39UTC:3194tests, typecheck, production build/original mobile and doc anchors/references. Log smoother-growth-release-validation.log. All seven notes generated; all focused browser probes passed as recorded. Audit finished exit0 despite slow machine. No active build/test/browser processes. Prior Vite5174 stopped; restart for future probes. Release deployment pending.
+LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.
 
 ## Files modified
 
@@ -48,8 +48,8 @@ Local Chrome still needs MOBILECHECK_CHROMIUM and NODE_OPTIONS parent chrome-pro
 
 ## Recommended next tasks
 
-Commit sealed release on codex/hive-autoplay, push production ref, verify exact-SHA Actions and normal custom-domain game/home/news/all7notes. Goal remains active; next release roughly one hour after actual public verification.
+Continue continuous-improvement goal. No pending release work. Next approximate deployment01:43UTC with website notes. Start a fresh unsealed release for new player changes. Restart local Vite5174 before parent browser probes. Prefer focused evidence and reserve full audit for the next release; recent full suite was unusually slow but passed without retries.
 
 ## Future expansion hooks
 
-Production push: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Previous live SHAe15b1827f86bdb6c8c722d7e049091a12260d98d. Public verifier ../verify-current-release.ps1. No active audit process. Vite5174 stopped; restart npm run dev -- --host 127.0.0.1 --port 5174 --strictPort for future browser probes.
+Production push from codex/hive-autoplay: git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Current live SHA bd8624a1cd353b8ad34fff389afd6324b409e331. Public verifier ../verify-current-release.ps1. No active process. For dev probes restart npm run dev -- --host 127.0.0.1 --port 5174 --strictPort. Every deployment includes website notes.
