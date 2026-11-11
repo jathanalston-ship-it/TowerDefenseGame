@@ -353,6 +353,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
   Docs: `EQUIPMENT.md`, `EQUIPMENT-PHILOSOPHY.md`.
 - **Related:** Hero Equipment (loadouts), Crafting (reforge), Loot (acquisition), Collections.
 - **Codex search:** Shared ListControls/organizeList search names, descriptions, slots and sets without persisting queries or changing discovery. Phone hits appear outside folds; clear-search restores input focus.
+- **Affix tier descriptions:** equipment.affixEffectText shares tier scaling with itemEffects, so enhanced gear describes its current strength; applied effects are unchanged. Coverage checks every affix/tier and actual UI enhancement.
 - **Codex effect units:** `ui/EquipmentCollection.tsx` uses `core/effectLanguage.describeEffects` exact text for set bonuses; shared FIELD_VOCAB preserves percentages versus counts. Equipment definitions are unchanged.
 - **Card motion:** ItemArt honors live reduced motion/override and pauses offscreen or hidden; static lower rarities are unchanged. HeroGearPreview also pauses while retaining still-mode drag inspection and uses refresh-independent rotation. Native Left/Right buttons support keyboard inspection and pause automatic motion while focused.
 - **Future expansion:** 500-item target; behavioral affix vocabulary keeps growing.

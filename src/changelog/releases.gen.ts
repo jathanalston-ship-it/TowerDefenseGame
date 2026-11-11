@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.11",
     "date": "2026-11-11",
     "title": "Clearer Equipment Details",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now describes affixes at their current tier instead of always showing tier-one strength. Enhancing gear updates the displayed bonus immediately, with decimal precision for smaller improvements. Applied equipment effects are unchanged."
       }
     ]
   },

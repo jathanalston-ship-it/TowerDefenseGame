@@ -845,3 +845,4 @@
 - `bd8624a` **[UI]** Release: publish smoother growth and navigation _(internal)_
 - `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_
 - `52e75f6` **[UI]** Clarify equipment codex bonus units _(internal)_
+- `de9bc18` **[UI]** Make the equipment codex searchable _(internal)_

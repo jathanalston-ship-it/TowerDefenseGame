@@ -1,6 +1,6 @@
 {
-  "lastSha": "52e75f66b340acc4a6acd6c54856a073a959ec9b",
-  "commitsSinceDraft": 9,
+  "lastSha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4858,7 +4858,7 @@
       "id": "v2026.11.11",
       "date": "2026-11-11",
       "title": "Clearer Equipment Details",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -4867,6 +4867,10 @@
         {
           "cat": "UI",
           "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now describes affixes at their current tier instead of always showing tier-one strength. Enhancing gear updates the displayed bonus immediately, with decimal precision for smaller improvements. Applied equipment effects are unchanged."
         }
       ]
     }
@@ -11277,6 +11281,14 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Clarify equipment codex bonus units",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make the equipment codex searchable",
       "internal": true,
       "needsReview": false
     }

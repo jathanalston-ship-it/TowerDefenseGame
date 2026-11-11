@@ -2127,3 +2127,11 @@ LOCAL unsealed v2026.11.11 Clearer Equipment Details: shared effect-language for
 ## 2026-11-11 — equipment codex search verified locally
 
 LOCAL unsealed v2026.11.11 Clearer Equipment Details now has TWO website/game notes. Codex search uses shared organizer/controls for name, description, slot and set; preserves authored order/discovery, reveals phone hits, reports counts and restores input focus on clear. Real phone/desktop probes passed including unchanged save and query reset after remount; screenshot reviewed.43 equipment/effect/list/UI tests passed, and all4siteSync tests passed after completed regeneration (initial intermediate ledger mismatch explained in handoff). Docs and production build53660 PASS44.94s Vite/SWmwbf2eoq. All check processes terminal; devserver64507 active. Full release audit pending; live .16 remains verified00:43UTC; next deployment~01:43UTC. Goal active.
+
+## 2026-11-11 01:12 UTC — clearer equipment release audit running
+
+Three notes sealed and site/game regenerated. Current-tier affix text correction passed34 equipment/reforge tests and actual phone Enhance check: Keen T1→T2, +5%→+5.9%, applied1.059 and exactly5Scrap spent. Screenshot inspected. Full validator19908 RUNNING, log clearer-equipment-release-validation.log. Poll same handle; do not edit source/dist or run competing heavy/browser checks. Live remains .16 verified00:43UTC; next deployment~01:43UTC; goal active.
+
+## 2026-11-11 01:40 UTC — equipment release validated
+
+Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UTC:3195tests, typecheck, production build/mobile layout audit and doc anchors/references. Log clearer-equipment-release-validation.log. Three notes generated for game/home/news. Human equipment pass completed with actual phone/desktop Codex search/units and ItemDetails Enhance probes, save preservation, exact material debit and screenshots. Equipment philosophy, reforge, Help, tutorial and audio need no changes because equipment effects, costs, acquisition and save rules are unchanged. All checks terminal. Deployment pending; goal active.

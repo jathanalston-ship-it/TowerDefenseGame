@@ -129,19 +129,20 @@ function humanizeField(f: string): string {
   return FIELD_LABEL[f] ?? f.replace(/(Mult|Frac|Bonus)$/, '').replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim();
 }
 
-/** A plain-language explanation of what an affix DOES (its tier-1 magnitude + which stat it moves).
+/** A plain-language explanation of what an affix DOES (its rolled-tier magnitude + which stat it moves).
  *  Shown on the Details screen so a first-time player understands each roll at a glance. */
 export function affixEffectText(affix: RolledAffix): string {
   const def = affixDef(affix.affixId);
-  const e = def?.effects[0];
-  if (!def || !e) return affix.affixId;
+  const base = def?.effects[0];
+  if (!def || !base) return affix.affixId;
+  const e = scaleEffect(base, affixTierFactor(affix.tier));
   switch (e.op) {
     case 'mul': {
-      const pct = Math.round(Math.abs(e.value - 1) * 100);
+      const pct = Number((Math.abs(e.value - 1) * 100).toFixed(2));
       return `${e.value >= 1 ? '+' : '−'}${pct}% ${humanizeField(e.field)}`;
     }
     case 'add':
-      return `${e.value >= 0 ? '+' : '−'}${Math.abs(e.value)} ${humanizeField(e.field)}`;
+      return `${e.value >= 0 ? '+' : '−'}${Number(Math.abs(e.value).toFixed(4))} ${humanizeField(e.field)}`;
     case 'flag':
       return humanizeField(e.field);
     case 'set':
@@ -633,6 +634,10 @@ export function transmute(rng: Rng, item: OwnedItem): OwnedItem | null {
 
 // ── Effect resolution (folded into a run at construction) ─────────────────────
 
+function affixTierFactor(tier: number): number {
+  return AFFIX_TIER_SCALE[Math.max(1, Math.min(MAX_AFFIX_TIER, tier))];
+}
+
 function scaleEffect(e: CardEffect, tierFactor: number): CardEffect {
   if (e.op === 'mul') return { ...e, value: 1 + (e.value - 1) * tierFactor };
   if (e.op === 'add' || e.op === 'biomass' || e.op === 'integrity' || e.op === 'heroHp') return { ...e, value: e.value * tierFactor };
@@ -648,7 +653,7 @@ export function itemEffects(item: OwnedItem): CardEffect[] {
   for (const ra of item.affixes) {
     const affix = AFFIX_BY_ID.get(ra.affixId);
     if (!affix) continue;
-    const f = AFFIX_TIER_SCALE[Math.max(1, Math.min(MAX_AFFIX_TIER, ra.tier))];
+    const f = affixTierFactor(ra.tier);
     for (const e of affix.effects) out.push(scaleEffect(e, f));
   }
   return out;

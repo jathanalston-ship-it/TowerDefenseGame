@@ -586,3 +586,7 @@ EquipmentCollection uses core/effectLanguage.describeEffects exact text for set 
 ### Codex search
 
 Codex search uses the shared ListControls and organizeList framework with authored ordering. Queries match item name, description, slot label and set name; queries are transient and never saved. Matching set bonuses remain visible, empty slots disappear, phone search results bypass folds, and Clear search restores focus to the search field. Collection progress remains global and unchanged by searching.
+
+### Affix tier descriptions
+
+affixEffectText scales its displayed first effect with the same affixTierFactor and scaleEffect used by itemEffects. Tier bounds and applied effects are unchanged; percentage descriptions retain two decimals and additive descriptions four to avoid floating-point noise. Behavioral effects remain unscaled. Equipment tests compare descriptions with applied effects for every affix across tiers and bounds.

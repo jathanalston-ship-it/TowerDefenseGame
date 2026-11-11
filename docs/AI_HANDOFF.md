@@ -4,36 +4,36 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 01:00 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 52e75f66
+- **Generated:** 2026-11-11 01:12 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** de9bc185
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.11 Clearer Equipment Details now has TWO generated game/website notes. Added shared-framework Codex search by name, description, slot and set; prior committed change fixes percentage/count units. Live .16 remains SHA bd8624a1cd353b8ad34fff389afd6324b409e331, verified game/home/news00:43UTC. Goal active; next approximate deployment01:43UTC.
+Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UTC:3195tests, typecheck, production build/mobile layout audit and doc anchors/references. Log clearer-equipment-release-validation.log. Three notes generated for game/home/news. Human equipment pass completed with actual phone/desktop Codex search/units and ItemDetails Enhance probes, save preservation, exact material debit and screenshots. Equipment philosophy, reforge, Help, tutorial and audio need no changes because equipment effects, costs, acquisition and save rules are unchanged. All checks terminal. Deployment pending; goal active. Live still .16 SHA bd8624a1cd353b8ad34fff389afd6324b409e331 verified00:43UTC until deployment verification.
 
 ## Files modified
 
-- Source (2): `src/changelog/releases.gen.ts`, `src/ui/EquipmentCollection.tsx`
-- Tests (0): —
+- Source (2): `src/changelog/releases.gen.ts`, `src/core/equipment.ts`
+- Tests (1): `src/core/equipment.test.ts`
 - Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **equipment** — `src/ui/EquipmentCollection.tsx`
+- **equipment** — `src/core/equipment.ts`
 - Consumer ring (verify, unchanged): crafting
 
 ## Power Score changes
 
-None. Discovery, inventory, equipment definitions and simulation untouched. Equipment and effect-language tests passed.
+No applied effect changes. affixTierFactor extracts the identical clamp/scale lookup shared by itemEffects and text; scaling math unchanged.34 equipment/behavior/reforge tests PASS15.84s. New test compares all affixes at tiers0,1–6,99 against applied effects and confirms descriptions do not mutate effects.
 
 ## UI changes
 
-Search shows match count, matching set bonuses and nonempty slot groups. Phone hits bypass folds. Clear search restores field focus; leaving screen resets query. Parent equipment-codex-search-check.cjs and desktop variant passed mixed-case/trimmed set names, descriptions, slot, empty recovery, field focus, no phone overflow, remount reset and byte-unchanged save.320px screenshot reviewed.
+affixEffectText now uses rolled-tier scale, two decimal percentage precision and four decimal additive precision. Actual ItemDetails Enhance probe passed tier1→2 Keen +5%→+5.9%, applied towerDamageMult1.059, exact5Scrap spend.320px screenshot inspected/no overflow. Earlier Codex search/units browser checks and focused tests passed as recorded.
 
 ## Documentation changes
 
-EQUIPMENT and manifest updated; two game/home/news notes generated. CHANGELOG-PIPELINE, EQUIPMENT-PHILOSOPHY and REFORGE need no changes: no pipeline, design, crafting or model changes. Docs check passed.
+EQUIPMENT and manifest updated; three notes sealed; website/game generated. Equipment philosophy/reforge/Help/tutorial/audio need no changes: no game rule, cost, acquisition or crafting changes. Full doc audit passed.
 
 ## Save changes
 
@@ -41,16 +41,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Initial siteSync check overlapped ledger update and caught intermediate1-versus2 note counts. After site generation, rerun all4siteSync tests PASS1.70s. Other43focused equipment/effect/list/UI tests passed. Do not edit ledger while siteSync tests run. Both untracked devlog drafts preserved.
+Browser fixture must import the EXACT Vite timestamped state/meta.ts URL used by ItemDetails (parse fetched transformed module); plain URL seeded separate save after HMR, causing blank fixture. Corrected fixture passed. Also fixture effect field is towerDamageMult, not damageMult. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
-No new debt. Chrome full audit requires MOBILECHECK_CHROMIUM plus NODE_OPTIONS parent chrome-probe-compat.cjs.
+Potential next review after release: affix randomize action only shows cost in hover title; additive fractional affix text still uses existing raw units (Codex set units already corrected). Full audit is now terminal and passed.
 
 ## Recommended next tasks
 
-Production build53660 PASS44.94s Vite/SWmwbf2eoq; all checks terminal. Full release validation still pending. Continue goal and next deployment about01:43UTC: seal/regenerate notes, run complete validator, push and verify actual normal public game/home/news.
+Commit/push release, verify exact-commit Actions success and normal public game/home/news/all3notes using ../verify-current-release.ps1. Then continue active goal; next approximate deployment one hour after actual live verification.
 
 ## Future expansion hooks
 
-Devserver5174 active64507. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1. Shared codex spec is CODEX_LIST in EquipmentCollection; no persistent query preference.
+Devserver5174 active64507; no browser probes running. Chrome audit env configured in validator process. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl; public verifier ../verify-current-release.ps1. Full log clearer-equipment-release-validation.log. Every deployment includes website notes.
