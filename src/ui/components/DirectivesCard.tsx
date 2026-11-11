@@ -45,11 +45,11 @@ export function DirectivesCard(): JSX.Element {
       {v.directives.map((d) => {
         const pct = Math.round((d.progress / d.target) * 100);
         return (
-          <div className={`dir-row${d.complete ? ' is-complete' : ''}${d.claimed ? ' is-claimed' : ''}`} key={d.id}>
+          // Name + counter + reward (2026-11-11 playtest: fewer words) — the goal sentence is the tooltip.
+          <div className={`dir-row${d.complete ? ' is-complete' : ''}${d.claimed ? ' is-claimed' : ''}`} key={d.id} title={d.blurb}>
             <span className="dir-icon" aria-hidden>{d.icon}</span>
             <span className="dir-body">
               <span className="dir-name">{d.name}</span>
-              <span className="dir-blurb">{d.blurb}</span>
               <span className="dir-bar" aria-hidden><i style={{ width: `${pct}%` }} /></span>
             </span>
             <span className="dir-side">
@@ -64,11 +64,11 @@ export function DirectivesCard(): JSX.Element {
         );
       })}
 
-      <div className={`dir-capstone${v.capstone.earned ? ' is-earned' : ''}${v.capstone.claimed ? ' is-claimed' : ''}`}>
+      <div className={`dir-capstone${v.capstone.earned ? ' is-earned' : ''}${v.capstone.claimed ? ' is-claimed' : ''}`} title="Clear all three directives to unlock the weekly mandate.">
         <span className="dir-cap-icon" aria-hidden>{v.capstone.reward.icon}</span>
         <span className="dir-cap-body">
           <span className="dir-cap-name">{v.capstone.reward.name}</span>
-          <span className="dir-cap-hint">Clear all three directives to unlock the weekly mandate.</span>
+          <span className="dir-cap-hint">All 3 directives</span>
         </span>
         {v.capstone.claimed
           ? <span className="dir-claimed">✓ Claimed</span>

@@ -3,7 +3,19 @@
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
-> **Last updated:** 2026-11-11 (**HIVE CALL + 3 s AUTO GENE — validated, awaiting the owner's release go-ahead.**
+> **Last updated:** 2026-11-11b (**PLAYTEST PASS — HUB LAG + FEWER WORDS; releasing with Hive Call + Constructs** (owner:
+> "once you fix these can release all of it"). Owner playtest: the hub's Buy best-upgrade froze ~½ s; unlock summaries
+> and the hub read like a dashboard. LAG (BUGFIX #130): per-save memos (state/saveMemo.ts — committed store snapshots
+> only, results frozen) for Power parts, purchase candidates, adaptation picks, equip upgrades and two badge counts;
+> CommandCenter renders on useDeferredValue(save); the Power ledger writes at natural pauses (boot · run start · tab
+> hidden) instead of a second full save 600 ms after every gain. Profiled on a production build, stage-34 save: 2 long
+> tasks (~300 + ~350 ms) → 1 (~65–75 ms); click → next frame ~365 → ~125–150 ms. WORDS: the level-up unlock card is a
+> glyph medallion + title + one line, details folded (285 → 35 words); the Update Briefing is 3 glyph tiles with
+> short headlines + "See all changes ▸" (several hundred → 82); the hub's Ready Chain + Recommended are icon tiles
+> (system glyph · count badge · name · action), vitals carry glyphs, Growth rows show glyph + "+N ⚡", directive /
+> contract / mode / feed explanations moved to hover titles. Type-scale gate kept (sizes on the scale).)
+>
+> **2026-11-11** (**HIVE CALL + 3 s AUTO GENE — validated; releasing in the 2026-11-11b batch.**
 > Owner ask: the hive "picks gene cards after only 3 seconds on autodraft and calls waves early if it calculates
 > you'll survive the wave significantly". Auto Gene countdown 10 s → 3 s (DraftModal AUTO_SECONDS). HIVE CALL
 > (HIVE-MIND.md §hive-call): rides Auto Wave + the automation gate (solved content only); Game.hiveCallSystem reads
@@ -16,7 +28,7 @@
 > Golden byte-identical (Auto Wave off). sim:hive now reports calls + gates overlap damage ≤ 5 %. Also fixed stale
 > Early Call help ("Auto Wave never calls early"; owed cards dealt at the clear).)
 >
-> **2026-11-06c** (**MARKET CONSTRUCTS — validated, awaiting the owner's release go-ahead.**
+> **2026-11-06c** (**MARKET CONSTRUCTS — validated; releasing in the 2026-11-11b batch.**
 > CONSTRUCTS.md: 8 labelled AI accounts (owner choices: marked as bots · scheduled Cloudflare Worker · auction +
 > activity only, never ranked). `workers/constructs/` (cron */5): each plays nonstop at real-time pace through the
 > progression simulator's virtual player on the REAL meta layer, keeps its save in its own cloud slot, and trades

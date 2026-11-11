@@ -14,6 +14,7 @@ import { meta } from '../../state/meta';
 import { audio } from '../../audio/sound';
 import { formatPower } from '../../core/power';
 import type { HeroKind } from '../../core/types';
+import { featureView } from '../../state/unlocks';
 
 /** Execute an atlas move — every branch is the SAME guarded meta action its wing calls (and the
  *  atlas only ever offers moves on revealed wings — docs/PROGRESSION-GATING.md §seal). */
@@ -25,6 +26,11 @@ function runAtlasAction(a: AtlasAction): boolean {
 }
 
 const ACTION_VERB: Record<AtlasAction['type'], string> = { purchase: 'Buy', adapt: 'Adapt', equip: 'Equip' };
+
+/** The system's screen glyph (state/unlocks FEATURES), '◆' for a screen without one. */
+function glyphOf(save: SaveData, nav: string): string {
+  try { return featureView(save, nav).def.glyph; } catch { return '◆'; }
+}
 
 /** Inline sparkline over the daily ledger — pure SVG, no animation (an info readout).
  *  Shared: the Growth panel and the Profile's Power Breakdown both draw the same history. */
@@ -90,13 +96,14 @@ export function GrowthPanel({ save, go }: { save: SaveData; go: (nav: string) =>
 
       <div className="gp-rows">
         {atlas.systems.map((sys) => (
-          <button className="gp-row" key={sys.id} onClick={() => go(sys.nav)} title={sys.note}>
+          // Glyph + name + the Power on offer (2026-11-11 playtest: fewer words) — the move itself
+          // (or the system's status) rides the tooltip.
+          <button className="gp-row" key={sys.id} onClick={() => go(sys.nav)} title={sys.move ? `${sys.move.label} — ${sys.note}` : sys.note}>
+            <span className="gp-row-g" aria-hidden>{glyphOf(save, sys.nav)}</span>
             <span className="gp-row-l">{sys.label}</span>
             {sys.readyCount > 0 && <span className="gp-ready">{sys.readyCount}</span>}
             <span className="gp-row-note">
-              {sys.move
-                ? <>{sys.move.powerDelta > 0 ? `+${sys.move.powerDelta} · ` : ''}{sys.move.label}</>
-                : sys.note}
+              {sys.move && sys.move.powerDelta > 0 ? <b className="gp-row-gain">+{sys.move.powerDelta} ⚡</b> : sys.note}
             </span>
             <span className="gp-row-go" aria-hidden>▸</span>
           </button>

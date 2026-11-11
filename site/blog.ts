@@ -17,6 +17,23 @@ export interface BlogPost {
 
 export const POSTS: BlogPost[] = [
   {
+    slug: 'a-lighter-hub',
+    date: '2026-11-11',
+    title: 'A lighter hub: fewer words, more buttons',
+    category: 'Tech',
+    tags: ['hub', 'performance', 'ui'],
+    summary: 'A playtest pass on the hub. Buy best-upgrade no longer freezes the screen, and the hub, the unlock card and the update briefing trade paragraphs for icons and tiles.',
+    body: `
+<p>A recent playtest went well, and it turned up three things worth fixing straight away. All three are in this update.</p>
+<h2>The quick-buy no longer stalls</h2>
+<p>Pressing <b>Buy</b> on the hub's best upgrade used to freeze everything for about half a second. Every panel on the screen was redoing the same Power maths for the new purchase, and some did it more than once. Each answer is now worked out once and shared. A purchase does about five times less work, and the screen responds to your click first while the advice panels catch up a moment later.</p>
+<h2>Unlock cards you can read at a glance</h2>
+<p>When you reach a new system, its card is now a big icon, a name and one line about what it does, with buttons to go there or carry on. The full explanation is still there under <b>Details</b>, and in Help, for anyone who wants it.</p>
+<h2>A hub that looks like a game</h2>
+<p>The things you can do right now are big icon tiles instead of sentences: each one shows the screen's icon, how many things are waiting there and what pressing it does (claim, upgrade, open). Your headline stats carry icons, Growth shows each system's Power gain as <b>+N ⚡</b>, and the update briefing shows the three biggest changes as tiles with a link to the full notes. The longer explanations haven't gone anywhere. Hover a tile or row, or read it with a screen reader, to see them.</p>
+`,
+  },
+  {
     slug: 'hive-calls-the-wave',
     date: '2026-11-11',
     title: 'The Hive calls the wave',

@@ -16,20 +16,35 @@ import { RELEASES } from '../changelog/releases.gen'; // the whole history — t
 import { NOTE_CATEGORIES } from '../changelog/types';
 import './UpdateBriefing.css';
 
-/** Collapse the unseen releases into one skimmable briefing: highlights first, then
- *  entries grouped in the standard category order, capped so the card never scrolls far. */
-function digest(unseen: Release[]): { highlights: ReleaseEntry[]; groups: [string, string[]][] } {
-  const all = unseen.flatMap((r) => r.entries);
-  const highlights = all.filter((e) => e.major);
-  const byCat = new Map<string, string[]>();
-  for (const e of all) {
-    if (e.major) continue;
-    const list = byCat.get(e.cat) ?? [];
-    if (list.length < 4) list.push(e.text); // ≤4 lines per category — skim, don't scroll
-    byCat.set(e.cat, list);
-  }
-  const groups = NOTE_CATEGORIES.filter((c) => byCat.has(c)).map((c) => [c, byCat.get(c)!] as [string, string[]]);
-  return { highlights, groups };
+/** LESS TO READ (2026-11-11 playtest): the briefing is at most BRIEF_TILES icon tiles — the
+ *  newest highlights first (★ majors, then the rest in category order), each cut to a one-line
+ *  headline — and a count of everything else, which lives on the full patch-notes page. */
+const BRIEF_TILES = 3;
+
+/** One glyph per release category (the tile's icon). */
+const CAT_GLYPH: Record<string, string> = {
+  Gameplay: '⚔', Balance: '⚖', Heroes: '♛', Towers: '▲', 'Gene Cards': '⬡', Enemies: '☠', Bosses: '☠',
+  'Mega Bosses': '☠', UI: '◧', UX: '✦', Audio: '♪', Music: '♫', Visuals: '✺', Performance: '⚡',
+  Optimization: '⚡', Security: '⛨', Website: '◎', Backend: '⚙', Framework: '⚙', 'Developer Tools': '⚒',
+  'Bug Fixes': '✚',
+};
+
+/** A release line cut to a headline: its first clause (up to ": " / ". " / " — " / "; "), extended
+ *  past a too-short lead-in ("New system: Class Bonds", not "New system"), capped at 9 words — the
+ *  full sentence stays on the tile's tooltip and the patch-notes page. */
+export function briefHeadline(text: string): string {
+  const parts = text.split(/(: |\. | — |; )/); // delimiters kept at the odd indices
+  let head = parts[0];
+  for (let i = 1; head.trim().split(/\s+/).length < 3 && i + 1 < parts.length; i += 2) head += parts[i] + parts[i + 1];
+  const words = head.trim().split(/\s+/);
+  return words.length > 9 ? `${words.slice(0, 9).join(' ')}…` : head.trim();
+}
+
+function digest(unseen: Release[]): { tiles: ReleaseEntry[]; more: number } {
+  const all = unseen.flatMap((r) => r.entries); // newest release first
+  const rank = (e: ReleaseEntry): number => (e.major ? 0 : 1 + Math.max(0, (NOTE_CATEGORIES as readonly string[]).indexOf(e.cat)));
+  const tiles = [...all].sort((a, b) => rank(a) - rank(b)).slice(0, BRIEF_TILES);
+  return { tiles, more: all.length - tiles.length };
 }
 
 export function UpdateBriefing(): JSX.Element | null {
@@ -45,7 +60,7 @@ export function UpdateBriefing(): JSX.Element | null {
   if (!latest || optOut || fresh || unseen.length === 0) return null;
   if (meta.whatsNew().length > 0) return null; // mechanic intros take the stage first
 
-  const { highlights, groups } = digest(unseen);
+  const { tiles, more } = digest(unseen);
   const head = unseen[0];
   const done = (): void => { meta.markPatchNotesSeen(RELEASES); audio.cue('ui'); };
   const never = (): void => { meta.setPatchNotesOptOut(true, RELEASES); audio.cue('ui'); };
@@ -62,22 +77,17 @@ export function UpdateBriefing(): JSX.Element | null {
         <h2 className="wn-title">{head.title}</h2>
         <div className="ub-sub">{unseen.length > 1 ? `${unseen.length} releases since your last visit` : head.date}</div>
 
-        {highlights.length > 0 && (
-          <div className="ub-highlights">
-            {highlights.map((h) => <div key={h.text} className="ub-hi">★ {h.text}</div>)}
-          </div>
-        )}
-
-        <div className="ub-groups">
-          {groups.map(([cat, lines], i) => (
-            <div key={cat} className="ub-group" style={{ ['--i' as string]: i }}>
-              <span className="ub-cat">{cat}</span>
-              <ul className="ub-lines">
-                {lines.map((t) => <li key={t}>{t}</li>)}
-              </ul>
+        <div className="ub-tiles">
+          {tiles.map((e, i) => (
+            <div key={e.text} className={`ub-tile${e.major ? ' is-major' : ''}`} title={e.text} style={{ ['--i' as string]: i }}>
+              <span className="ub-tile-glyph" aria-hidden>{CAT_GLYPH[e.cat] ?? '✦'}</span>
+              <span className="ub-tile-t">{briefHeadline(e.text)}</span>
             </div>
           ))}
         </div>
+        {more > 0 && (
+          <a className="ub-more" href="/news/" target="_blank" rel="noreferrer" onClick={done}>See all changes ▸</a>
+        )}
 
         {acts.length > 0 && (
           <div className="ub-now" aria-label="Waiting for you now">

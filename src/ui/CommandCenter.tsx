@@ -37,14 +37,14 @@ import { ContractsCard } from './components/ContractsCard';
 import { FrontStrip } from './components/FrontStrip';
 import { GrowthPanel } from './components/GrowthPanel';
 import { armyView, buildHomeView, homeRegistry } from './homeModel';
-import { recommendationsFor } from '../state/recommendations';
+import { recommendationsFor, type RecKind } from '../state/recommendations';
+import { ACTIONS } from './iconLanguage';
 import { readyChain } from '../state/readyChain';
 import { featureView, isOpenNav } from '../state/unlocks';
 import { rewardVisible } from '../state/rewardVisibility';
 import { loopFlow } from '../state/loopFlow';
 import { loopState } from '../state/progressionLoop';
 import { estimatesFirm, etaLabel, incomePerRun, runsToStage } from '../state/income';
-import { RecommendStrip } from './HubLanding';
 import { t } from '../i18n';
 import { hiveIntel } from '../state/hiveIntel';
 import { evolutionRoadmap } from '../state/evolutionRoadmap';
@@ -192,20 +192,20 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
       {chain.length > 0 && (
         <>
           <span className="cc-panel-h cc-chain-h">◈ READY CHAIN — {chain.length} STOP{chain.length === 1 ? '' : 'S'}</span>
-          <div className="cc-chain" role="list">
+          <div className="cc-chain cc-tiles" role="list">
             {chain.slice(0, 4).map((n) => (
-              <button key={n.nav} type="button" role="listitem" className="cc-chain-row" data-reckind={n.kind} onClick={() => c.go(n.nav)}>
-                <span className="cc-chain-name">{featureView(c.save, n.nav).def.name}</span>
-                <span className="cc-chain-l">{n.label}</span>
-                <span className="cc-chain-go" aria-hidden>→</span>
-              </button>
+              <ActionTile key={n.nav} save={c.save} nav={n.nav} kind={n.kind} label={n.label} onClick={() => c.go(n.nav)} />
             ))}
-            {chain.length > 4 && <span className="cc-chain-more">+{chain.length - 4} more on the chain</span>}
           </div>
+          {chain.length > 4 && <span className="cc-chain-more">+{chain.length - 4} more on the chain</span>}
         </>
       )}
       <span className="cc-panel-h">✦ {t('hub.landing.recommended').toUpperCase()}</span>
-      <RecommendStrip recs={recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last(), skip: (r) => onChain.has(r.nav) })} go={(k) => c.go(k)} />
+      <div className="cc-tiles" role="list">
+        {recommendationsFor(c.save, { limit: 3, rotateFrom: loopFlow.last(), skip: (r) => onChain.has(r.nav) }).map((r) => (
+          <ActionTile key={r.id} save={c.save} nav={r.nav} kind={r.kind} label={r.label} why={r.why} onClick={() => c.go(r.nav)} />
+        ))}
+      </div>
     </section>
     );
   },
@@ -233,21 +233,48 @@ const WIDGETS: Record<string, (ctx: WidgetCtx) => ReactNode> = {
   'tip': (c) => <div className="mc-tip" role="note"><span className="mc-tip-k">TIP</span>{c.tip}</div>,
 };
 
+/** ACTION TILE (2026-11-11 playtest — "more icons and buttons, fewer words"): the destination
+ *  screen's glyph, the live count, the screen's name and the verb chip — one tap. The full sentence
+ *  rides the tooltip and the aria-label (docs/ICON-LANGUAGE.md §a11y: a glyph never stands alone). */
+function ActionTile({ save, nav, kind, label, why, onClick }: {
+  save: SaveData; nav: NavKey; kind: RecKind; label: string; why?: string; onClick: () => void;
+}): JSX.Element {
+  let glyph: string = ACTIONS[kind].glyph;
+  let name = label;
+  try {
+    const def = featureView(save, nav).def;
+    glyph = def.glyph;
+    name = def.name;
+  } catch { /* not a feature screen — the verb glyph + the label stand in */ }
+  const count = /^\d[\d,]*/.exec(label)?.[0];
+  const act = ACTIONS[kind];
+  const full = why ? `${label} — ${why}` : label;
+  return (
+    <button type="button" role="listitem" className="cc-tile" data-reckind={kind} onClick={onClick} title={full} aria-label={`${name}: ${full}`}>
+      <span className="cc-tile-glyph" aria-hidden>{glyph}</span>
+      {count && <span className="cc-tile-n" aria-hidden>{count}</span>}
+      <span className="cc-tile-name">{name}</span>
+      <span className="cc-tile-act" style={{ color: act.color }} aria-hidden>{act.glyph} {act.label}</span>
+    </button>
+  );
+}
+
 /** The command strip — every account vital, every one a door. (The NEXT banner owns the
  * nearest goal; it is deliberately absent here — one goal, one surface.) */
 function Vitals({ save, view, go }: WidgetCtx): ReactNode {
   const vaults = view.vaultReady;
   const ach = (save.achievements ?? []).length;
   const acct = meta.accountLevel();
-  const cells: { k: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
-    { k: 'Level', v: `LV ${acct.level}`, c: 'var(--viral)', nav: 'profile', title: `Account Level — ${acct.into}/${acct.need} XP toward L${acct.level + 1}` },
-    { k: 'Power', v: formatPower(view.power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
-    { k: 'Campaign', v: `Stage ${view.world.stage}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
-    { k: 'Infinite', v: `Wave ${save.bestWave}`, nav: 'infinite', title: 'Infinite personal best' },
-    { k: 'Collection', v: `${Math.round(view.collectionPct * 100)}%`, nav: 'collection', title: `Codex discovery — ${view.collectionDiscovered}/${view.collectionTotal}` },
-    { k: 'Champions', v: `${save.heroLoadout.length}/${heroSlotsUnlocked(save)}`, nav: 'heroes', title: 'Fielded champions / unlocked slots' },
-    { k: 'Vaults', v: vaults > 0 ? `${vaults} ready` : '—', c: vaults > 0 ? 'var(--r-epic)' : undefined, nav: 'vault', title: 'Unopened Bio-Containers' },
-    ...(ach > 0 ? [{ k: 'Achievements', v: `${ach}`, nav: 'profile' as NavKey, title: 'Achievements earned' }] : []),
+  // Each vital leads with its glyph (2026-11-11 playtest: icons over words); the label stays for a11y.
+  const cells: { k: string; g: string; v: string; c?: string; nav?: NavKey; title: string }[] = [
+    { k: 'Level', g: '✪', v: `LV ${acct.level}`, c: 'var(--viral)', nav: 'profile', title: `Account Level — ${acct.into}/${acct.need} XP toward L${acct.level + 1}` },
+    { k: 'Power', g: '⚡', v: formatPower(view.power), c: 'var(--gold)', nav: 'profile', title: 'Power Score — total account strength' },
+    { k: 'Campaign', g: '⚔', v: `Stage ${view.world.stage}`, nav: 'campaign', title: 'Deepest Campaign stage cleared' },
+    { k: 'Infinite', g: '∞', v: `Wave ${save.bestWave}`, nav: 'infinite', title: 'Infinite personal best' },
+    { k: 'Collection', g: '◈', v: `${Math.round(view.collectionPct * 100)}%`, nav: 'collection', title: `Codex discovery — ${view.collectionDiscovered}/${view.collectionTotal}` },
+    { k: 'Champions', g: '♛', v: `${save.heroLoadout.length}/${heroSlotsUnlocked(save)}`, nav: 'heroes', title: 'Fielded champions / unlocked slots' },
+    { k: 'Vaults', g: '◉', v: vaults > 0 ? `${vaults} ready` : '—', c: vaults > 0 ? 'var(--r-epic)' : undefined, nav: 'vault', title: 'Unopened Bio-Containers' },
+    ...(ach > 0 ? [{ k: 'Achievements', g: '✦', v: `${ach}`, nav: 'profile' as NavKey, title: 'Achievements earned' }] : []),
   ];
   const vitals = cells.filter((x) => !x.nav || isOpenNav(save, x.nav)); // a stat for a sealed screen is a tease with no door
   return (
@@ -255,6 +282,7 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
       <span className="cc-vitals-h">◉ COMMAND</span>
       {vitals.map((x) => (
         <button className="cc-vital" key={x.k} onClick={() => x.nav && go(x.nav)} title={x.title}>
+          <span className="cc-vital-g" aria-hidden style={x.c ? { color: x.c } : undefined}>{x.g}</span>
           <span className="cc-vital-k">{x.k}</span>
           <span className="cc-vital-v" style={x.c ? { color: x.c } : undefined}>{x.v}</span>
         </button>
@@ -412,13 +440,13 @@ function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless
           {/* §first-loop: until the loop is walked, the two rows CLOSEST to done (a new account's
               long roads — First Molt, slot 2 — would otherwise lead the short list). */}
           {(firstLoopDone(save) ? mc.secondary : [...mc.secondary].sort((x, y) => y.progress - x.progress).slice(0, FIRST_LOOP_LEDGER_ROWS)).map((o) => (
-            <button key={o.id} className="mc-obj" onClick={() => go(o.nav as NavKey)} title={o.why}>
+            <button key={o.id} className="mc-obj" onClick={() => go(o.nav as NavKey)} title={o.reward ? `${o.why} — ${o.reward}` : o.why}>
               <span className="mc-obj-ring" style={{ ['--p' as string]: o.progress }} aria-hidden>
                 <b>{Math.round(o.progress * 100)}%</b>
               </span>
               <span className="mc-obj-body">
                 <span className="mc-obj-t">{o.title}</span>
-                <span className="mc-obj-r">{o.remaining}{o.reward ? ` · ${o.reward}` : ''}</span>
+                <span className="mc-obj-r">{o.remaining}</span>
               </span>
               {o.powerGain !== undefined && <span className="mc-obj-gain">+{o.powerGain}⚡</span>}
             </button>
@@ -534,54 +562,44 @@ function Modes({ start, onStart, onStartEndless, go, save }: WidgetCtx): ReactNo
     <section className="mc-secondary" aria-label="Other modes">
       <button
         className={`mc-sec mc-sec-endless${infUnlocked ? '' : ' is-locked'}`}
+        title={infUnlocked ? 'Quick endless run · AI Director, infinite depth' : `Unlocks at Campaign Stage ${MODE_UNLOCKS.infinite} — you're at ${stage}`}
         onClick={() => (infUnlocked ? start(onStartEndless) : go('campaign'))}
       >
         <span className="mc-sec-i" aria-hidden>∞</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Infinite Mode</span>
-          <span className="mc-sec-d">
-            {infUnlocked
-              ? 'Quick endless run · AI Director, infinite depth'
-              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.infinite} — you're at ${stage}`}
-          </span>
+          {!infUnlocked && <span className="mc-sec-d">🔒 Stage {MODE_UNLOCKS.infinite}</span>}
           <RewardPreview chips={infiniteRewards} className="mc-sec-rwp" />
         </span>
       </button>
       <button
         className={`mc-sec mc-sec-rush${rushUnlocked ? '' : ' is-locked'}`}
+        title={rushUnlocked ? 'The gauntlet · wave N = N bosses, paid per kill' : `Unlocks at Campaign Stage ${MODE_UNLOCKS.bossRush} — you're at ${stage}`}
         onClick={() => go(rushUnlocked ? 'bossrush' : 'campaign')}
       >
         <span className="mc-sec-i" aria-hidden>☠</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Boss Rush</span>
-          <span className="mc-sec-d">
-            {rushUnlocked
-              ? 'The gauntlet · wave N = N bosses, paid per kill'
-              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.bossRush} — you're at ${stage}`}
-          </span>
+          {!rushUnlocked && <span className="mc-sec-d">🔒 Stage {MODE_UNLOCKS.bossRush}</span>}
           <RewardPreview chips={rushRewards} className="mc-sec-rwp" />
         </span>
       </button>
       <button
         className={`mc-sec mc-sec-daily${dailyUnlocked ? '' : ' is-locked'}`}
+        title={dailyUnlocked ? 'One seed per day · the same gauntlet worldwide' : `Unlocks at Campaign Stage ${MODE_UNLOCKS.daily} — you're at ${stage}`}
         onClick={() => go(dailyUnlocked ? 'daily' : 'campaign')}
       >
         <span className="mc-sec-i" aria-hidden>☀</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Daily Run</span>
-          <span className="mc-sec-d">
-            {dailyUnlocked
-              ? 'One seed per day · the same gauntlet worldwide'
-              : `🔒 Unlocks at Campaign Stage ${MODE_UNLOCKS.daily} — you're at ${stage}`}
-          </span>
+          {!dailyUnlocked && <span className="mc-sec-d">🔒 Stage {MODE_UNLOCKS.daily}</span>}
           <RewardPreview chips={dailyRewards} className="mc-sec-rwp" />
         </span>
       </button>
-      <button className="mc-sec" onClick={() => start(onStart)}>
+      <button className="mc-sec" onClick={() => start(onStart)} title="The authored 12-wave defense">
         <span className="mc-sec-i" aria-hidden>▷</span>
         <span className="mc-sec-body">
           <span className="mc-sec-t">Quick Skirmish</span>
-          <span className="mc-sec-d">The authored 12-wave defense</span>
         </span>
       </button>
       {FEATURES.customChallenge && (
@@ -616,7 +634,6 @@ function CommandFeed({ save, go }: WidgetCtx): ReactNode {
             <span className="cc-feed-i" aria-hidden>{e.icon}</span>
             <span className="cc-feed-body" title={e.why}>
               <span className="cc-feed-l">{e.what}</span>
-              {e.priority !== 'note' && <span className="cc-feed-why">{e.why}</span>}
             </span>
             {e.powerGain !== undefined && <span className="cc-feed-gain">+{e.powerGain}⚡</span>}
             {e.ago ? (

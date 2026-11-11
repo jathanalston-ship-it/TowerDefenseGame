@@ -29,7 +29,7 @@ export function ContractsCard(): JSX.Element {
         const hit = done.has(`${wk}:${c.id}`);
         const marquee = c.reward.cosmetic ? cosmeticRegistry.get(c.reward.cosmetic) : null;
         return (
-          <div className={`cc-contract${hit ? ' is-done' : ''}${c.reward.cosmetic ? ' is-marquee' : ''}`} key={c.id}>
+          <div className={`cc-contract${hit ? ' is-done' : ''}${c.reward.cosmetic ? ' is-marquee' : ''}`} key={c.id} title={c.blurb}>
             <span className="cc-contract-top">
               <span className={`cc-contract-name${hit ? ' done' : ''}`}>{hit ? '✓ ' : ''}{c.name}</span>
               <span className="cc-contract-diff" title={`Difficulty ${c.difficulty}/3`} aria-label={`Difficulty ${c.difficulty} of 3`}>
@@ -37,7 +37,6 @@ export function ContractsCard(): JSX.Element {
               </span>
               {c.mode !== 'any' && <span className="cc-contract-mode">{MODE_LABEL[c.mode]}</span>}
             </span>
-            <span className="cc-contract-blurb">{c.blurb}</span>
             <span className="cc-contract-terms">
               {c.constraints.map((k, i) => <i key={i}>{constraintLabel(k)}</i>)}
             </span>

@@ -40,7 +40,7 @@ export function PredictionPanel({ mode, difficultyId, label }: {
         <div className="predict-fill" style={{ width: `${pct(p.estimate)}%` }} />
         <div className="predict-marker" style={{ left: `${pct(p.estimate)}%` }} />
       </div>
-      <div className="predict-range">Likely range <b>{p.low}–{p.high}</b> · sharpens as you play</div>
+      <div className="predict-range" title="Likely range — it sharpens as you play">Range <b>{p.low}–{p.high}</b></div>
       {advice.length > 0 && (
         <ul className="predict-recs">
           {advice.map((r) => <li key={r.text}>{r.text} <AdviceGo nav={r.nav} /></li>)}

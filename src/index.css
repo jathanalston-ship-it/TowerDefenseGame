@@ -3341,24 +3341,26 @@ kbd {
 /* ── Ready Chain (docs/HUB-FLOW.md §surfaces) — the live harvest queue. Readiness
    BREATHES (slow glow, no layout shift); the unseen badge stays the novelty channel. ── */
 .cc-chain-h { color: var(--gold); }
-.cc-chain { display: flex; flex-direction: column; gap: 5px; }
-.cc-chain-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+.cc-chain { display: grid; } /* the chain IS a tile grid now (.cc-tiles) */
+/* ACTION TILES (2026-11-11 playtest — icons + buttons over sentences): glyph, live count,
+   screen name, verb chip. The sentence is the tooltip/aria-label. */
+.cc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.cc-tile {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 92px; padding: 10px 6px 8px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.035); cursor: pointer; text-align: center;
+  transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
 }
-.cc-chain-row:hover { background: rgba(255, 255, 255, 0.07); transform: translateX(2px); }
-.cc-chain-name { font-size: 12px; font-weight: 800; white-space: nowrap; }
-.cc-chain-l { flex: 1; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cc-chain-go { color: var(--gold); }
+.cc-tile:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); border-color: var(--line-strong); }
+.cc-chain .cc-tile { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.cc-tile-glyph { font-size: 26px; line-height: 1; color: var(--text); }
+.cc-chain .cc-tile-glyph { color: var(--gold); }
+.cc-tile-n {
+  position: absolute; top: 6px; right: 6px; min-width: 20px; padding: 1px 6px; border-radius: 999px;
+  font-size: 11px; font-weight: 900; color: var(--bg); background: var(--gold);
+}
+.cc-tile-name { font-size: 12px; font-weight: 800; line-height: 1.15; }
+.cc-tile-act { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
 .cc-chain-more { font-size: 11px; color: var(--dim); padding-left: 2px; }
 .hub-door.is-ready .hub-door-g { animation: ready-breathe 4.8s ease-in-out infinite; }
 .hubl-card.is-ready { border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); animation: ready-card 2.8s ease-in-out infinite; }
@@ -3891,6 +3893,8 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .gp-row { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 5px 8px; border-radius: var(--r-sm); border: 1px solid rgba(255, 255, 255, 0.06); background: rgba(255, 255, 255, 0.02); transition: border-color var(--dur-2) var(--ease-out); }
 .gp-row:hover { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
 .gp-row-l { flex: none; width: 118px; font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gp-row-g { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; color: var(--gold); }
+.gp-row-gain { color: var(--gold); font-weight: 800; }
 .gp-ready { flex: none; min-width: 18px; text-align: center; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 999px; color: #0b1207; background: var(--gold); }
 .gp-row-note { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gp-row-go { flex: none; color: var(--dim); }
@@ -4067,8 +4071,9 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .cc-vitals { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--r-md); background: color-mix(in srgb, var(--panel) 78%, transparent); border: 1px solid var(--line); backdrop-filter: blur(4px); }
 .cc-vitals-h { font-size: 10px; letter-spacing: 0.16em; font-weight: 700; color: var(--vital); animation: cc-blink 5.2s ease-in-out infinite; }
 @keyframes cc-blink { 0%, 92%, 100% { opacity: 1; } 96% { opacity: 0.45; } }
-.cc-vital { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 4px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
+.cc-vital { display: grid; grid-template-columns: auto auto; align-items: center; justify-items: start; column-gap: 7px; row-gap: 1px; padding: 4px 10px; border-radius: var(--r-sm); background: var(--panel-2); border: 1px solid var(--line); cursor: pointer; transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out); }
 .cc-vital:hover { border-color: var(--line-strong); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.cc-vital-g { grid-row: 1 / span 2; font-size: 18px; line-height: 1; color: var(--muted); }
 .cc-vital-k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .cc-vital-v { font-size: 12px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

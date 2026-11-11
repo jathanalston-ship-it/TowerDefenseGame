@@ -669,3 +669,8 @@
 - `1d16e42` **[Backend]** Market Constructs: 8 labelled AI players that grind nonstop and trade on the Auction House _(internal)_
 - `d22f872` **[Gameplay]** Constructs: tick reports name why a save commit was refused (e.g. save-commit-429) _(internal)_
 - `6c8c01b` **[UI]** Status,docs: Market Constructs live-checked in the Auction House UI; full suite 3154/3154 _(internal)_
+## 2026-11-11
+
+- `0e1896c` **[Gene Cards]** Hive Call: the hive calls the next wave early when its forecast says the board holds; Auto Gene 3 s _(internal)_
+- `1a306d1` **[Gene Cards]** Validation: Hive Call + 3 s Auto Gene PASS over 353c962..HEAD — 3162/3162, mobile gate clean _(internal)_
+- `9521758` **[Gameplay]** Hub quick-buy lag: one shared Power read per save snapshot; no second write; deferred board _(internal)_

@@ -570,6 +570,12 @@ sink ≈ hour-400 at endgame income — re-tune as the library grows.
   (foundationsUX.test.ts): every persona across the spectrum always has an objective, a bounded feed,
   and something to do — no dead-ends, no notification walls
 - ✅ Combat Tutorial, HUD Tour, Help wiki + mechanics registry, "What's New" — TUTORIAL.md, HELP.md
+- ✅ **LIGHTER HUB** (2026-11-11b, BUGFIX #130, COMMAND-CENTER.md) — per-save memos (`state/saveMemo.ts`,
+  committed store snapshots only, frozen results) for the hub's shared models + a deferred Command Center render
+  + Power ledger writes at natural pauses: the Buy best-upgrade click is one ~70 ms task (was ~650 ms in two).
+  Fewer words: icon tiles (`ActionTile` — system glyph, count badge, name, action) for the Ready Chain and
+  Recommended; glyph vitals; Growth rows `glyph · +N ⚡`; the unlock card is a medallion + one line (details folded);
+  the Update Briefing is 3 glyph tiles. Long explanations live in hover titles / aria-labels.
 - ✅ **HIVE CALL + 3 s AUTO GENE** (2026-11-11, HIVE-MIND.md §hive-call) — with Auto Wave on, on solved
   content (the automation gate), the Hive calls the next wave EARLY mid-fight when its forecast says the
   board holds the overlap comfortably: the deepest point enemies reached past first contact × the load the

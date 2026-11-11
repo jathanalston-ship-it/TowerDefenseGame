@@ -56,21 +56,28 @@ export function WhatsNew(): JSX.Element | null {
     }
   };
 
+  // LESS TO READ (2026-11-11 playtest — "whole paragraphs most people won't read"): the card is the
+  // system's glyph, its name and ONE line; the full what / why / where / next briefing folds behind
+  // "Details" (and lives on in Help) for the players who want it.
+  const glyph = unlockSummaryRows([m], save)[0]?.glyph ?? '✦';
   return (
     <div className="whatsnew" role="dialog" aria-label="New System Unlocked" onClick={close}>
       <div className="evo-rays" aria-hidden />
-      <div className="wn-card" onClick={(e) => e.stopPropagation()}>
+      <div className="wn-card wn-solo" onClick={(e) => e.stopPropagation()}>
         <div className="wn-badge">✦ NEW SYSTEM UNLOCKED ✦</div>
+        <div className="wn-medallion" aria-hidden>{glyph}</div>
         <h2 className="wn-title">{m.title}</h2>
         <div className="wn-summary">{m.summary}</div>
-        {text?.media && <div className="wn-media" aria-hidden>▶ {text.media}</div>}
         {text && (
-          <div className="wn-rows">
-            <div className="wn-row"><span className="wn-k">What</span><span className="wn-v">{text.what}</span></div>
-            <div className="wn-row"><span className="wn-k">Why</span><span className="wn-v">{text.why}</span></div>
-            <div className="wn-row"><span className="wn-k">Where</span><span className="wn-v">{text.where}</span></div>
-            <div className="wn-row"><span className="wn-k">Next</span><span className="wn-v">{text.next}</span></div>
-          </div>
+          <details className="wn-more">
+            <summary>Details</summary>
+            <div className="wn-rows">
+              <div className="wn-row"><span className="wn-k">What</span><span className="wn-v">{text.what}</span></div>
+              <div className="wn-row"><span className="wn-k">Why</span><span className="wn-v">{text.why}</span></div>
+              <div className="wn-row"><span className="wn-k">Where</span><span className="wn-v">{text.where}</span></div>
+              <div className="wn-row"><span className="wn-k">Next</span><span className="wn-v">{text.next}</span></div>
+            </div>
+          </details>
         )}
         <div className="wn-actions">
           {m.nav && <button className="primary wn-go" onClick={open}>{guide ? 'Show me ▸' : 'Open it now ▸'}</button>}
@@ -78,7 +85,7 @@ export function WhatsNew(): JSX.Element | null {
             Got it{queue.length > 1 ? ` · ${queue.length - 1} more` : ''} ▸
           </button>
         </div>
-        <div className="wn-foot">Archived in Help — revisit any time.</div>
+        <div className="wn-foot">Always in Help.</div>
       </div>
     </div>
   );

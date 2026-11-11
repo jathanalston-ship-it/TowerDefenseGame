@@ -192,7 +192,9 @@ a `bestPurchase` surface and one `buyRow(...)` line; a new tend-system adds one 
 
 `save.powerLog` (v43) remembers one `{ day, score }` per UTC day — the LAST score observed that
 day, bounded to the newest 90 (`POWER_LOG_CAP`). Written by `meta.notePowerSnapshot()` on app
-boot and (600 ms-debounced) after every announced power gain; browser-only wiring, identical
-scores never persist. `state/powerLog.ts` owns the pure folds + queries: `weeklyPowerDelta`
+boot, at a run's start (`flushPowerLog`, App.begin) and when the tab goes hidden / closes — a gain
+only marks the ledger dirty (the old 600 ms debounce committed a second full save after every
+quick-buy: BUGFIX #130). Browser-only wiring, identical scores never persist; the trend and 7-day
+delta read the live score for "now", so a late write never shows a stale number. `state/powerLog.ts` owns the pure folds + queries: `weeklyPowerDelta`
 (newest entry ≥ 7 days old, oldest-entry fallback, null with no prior day) and `powerSeries`
 (sparkline). Surfaces: the Growth panel and the Profile's Power Breakdown trend.

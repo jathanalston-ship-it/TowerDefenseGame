@@ -1,6 +1,6 @@
 # DIL_GRAPH.md — the Design Intelligence Layer (GENERATED — `npm run dil -- regen`)
 
-> **The project's brain** (docs/DIL.md). 1001 nodes · 1954 edges, built from the live
+> **The project's brain** (docs/DIL.md). 1002 nodes · 1955 edges, built from the live
 > registries + curated knowledge (src/dev/dil/). **Query it instead of searching the repo:**
 > `npm run dil -- node <id>` · `affects <id>` · `requires <id>` · `missing <kind> <edge>` ·
 > `checklist tower <kind>` · `find <text>`. Edge kinds are bidirectional (19 kinds).
@@ -950,7 +950,7 @@ _at: src/core/game.ts, src/core/combat.ts, src/core/status.ts, src/core/targetin
   - requiredBy ← `system:class-bonds`
   - requiredBy ← `system:nemesis`
   - requiredBy ← `system:onboarding`
-  - _…250 more (query: `npm run dil -- node system:engine`)_
+  - _…251 more (query: `npm run dil -- node system:engine`)_
 
 ### `system:content-infra` — Content Infrastructure
 
@@ -4198,7 +4198,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `doc:VOWS.md` — project documentation _(documents `system:prestige`)_
 - `doc:WEBSITE.md` — project documentation _(documents `system:field-research`, documents `system:website`)_
 
-## Tests (347)
+## Tests (348)
 
 - `test:src/audio/cues.test.ts` — automated validation _(tests `system:audio`)_
 - `test:src/audio/music.test.ts` — automated validation _(tests `system:audio`)_
@@ -4532,6 +4532,7 @@ _at: site/guides.ts → /guides/live-events/_
 - `test:src/state/vowsMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/state/wardrobeMeta.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/HubLanding.test.ts` — automated validation _(tests `system:engine`)_
+- `test:src/ui/UpdateBriefing.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/browserBack.test.ts` — automated validation _(tests `system:hub-shell`)_
 - `test:src/ui/components/RunBackdrop.test.ts` — automated validation _(tests `system:engine`)_
 - `test:src/ui/components/loadoutStrip.test.ts` — automated validation _(tests `system:engine`)_

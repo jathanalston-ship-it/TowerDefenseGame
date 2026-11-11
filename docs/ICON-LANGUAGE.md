@@ -91,6 +91,11 @@ Adding content? You get an identity by construction, or CI stops you:
   rarity override); currencies fly as their silhouettes (ceremony primitives).
 - **States**: 🔒 locked/teasers, ✓ claimed rows, ◈ ready chain, NEW badges — pre-existing,
   now canonized.
+- **Hub tiles (2026-11-11b)**: the Command Center's Ready Chain + Recommended Now are
+  `ActionTile`s — the target screen's `FEATURES` glyph (big), a count badge, the screen name,
+  the `ACTIONS` verb (✹ claim · ⇧ upgrade · ◉ open). Vitals lead with a glyph; Growth rows
+  read `glyph · +N ⚡`; the unlock card is a glyph medallion; the Update Briefing is three glyph
+  tiles. The sentence each replaced lives in `title`/`aria-label` (rule 3).
 
 ### Screens (2026-11)
 

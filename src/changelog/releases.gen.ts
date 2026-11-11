@@ -12,7 +12,7 @@ export const RELEASES: Release[] = [
     "entries": [
       {
         "cat": "Gameplay",
-        "text": "With Auto Wave on, Hive Intelligence now calls the next wave early mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
+        "text": "Hive Intelligence calls waves early: with Auto Wave on, it calls the next wave mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
         "major": true
       },
       {
@@ -26,6 +26,15 @@ export const RELEASES: Release[] = [
       {
         "cat": "UX",
         "text": "A board callout and the Hive Intelligence ticker report each call: the wave, the Biomass banked and the forecast margin"
+      },
+      {
+        "cat": "Performance",
+        "text": "The hub's Buy best-upgrade button no longer freezes the screen: a purchase does about 5× less work, and the screen responds first while the advice panels catch up",
+        "major": true
+      },
+      {
+        "cat": "UX",
+        "text": "Fewer words, more icons: a new system arrives as a glyph, its name and one line (the full briefing is one tap away), update briefings are three icon tiles, and the home screen's Ready Chain and recommendations are icon buttons with counts"
       },
       {
         "cat": "Bug Fixes",

@@ -48,7 +48,7 @@ opens the old under-ready button stays (farm advice never names a sealed mode).
 |---|---|
 | `strip` | `vitals` — the command strip: Power / Campaign / Infinite / Collection / Champions / Vaults / Achievements, **every chip a door** (the nearest goal is deliberately absent — the NEXT banner owns it) |
 | `main` | `mission-control` FIRST (the deploy decision leads the board), then `next-goal` (the single nearest goal), `live-events`, `contracts` |
-| `side` | `recommend` (the Ready Chain, then Recommended Now — which never repeats a chain stop: one fact, one owner), `forecast` (PredictionPanel; hidden until the first run — its lever lines carry a "Go ▸"), `roadmap` (§3 — goals **behind** the banner's) |
+| `side` | `recommend` (the Ready Chain, then Recommended Now — which never repeats a chain stop: one fact, one owner; both render as `ActionTile`s — the system's own glyph, a count badge, the system name and its action verb, the full sentence in `title`/`aria-label`), `forecast` (PredictionPanel; hidden until the first run — its lever lines carry a "Go ▸"), `roadmap` (§3 — goals **behind** the banner's) |
 | `world` | `world-status` — the living centerpiece (§2), rendered BELOW the deploy row (§zones) |
 | `army` | `army` — the live roster (§4) |
 | `ops` | `modes` — Infinite / Boss Rush / Daily / Quick Skirmish (mirrors the nav's Play group), then `infestation` (the conquest map rides with operations, never above the deploy button; **collapses to a one-line teaser while `view.dormant`** — docs/INFESTATION.md §map) |

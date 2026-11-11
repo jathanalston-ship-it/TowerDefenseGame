@@ -59,9 +59,8 @@ export function BioCacheCard(): JSX.Element {
             <div className="bc-ready-line">
               DAY {v.lifetime + 1} · STREAK {v.nextStreak} · <b>×{v.mult.toFixed(2)}</b>
             </div>
-            <div className="bc-ready-sub" title="Whole cache in Genome-Core terms — the streak curve sizes the lanes, your live income sizes the Core line">
-              sealed — worth ≈ {v.valueCores.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores (equivalent)" />
-              {v.incomeCores > 0 && <span className="bc-income"> · incl. {v.incomeCores.toLocaleString('en-US')} Cores ({LOGIN_MINUTES} min of your income)</span>}
+            <div className="bc-ready-sub" title={`Whole cache in Genome-Core terms — the streak curve sizes the lanes, your live income sizes the Core line${v.incomeCores > 0 ? ` (incl. ${v.incomeCores.toLocaleString('en-US')} Cores — ${LOGIN_MINUTES} min of your income)` : ''}`}>
+              worth ≈ {v.valueCores.toLocaleString('en-US')} <CurrencyIcon id="genomeCores" size={12} title="Genome Cores (equivalent)" />
               {v.todayMilestone && <span className="bc-mile"> · {v.todayMilestone.toUpperCase()} CONTAINER guaranteed</span>}
             </div>
             {v.nextStreak === 1 && v.lifetime > 0 && (
