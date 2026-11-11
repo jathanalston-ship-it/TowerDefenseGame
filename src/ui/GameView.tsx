@@ -176,13 +176,14 @@ export function GameView({
   // that follows a pick without the phase leaving 'draft' — an EARLY CALL's owed draft caught at the
   // clear (docs/EARLY-CALL.md §owed) — must get a fresh mount or every later pick is ignored.
   const draftPicks = useRef(0);
+  const hiveReportSeen = useRef(0);
   // BOSS VERB HOLD (render/feel.ts BOSS_VERB_HOLD_MS): the sim's banner verb lives one tick — keep the last
   // one on screen long enough to read (presentation only; a new verb replaces it at once).
   const bossVerbRef = useRef<{ text: string; at: number } | null>(null);
   // Daily runs record their input log for leaderboard replay verification (core/replay.ts).
   const recorderRef = useRef<Recorder | null>(null);
   // THE AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): Hive Intelligence + Auto Gene only on
-  // content this account has beaten — decided ONCE from the save, threaded into the sim as an option.
+  // Campaign Stage 5, with mode/Threat exclusions — decided once from the save at run mount.
   const [automation] = useState(() => automationFor(meta.get(), { mode: mode ?? 'stage', tutorial: !!tutorial, stage: stage?.stage, difficulty: stage?.difficulty ?? difficulty, threat }));
   const game = (gameRef.current ??= newRecordedGame(recorderRef, !!daily && !tutorial, seed, mods, progress, heroKind, heroProgress, {
     runEffects, mode, stage, difficulty, doctrine, heroRoster, heroEquip, setEffects, heroAbilityKits,
@@ -230,9 +231,9 @@ export function GameView({
   }));
   // MOLT VOW chips (docs/VOWS.md): the armed wager's compact HUD marker — captured once at
   // game creation (the same exclusions as the run opts: never on dailies or the tutorial).
-  const [vowChips] = useState<{ icon: string; name: string }[]>(() =>
+  const [vowChips] = useState<{ icon: string; name: string; blurb: string }[]>(() =>
     !daily && !tutorial
-      ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name }))
+      ? meta.get().prestige.vows.map((id) => vowById(id)).filter((v): v is VowDef => !!v).map((v) => ({ icon: v.icon, name: v.name, blurb: v.blurb }))
       : []);
   // Nucleus dress (docs/NUCLEUS.md §visuals): hand the renderer the resolved mutations for THIS
   // run — account visuals stay out of the daily/tutorial exactly like the sim fold above.
@@ -337,6 +338,18 @@ export function GameView({
   const evoOpenRef = useRef(false);
   evoOpenRef.current = evoOpen;
   const pausedBeforeConsole = useRef(false); // restore the player's own pause state on close
+  const pauseDialogRef = useRef<HTMLDivElement>(null);
+  const pauseVisible = paused && !evoOpen;
+  useEffect(() => {
+    if (!pauseVisible) return;
+    const previous = document.activeElement;
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, [pauseVisible]);
+  useEffect(() => {
+    if (!pauseVisible) return;
+    // Confirmation starts on the safe choice; returning restores the menu's first action.
+    pauseDialogRef.current?.querySelector<HTMLButtonElement>(confirmAbandon ? '.pause-keep' : '.pause-resume')?.focus();
+  }, [pauseVisible, confirmAbandon]);
   // ── Gameplay Speed (docs/HUD.md §speed): 1×/2×/5× run MORE fixed SIM_DT steps per frame —
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
@@ -650,12 +663,11 @@ export function GameView({
   );
 
   const refresh = (): void => setHud(game.getSnapshot());
-  // HIVE INTELLIGENCE's one press (docs/HIVE-MIND.md) — shared by the build console's dock and the
-  // mid-wave strip button: evaluate every Biomass purchase, execute the best, report on the ticker.
-  const hivePulse = (): void => {
+  // HIVE INTELLIGENCE's run-local toggle (docs/HIVE-MIND.md) — shared by the build console's dock and
+  // the mid-wave strip button (the pulses it runs report through game.hiveReport on the ticker).
+  const toggleHive = (): void => {
     audio.resume();
-    const rep = game.hivePulse();
-    if (rep.actions.length > 0) setHiveTicker({ at: Date.now(), lines: rep.actions.map((a) => a.label), spent: rep.spent });
+    game.setHiveActive(!game.hiveActive);
     refresh();
   };
 
@@ -679,12 +691,42 @@ export function GameView({
     let lastHud = 0;
     let assimAt = 0; // wall-clock of the last Assimilation target recompute (throttle to ~8Hz)
 
+    const presentCues = (withFeel: boolean): void => {
+      // One cue path for player and sim actions. Paused purchases still sound immediately,
+      // without queuing a second burst or camera trauma for when the console closes.
+      const cues = game.drainSfx();
+      if (cues.length) {
+        const tally: Record<string, number> = {};
+        for (const c of cues) {
+          // Phenotype firing variants: a 'tfire_X:kind' cue re-keys to 'tfire_X~variant'
+          // when that kind's equipped skin carries one (sound.ts §variants); unthemed
+          // kinds strip back to the base cue. Trauma reads the base id either way.
+          let key = c;
+          let base = c;
+          const m = /^(tfire_\w+):(\w+)$/.exec(c);
+          if (m) {
+            base = m[1];
+            const th = skins.towers[m[2] as TowerKind];
+            key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
+          }
+          tally[key] = (tally[key] ?? 0) + 1;
+          if (withFeel) applyFeel(FEEL[base.indexOf('@') < 0 ? base : base.slice(0, base.indexOf('@'))]);
+        }
+        audio.cueBatch(tally);
+      }
+    };
+
     const loop = (now: number): void => {
       try {
         // Paused: keep the loop alive (so resume is instant) but skip the sim + render. Advancing
         // `last` here means resume doesn't fast-forward by the whole pause duration. The canvas
         // keeps its last-drawn frame; the React PAUSED overlay covers the board.
-        if (pausedRef.current || tutPausedRef.current) { last = now; raf = requestAnimationFrame(loop); return; }
+        if (pausedRef.current || tutPausedRef.current) {
+          presentCues(false);
+          last = now;
+          raf = requestAnimationFrame(loop);
+          return;
+        }
         const dt = (now - last) / 1000;
         last = now;
         telemetry.fpsTick(dt); // O(1) histogram bump — the session's FPS summary lane
@@ -698,27 +740,11 @@ export function GameView({
         if (game.hitstop > 0) game.hitstop = Math.max(0, game.hitstop - dt);
         else game.advance(dt * lastKill.rate(game.timeScale, viewFeel.motion));
 
-        // Drain presentation cues → audio + screen-shake trauma.
-        const cues = game.drainSfx();
-        if (cues.length) {
-          const tally: Record<string, number> = {};
-          for (const c of cues) {
-            // Phenotype firing variants: a 'tfire_X:kind' cue re-keys to 'tfire_X~variant'
-            // when that kind's equipped skin carries one (sound.ts §variants); unthemed
-            // kinds strip back to the base cue. Trauma reads the base id either way.
-            let key = c;
-            let base = c;
-            const m = /^(tfire_\w+):(\w+)$/.exec(c);
-            if (m) {
-              base = m[1];
-              const th = skins.towers[m[2] as TowerKind];
-              key = th && th.sfx !== 'default' ? `${m[1]}~${th.sfx}` : m[1];
-            }
-            tally[key] = (tally[key] ?? 0) + 1;
-            applyFeel(FEEL[base.indexOf('@') < 0 ? base : base.slice(0, base.indexOf('@'))]);
-          }
-          audio.cueBatch(tally);
+        if (game.hiveReport.serial !== hiveReportSeen.current) {
+          hiveReportSeen.current = game.hiveReport.serial;
+          setHiveTicker({ at: Date.now(), lines: game.hiveReport.actions.map((a) => a.label), spent: game.hiveReport.spent });
         }
+        presentCues(true);
         traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
 
         // ── Hive vital audio (docs/HIVE-SIEGE.md §audio): a GROAN as each damage state fails
@@ -1050,14 +1076,28 @@ export function GameView({
   // ── Desktop keyboard shortcuts (1-N towers · Q ability · Space wave · Esc) ──
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.defaultPrevented || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      // A focused HUD explanation is a reading surface, not a wave-start target.
+      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('.hud-cell.tt')) {
+        e.preventDefault();
+        return;
+      }
+      // Space belongs to a focused control, not to the board beneath it.
+      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('button, a, [role="button"], [role="switch"]')) return;
       audio.resume();
       // Board hotkeys only during active play — the draft owns the keyboard while open.
       if (game.phase !== 'prep' && game.phase !== 'wave') return;
       const k = e.key;
+      if (evoOpenRef.current) {
+        if (k === 'Escape' || k === 'e' || k === 'E') setEvoOpen(false);
+        return;
+      }
       // Tutorial: the director scripts wave starts and pins 1× speed — swallow their hotkeys.
       if (tutorial && (k === ' ' || k === 'Spacebar' || k === 'f' || k === 'F')) { e.preventDefault(); return; }
       if (k === 'p' || k === 'P') { togglePause(); return; }
+      if (pausedRef.current || tutPausedRef.current) return;
       if (k >= '1' && k <= '4') {
         // The number row mirrors the DEPLOY DOCK left→right: 1 = the favorite rail card,
         // 2-4 = the conveyor pods (the chips on those cards ARE these keys). The old 1-N
@@ -1089,7 +1129,6 @@ export function GameView({
         if (game.phase === 'wave') game.callWaveEarly();
         else game.startWave();
       } else if (k === 'Escape') {
-        if (evoOpenRef.current) { setEvoOpen(false); return; } // console first, then board intents
         game.cancelInteractions(); // close inspect / cancel move / disarm placement
       } else {
         return;
@@ -1153,7 +1192,7 @@ export function GameView({
             aria-hidden
           />
         )}
-        {leftOpen && <BuildPanel hud={hud} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />}
+        {leftOpen && <BuildPanel hud={hud} doctrine={doctrine && doctrine !== 'none' ? resolveDoctrine(doctrine) : null} vows={vowChips} onCollapse={() => setLeftOpen(false)} onOpenEvolution={() => setEvoOpen(true)} />}
         {(!leftOpen || drawers) && (
           <button className="panel-rail" onClick={() => setLeftOpen((v) => !v)} aria-label="Show Run Build" aria-expanded={leftOpen}>
             <span className="rail-arrow">»</span>
@@ -1211,7 +1250,7 @@ export function GameView({
             refresh();
           }}
         />
-        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} hive={tutorial ? null : { allowed: automation.allowed, reason: automation.reason ?? '', ready: !!hud.hiveReady, onPulse: hivePulse }} />
+        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} hive={tutorial ? null : { allowed: automation.allowed, reason: automation.reason ?? '', ready: !!hud.hiveReady, active: !!hud.hiveActive, onToggle: toggleHive }} />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
         {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
         {/* FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes): in-run controls teach themselves the first
@@ -1224,7 +1263,7 @@ export function GameView({
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <div className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (
-              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
+              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} aria-pressed={speed === x} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
                 {x}×
               </button>
             ))}
@@ -1241,6 +1280,7 @@ export function GameView({
         {hud.phase === 'wave' && hud.earlyCall >= 0 && (
           <button
             className="early-call-btn"
+            aria-label={`Call wave ${hud.wave + 1} early, overlapping the current wave, for ${hud.earlyCall} Biomass`}
             onClick={() => {
               audio.resume();
               game.callWaveEarly(); // the sim cues the launch + the Biomass splice itself
@@ -1251,24 +1291,25 @@ export function GameView({
             ⏩ <span className="early-call-label">Call early</span> <b>+{hud.earlyCall}</b>
           </button>
         )}
-        {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): one press evaluates EVERY biomass purchase
-            and executes the best ones — glowing whenever something worthwhile is affordable.
+        {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): the run-local toggle automates purchases, hero control, waves
+            and drafts — glowing while active or when a purchase is affordable.
             Manual play is untouched; the ticker names each action the hive took. */}
         {/* Docked in the build console's automation row while that is up (BuildControls hive) —
             off the board's top edge at the run's start; the strip carries it mid-wave. */}
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && !buildConsoleVisible(hud) && (
           <button
-            className={`hive-mind-btn${hud.hiveReady ? ' is-ready' : ''}`}
+            className={`hive-mind-btn${hud.hiveActive || hud.hiveReady ? ' is-ready' : ''}`}
+            aria-pressed={hud.hiveActive}
             disabled={!automation.allowed}
-            onClick={hivePulse}
+            onClick={toggleHive}
             title={!automation.allowed
               ? `Hive Intelligence — ${automation.reason}`
               : hud.hiveReady
-                ? 'Hive Intelligence — evaluate every Biomass purchase and execute the best ones (keeps a reserve; manual play is untouched)'
-                : 'Hive Intelligence — nothing worthwhile is affordable right now'}
+                ? 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks. Turn off any time to take over.'
+                : 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks'}
           >
             <i className="hive-mind-core" aria-hidden />
-            ◈ HIVE INTELLIGENCE
+            ◈ HIVE INTELLIGENCE {hud.hiveActive ? 'ON' : 'OFF'}
             {!automation.allowed && <small className="hive-mind-why">{automation.reason}</small>}
           </button>
         )}
@@ -1277,6 +1318,7 @@ export function GameView({
         {!tutorial && hud.phase === 'prep' && hud.spliceCost !== undefined && hud.spliceCost > 0 && hud.biomass >= hud.spliceCost && (
           <button
             className="splice-btn"
+            aria-label={`Splice: spend ${hud.spliceCost.toLocaleString()} Biomass to choose an extra Gene Card`}
             onClick={() => {
               audio.resume();
               if (game.splice()) refresh();
@@ -1293,7 +1335,7 @@ export function GameView({
             {hiveTicker.lines.length > 6 && <span>+{hiveTicker.lines.length - 6} more</span>}
           </div>
         )}
-        {(hud.phase === 'prep' || hud.phase === 'wave') && (
+        {!evoOpen && (hud.phase === 'prep' || hud.phase === 'wave') && (
           <button
             className="pause-btn"
             onClick={togglePause}
@@ -1304,14 +1346,25 @@ export function GameView({
           </button>
         )}
         </div>
-        {paused && !evoOpen && (
+        {pauseVisible && (
           <div
+            ref={pauseDialogRef}
             className="pause-overlay"
-            role="button"
-            tabIndex={0}
-            aria-label="Resume"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            aria-label={confirmAbandon ? 'Abandon run confirmation' : 'Game paused'}
             onClick={togglePause}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePause(); } }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Tab') return;
+              const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]'));
+              const first = controls[0], last = controls[controls.length - 1];
+              if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) {
+                e.preventDefault(); last?.focus();
+              } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault(); first?.focus();
+              }
+            }}
           >
             <div className="pause-card" onClick={(e) => e.stopPropagation()}>
               <div className="pause-eyebrow">Simulation held</div>
@@ -1346,7 +1399,7 @@ export function GameView({
                   </div>
                   <div className="pause-row">
                     <button className="set-danger" onClick={(e) => { e.stopPropagation(); onAbandon(game.waveIndex); }}>Forfeit &amp; Quit</button>
-                    <button onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
+                    <button className="pause-keep" onClick={(e) => { e.stopPropagation(); setConfirmAbandon(false); }}>Keep Playing</button>
                   </div>
                 </>
               ) : (
@@ -1496,6 +1549,10 @@ export function GameView({
             kind={hud.draftKind}
             owedAfter={hud.draftsOwed ?? 0}
             forceManual={!!tutorial || !automation.allowed}
+            autoOverride={hud.hiveActive ? true : undefined}
+            paused={paused}
+            onStartAuto={!tutorial && automation.allowed ? () => { game.setHiveActive(true); refresh(); } : undefined}
+            onStopAuto={hud.hiveActive ? () => { game.setHiveActive(false); refresh(); } : undefined}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}
             chosen={hud.cards}
@@ -1533,7 +1590,11 @@ export function GameView({
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
             onCollapse={closeRight}
-            onBranchBuy={(towerId, branchId) => {
+            onBranchBuy={(towerId, branchId, tier) => {
+              // Hive may have upgraded between the displayed quote and this input event.
+              // Buy only the requested tier, never the now-more-expensive next one.
+              const tower = game.towers.find((candidate) => candidate.id === towerId);
+              if (!tower || tower.tier + 1 !== tier) { refresh(); return; }
               audio.resume(); // ensure the splice cue is audible (the click is the unlock gesture)
               const powerBefore = meta.powerWith(game.powerEffects()).score;
               if (game.buyBranchTier(towerId, branchId) === 'ok') {

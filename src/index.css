@@ -4,6 +4,12 @@
    results → debug → responsive. Desktop-first; mobile breakpoints near the end.
    ============================================================================ */
 
+/* Stable accessible text alongside visual-only animated values. */
+.a11y-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
 /* ── Typography (docs/STYLE-GUIDE.md §type) — self-hosted, CSP `font-src 'self'`.
    DISPLAY: Chakra Petch (angular lab-tech — titles, hero names, big callouts; the
    family the display classes below always intended — now actually shipped).
@@ -2386,14 +2392,14 @@ kbd {
 .loot-toast-wrap { position: fixed; top: calc(64px + var(--safe-t)); right: calc(16px + var(--safe-r)); z-index: 480; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; }
 .loot-toast {
   pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 12px; min-width: 260px; max-width: 340px;
-  padding: 11px 15px; border-radius: var(--r-md); background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  position: relative; padding: 11px 34px 11px 15px; border-radius: var(--r-md); background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid color-mix(in srgb, var(--rc) 70%, var(--line));
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 22px -2px color-mix(in srgb, var(--rc) 55%, transparent);
-  animation: loot-toast-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both, loot-toast-out 0.4s ease 2.8s both;
+  animation: loot-toast-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
-.loot-toast.is-big { animation: loot-toast-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both, loot-toast-glow 1.2s ease-in-out infinite, loot-toast-out 0.4s ease 2.8s both; }
+.loot-toast.is-big { animation: loot-toast-in 0.42s cubic-bezier(0.2, 1.4, 0.4, 1) both, loot-toast-glow 1.2s ease-in-out infinite; }
+.lt-dismiss { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; }
 @keyframes loot-toast-in { from { opacity: 0; transform: translateX(40px) scale(0.94); } }
-@keyframes loot-toast-out { to { opacity: 0; transform: translateX(40px) scale(0.96); } }
 @keyframes loot-toast-glow { 0%, 100% { box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 26px -4px color-mix(in srgb, var(--rc) 65%, transparent); } 50% { box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 40px 0 color-mix(in srgb, var(--rc) 85%, transparent); } }
 .lt-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--r-md); font-size: 20px; color: var(--rc); border: 1px solid color-mix(in srgb, var(--rc) 60%, transparent); background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rc) 22%, var(--panel)), var(--panel)); box-shadow: inset 0 0 12px -4px var(--rc); animation: lt-icon-pop 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both; }
 @keyframes lt-icon-pop { 0% { transform: scale(0.3) rotate(-20deg); opacity: 0; } 60% { transform: scale(1.25) rotate(6deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
@@ -3537,10 +3543,12 @@ kbd {
 
 /* The menu level-up toast — a centered ceremony card, not a rail toast (level-ups are rarer and
    bigger than power ticks). Click anywhere on it to skip; milestones hold longer and go gold. */
-.axp-toast { position: fixed; top: calc(74px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 620; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 26px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--viral) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--viral) 50%, var(--line)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px -10px var(--viral); cursor: pointer; animation: axp-toast-in 0.5s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
+.axp-toast { position: fixed; top: calc(74px + var(--safe-t)); left: 50%; transform: translateX(-50%); z-index: 620; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 12px 34px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--viral) 12%, var(--panel)); border: 1px solid color-mix(in srgb, var(--viral) 50%, var(--line)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 34px -10px var(--viral); cursor: pointer; animation: axp-toast-in 0.5s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
 .axp-toast.is-milestone { border-color: color-mix(in srgb, var(--gold) 60%, var(--line)); background: color-mix(in srgb, var(--gold) 12%, var(--panel)); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 44px -8px var(--gold); }
+.axp-toast-dismiss { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; font-size: 11px; }
 .axp-toast-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--viral); }
-.axp-toast.is-milestone .axp-toast-badge { color: var(--gold); }
+.axp-toast.is-milestone .axp-toast-dismiss { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; display: grid; place-items: center; font-size: 11px; }
+.axp-toast-badge { color: var(--gold); }
 .axp-toast-lv { font-size: 20px; font-weight: 800; }
 .axp-toast-r { font-size: 12px; color: var(--muted); max-width: min(420px, 80vw); text-align: center; }
 @keyframes axp-toast-in { from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.92); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
@@ -4170,7 +4178,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 /* ── Gameplay Speed control (docs/HUD.md §speed) — beside Pause; F cycles. ── */
 .speed-ctl { position: absolute; top: 10px; right: 108px; z-index: 30; display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(8, 12, 20, 0.82); backdrop-filter: blur(4px); }
 @media (max-width: 640px) { .speed-ctl { right: 96px; } }
-.audio-toggles.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.audio-toggles.is-compact .set-switch { padding: 4px 14px; }
 .audio-toggles.is-compact .motion-shake input[type="range"] { width: 100px; }
 
 /* ═══ HERO LAB — Champion Select (HEROES.md) ════════════════════════════════════ */
@@ -4525,7 +4533,11 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .pp-impact { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--success); opacity: 0.9; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ptoast { animation: none; }
+  .ptoast, .mtoast { animation: none !important; opacity: 1; }
+}
+
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) :is(.ptoast, .mtoast) {
+  animation: none; opacity: 1;
 }
 
 .power-badge { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); transition: box-shadow var(--dur-3) ease, border-color var(--dur-3) ease; }
@@ -4620,6 +4632,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .tut-callout-eyebrow { font-size: 10px; font-weight: 800; letter-spacing: 0.24em; color: var(--gold); margin-bottom: 6px; }
 .tut-caret { font-style: normal; color: var(--vital); animation: tut-caret 0.7s steps(1) infinite; }
 .tut-type-rest { visibility: hidden; } /* reserves the final layout while the text types in */
+.tut-type-readable { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @keyframes tut-caret { 50% { opacity: 0; } }
 /* Controls (bottom-right) */
 .tut-controls { position: fixed; bottom: calc(20px + var(--safe-b)); right: calc(20px + var(--safe-r)); display: flex; gap: 10px; }
@@ -4849,6 +4862,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .pf-chip b { color: var(--text); margin-left: 4px; }
 
 /* ── Wing sub-nav — in-screen pages (Profile, Bio-Dex, …): --wingc sets the accent ── */
+.host-panel { width: 100%; min-width: 0; }
 .wing-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -5840,6 +5854,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .ncl-socket.is-empty { padding: 9px 10px; border: 1px dashed var(--line-strong); background: rgba(255, 255, 255, 0.03); font-size: 11px; color: var(--muted); }
 .ncl-socket.is-empty.is-arming { border-color: var(--vital, #ff7a59); color: var(--text); }
 .ncl-socket.is-filled { border: 1px solid color-mix(in srgb, var(--rc) 45%, var(--line)); background: color-mix(in srgb, var(--cc) 7%, var(--panel-2)); overflow: hidden; }
+.ncl-socket.is-filled.is-arming { outline: 2px solid var(--vital); outline-offset: 2px; }
 .ncl-socket-body { flex: 1; display: flex; align-items: center; gap: 7px; padding: 7px 9px; min-width: 0; text-align: left; }
 .ncl-socket-glyph { color: var(--cc); font-size: 13px; flex: none; }
 .ncl-socket-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -6079,7 +6094,10 @@ html[data-debug-layout] body::after {
 .guide-done { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 95; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 18px; background: var(--panel-2); border: 1px solid color-mix(in srgb, var(--gold) 40%, var(--line-strong)); border-radius: var(--r-md); box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: guide-done-in 0.3s ease-out; }
 .guide-done-t { font-size: 12px; font-weight: 900; letter-spacing: 0.12em; color: var(--gold); }
 .guide-done-r { font-size: 11px; color: var(--text); }
-.guide-done-btns { display: flex; gap: 8px; margin-top: 2px; }
+.guide-done { width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; }
+.guide-done-copy { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.guide-done-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 2px; }
+.guide-done-btns button { min-height: 44px; }
 .guide-done-btns .primary { font-size: 12px; padding: 6px 12px; }
 .guide-stay { background: none; border: 1px solid var(--line-strong); border-radius: var(--r-sm); color: var(--muted); font-size: 12px; padding: 6px 12px; cursor: pointer; }
 .guide-stay:hover { color: var(--text); }
@@ -6441,8 +6459,12 @@ html[data-layout='landscape'] .conveyor { flex-direction: column; padding: 6px; 
 .motion-shake input[type="range"]:disabled { opacity: 0.4; }
 .motion-shake b { min-width: 38px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text); }
 .motion-settings .set-switch:disabled { opacity: 0.45; cursor: not-allowed; }
-.motion-settings.is-compact .set-switch { padding: 4px 14px; min-height: 0; }
+.motion-settings.is-compact .set-switch { padding: 4px 14px; }
 .motion-settings.is-compact .motion-shake input[type="range"] { width: 100px; }
+@media (pointer: coarse) {
+  .audio-toggles .set-switch,
+  .motion-settings .set-switch { min-height: 44px; }
+}
 /* ── S2 · VICTORY CARRIES INTO RESULTS (docs/SIGNATURE-MOMENTS.md §2; render/runOutro.ts) ─────────
    The run-end veil centres on the BOARD (runOutro sets --outro-* from the canvas rect at begin) so
    the victory wash and the defeat cracks stay in view; the last beat (data-outro="settle") eases the
@@ -6870,3 +6892,9 @@ html[data-layout='landscape'] .hub-burger-l { display: none; }
 .ih-text { flex: 1; min-width: 0; }
 .ih-share { vertical-align: -3px; color: #4aa3ff; }
 .ih-close { flex: none; min-height: 36px; padding: 6px 14px; font-weight: 800; border-radius: var(--r-sm); }
+
+/* Replay clipboard fallback is shared by Daily and Results. */
+.replay-share { display: inline-flex; flex-direction: column; gap: 6px; max-width: 100%; min-width: 0; }
+.replay-share-status { font-size: 12px; line-height: 1.4; color: var(--muted); }
+.replay-share-status:empty { display: none; }
+.replay-share textarea { width: min(320px, 70vw); max-width: 100%; font-size: 12px; resize: vertical; }

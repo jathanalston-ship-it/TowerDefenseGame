@@ -27,6 +27,12 @@ special case for new content.
 
 ### The WebAudio player (`music` — the manager singleton)
 
+- **Music toggle**: re-enabling requests the latest looping scene, including changes made while
+  muted and its boss binding. Muting does not create an audio context. One-shot ceremonies are
+  not queued for replay; an explicit `stop()` clears the remembered request.
+- **Shared mute**: Music off fades the master output to silence over 100 ms, covering outgoing
+  crossfades and already-scheduled musical flourishes. Volume and duress changes stay silent
+  while muted; re-enabling restores the latest selected level and current duress treatment.
 - **Lookahead scheduler** (150 ms lookahead, 40 ms tick): bars are rendered slightly ahead of
   the clock — sample-accurate, no pops, seamless loops.
 - **Per-layer gain buses + fixed stereo stage** (`LAYER_PAN`): bass/kick centred, arp left,
@@ -182,3 +188,7 @@ until unpinned — console force-plays still work).
   "scene stinger" could acknowledge navigation musically without switching tracks.
 - The events category (×3, daily-wired) grows with future event MODES (one row each);
   LiveOps calendar weeks color the HUB (menu scene bias), not run playback — by design.
+
+Player volume overrides pending master automation: setVolume cancels/holds prior duck/duress recovery, anchors the current gain, then ramps100ms to the new level with the current duress multiplier. It does not create a context or retune music. Zero remains zero after an older recovery deadline; rapid slider changes supersede previous targets. Native cancelAndHoldAtTime and cancelScheduledValues fallback are supported.
+
+Music console touch controls: boss-name input and mix sliders use a 44px minimum target height, including tablet landscape. Debug opt-in and audio behavior are unchanged.

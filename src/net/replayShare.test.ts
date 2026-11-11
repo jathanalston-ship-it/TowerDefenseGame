@@ -9,7 +9,7 @@ import { towerSlots } from '../core/map';
 import { attachRecorder, replayRun } from '../core/replay';
 import type { ReplayCtorArgs, ReplayRecord } from '../core/replay';
 import type { MetaModifiers } from '../core/types';
-import { decodeReplayCode, encodeReplayCode, replayShareUrl } from './replayShare';
+import { decodeReplayCode, decodeReplayInput, encodeReplayCode, replayShareUrl } from './replayShare';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
@@ -84,5 +84,16 @@ describe('replay share codec', () => {
 
   it('replayShareUrl is null outside a browser (codes still share as text)', () => {
     expect(replayShareUrl('ARZ1.abc')).toBeNull();
+  });
+  it('accepts copied links and raw codes without changing the recorded run', async () => {
+    const { record } = playRecorded(11);
+    const code = await encodeReplayCode(JSON.stringify(record));
+    expect(await decodeReplayInput(` https://example.com/play?replay=${encodeURIComponent(code)}#watch `)).toEqual(record);
+    expect(await decodeReplayInput(`\n${code} `)).toEqual(record);
+  });
+  it('rejects unrelated, malformed and invalid-payload links', async () => {
+    for (const input of ['https://example.com/play', 'https://[bad', 'https://example.com/?replay=invalid', 'javascript:alert(1)']) {
+      expect(await decodeReplayInput(input)).toBeNull();
+    }
   });
 });

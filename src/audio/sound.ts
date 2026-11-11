@@ -44,6 +44,18 @@ const catBus = {} as Record<SfxCategory, GainNode>;
 
 let enabled = true;
 let volume = 1; // the player's SFX volume (0..1); the designed output level is SFX_MASTER.output
+const VOLUME_FADE_S = 0.02; // soften control changes without delaying cue dispatch
+function updateMasterVolume(): void {
+  if (!master || !ctx) return; // changing a setting never creates an AudioContext
+  const gain = master.gain;
+  const now = ctx.currentTime;
+  const current = gain.value;
+  if (typeof gain.cancelAndHoldAtTime === 'function') gain.cancelAndHoldAtTime(now);
+  else gain.cancelScheduledValues(now);
+  // Anchor even the first ramp: the initial .value alone is not a timed event.
+  gain.setValueAtTime(current, now);
+  gain.linearRampToValueAtTime(enabled ? SFX_MASTER.output * volume : 0, now + VOLUME_FADE_S);
+}
 let voices = 0;
 const MAX_VOICES = 40;
 // Per-category voice budgets (SFX_CATEGORIES[cat].voices): a swarm fills ITS budget, never a reward's.
@@ -665,12 +677,12 @@ export const audio = {
   },
   setEnabled(b: boolean): void {
     enabled = b;
-    if (master) master.gain.value = b ? SFX_MASTER.output * volume : 0;
+    updateMasterVolume();
   },
   /** The player's SFX volume, 0..1 (1 = the designed mix level). */
   setVolume(v: number): void {
     volume = Math.max(0, Math.min(1, v));
-    if (master) master.gain.value = enabled ? SFX_MASTER.output * volume : 0;
+    updateMasterVolume();
   },
   cue(tag: string): void {
     this.cueBatch({ [tag]: 1 });

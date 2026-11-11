@@ -6,7 +6,7 @@
 // this file. Identity surfaces (title picker, achievement gallery) embed the existing
 // components rather than duplicating them.
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { AccountCard } from './components/AccountPanel';
 import { myDesignationTag } from '../net/identity';
@@ -24,6 +24,7 @@ import { LoopDirective } from './NextGoalBanner';
 import { MasteryProfile } from './MasteryProfile';
 import { AchievementPanel } from './AchievementPanel';
 import { formatPower } from '../core/power';
+import { TROPHY_SLOT_THRESHOLDS } from '../core/trophies';
 import { powerSeries, weeklyPowerDelta } from '../state/powerLog';
 import { PowerSpark } from './components/GrowthPanel';
 import { AccountXpBar, rewardLine } from './components/AccountXpBar';
@@ -48,14 +49,24 @@ const PF_TABS = [
 type PfTab = (typeof PF_TABS)[number]['id'];
 
 function StatCell({ s }: { s: ProfileStat }): JSX.Element {
-  return (
-    <div className={`pf-stat${s.hint ? ' tt' : ''}`} tabIndex={s.hint ? 0 : undefined}>
+  const [expanded, setExpanded] = useState(false);
+  const hintId = useId();
+  const content = <>
       <span className="pf-stat-k">{s.label}</span>
       <span className="pf-stat-v" style={s.color ? { color: s.color } : undefined}>{s.value}</span>
       {s.progress !== undefined && (
         <span className="pf-stat-bar" aria-hidden><i style={{ width: `${Math.round(Math.min(1, s.progress) * 100)}%` }} /></span>
       )}
-      {s.hint && <span className="tt-bubble">{s.hint}</span>}
+  </>;
+  return (
+    <div className="pf-stat">
+      {s.hint ? <>
+        <button type="button" className="pf-stat-toggle" aria-expanded={expanded} aria-controls={hintId} onClick={() => setExpanded(v => !v)}>
+          {content}
+          <span className="pf-stat-details">{expanded ? 'Hide details' : 'Details'} <span aria-hidden>{expanded ? '▾' : '▸'}</span></span>
+        </button>
+        <p className="pf-stat-hint" id={hintId} hidden={!expanded}>{s.hint}</p>
+      </> : content}
     </div>
   );
 }
@@ -79,6 +90,7 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
   // rack's live slot capacity (grows with organs harvested).
   const nemView = meta.nemesisView();
   const rack = meta.trophyRack();
+  const nextRackSlot = TROPHY_SLOT_THRESHOLDS.find(n => n > rack.owned);
   const bannerStyle: CSSProperties = {
     ...(wd.profileBg?.bg ? { background: `radial-gradient(circle at 20% 0%, ${wd.profileBg.accent}22, transparent 55%), linear-gradient(160deg, ${wd.profileBg.bg}, transparent 140%)` } : {}),
     ...(wd.prestigeBorder?.accent ? { borderColor: wd.prestigeBorder.accent } : wd.collectionBorder?.accent ? { borderColor: wd.collectionBorder.accent } : {}),
@@ -272,21 +284,32 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
           <span className="pf-rack-slots">RACK <b>{rack.used}/{rack.slots}</b> slots</span>
           <span className="pf-rack-owned">{rack.owned} organ{rack.owned === 1 ? '' : 's'} harvested</span>
         </div>
+        <div className="pf-trophy-note">
+          {nextRackSlot !== undefined
+            ? `Next rack slot at ${nextRackSlot} organs harvested.`
+            : 'All rack slots unlocked.'}
+        </div>
         <div className="pf-trophies">
           {meta.trophies().map(({ def, owned, equipped }) => {
             const venge = def.source.kind === 'vengeance';
             const rackFull = !equipped && rack.used >= rack.slots;
+            const sourceArticle = def.source.kind !== 'mega' && /^[aeiou]/i.test(def.source.chassis) ? 'an' : 'a';
             return (
               <button
                 key={def.id}
                 className={`pf-trophy${equipped ? ' on' : ''}${owned ? '' : ' is-locked'}${venge ? ' is-venge' : ''}`}
                 disabled={!owned || rackFull}
+                aria-pressed={equipped}
                 onClick={() => meta.equipTrophy(def.id, !equipped)}
                 title={owned
                   ? `${def.organ} — ${def.up}${def.down ? ` / ${def.down}` : ' (pure upside)'}${rackFull ? ' · rack full — unmount one first' : ''}`
                   : 'Slay its source to claim this organ'}
               >
                 <b>{owned ? (equipped ? '◈ ' : '') : '🔒 '}{def.name}</b>
+                <span className="pf-trophy-state">{equipped ? 'Mounted — select to unmount' : owned
+                  ? rackFull ? 'Rack full — unmount an organ first' : 'Owned — select to mount'
+                  : def.source.kind === 'vengeance' ? `Locked — avenge ${sourceArticle} ${def.source.chassis} Nemesis`
+                    : def.source.kind === 'chassis' ? `Locked — defeat ${sourceArticle} ${def.source.chassis} boss` : 'Locked — defeat this Mega Boss'}</span>
                 <span className="pf-trophy-fx">
                   <i className="up">{def.up}</i>
                   {def.down ? <> · <i className="down">{def.down}</i></> : <> · <i className="venge">pure upside</i></>}
@@ -317,12 +340,14 @@ export function PlayerProfile({ onNavigate }: { onNavigate?: (nav: string) => vo
         )}
         <div className="pf-power">
           {power.slices.map((s) => (
-            <div className="pf-power-row tt" key={s.id} tabIndex={0}>
-              <span className="pf-power-k">{s.label}</span>
-              <span className="pf-power-bar" aria-hidden><i style={{ width: `${Math.round((s.share / maxShare) * 100)}%` }} /></span>
-              <span className="pf-power-v">{s.share > 0 ? `+${formatPower(s.share)}` : '—'}</span>
-              <span className="tt-bubble">{s.hint} Multiplier ×{s.mult.toFixed(2)}.</span>
-            </div>
+            <details className="pf-power-detail" key={s.id}>
+              <summary className="pf-power-row">
+                <span className="pf-power-k"><span className="pf-power-arrow" aria-hidden>▸</span> {s.label}</span>
+                <span className="pf-power-bar" aria-hidden><i style={{ width: `${Math.round((s.share / maxShare) * 100)}%` }} /></span>
+                <span className="pf-power-v">{s.share > 0 ? `+${formatPower(s.share)}` : '—'}</span>
+              </summary>
+              <p className="pf-power-hint">{s.hint} Multiplier ×{s.mult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}.</p>
+            </details>
           ))}
           <div className="pf-power-base">Baseline organism {formatPower(power.base)} — every bucket multiplies it.</div>
         </div>

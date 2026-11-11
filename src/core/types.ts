@@ -770,8 +770,9 @@ export interface HudSnapshot {
    *  whose own last unit has not fallen yet (each is dealt the moment it does). Optional (fixtures). */
   draftsOwed?: number;
   /** CLASS BONDS (docs/CLASS-BONDS.md): every class with a fielded unit — count, bond tier (0–3) and the
-   *  next threshold (null at Bond III). Absent when bonds are off (fixtures, tutorial, Arena). */
-  bonds?: { cls: CombatClass; count: number; tier: number; next: number | null }[];
+   *  next threshold (null at Bond III), plus the run's resolved level (Daily uses 0).
+   *  Absent when bonds are off (fixtures, tutorial, Arena). */
+  bonds?: { cls: CombatClass; count: number; tier: number; next: number | null; level: number }[];
   /** EARLY CALL §owed: the called-over wave the OPEN draft pays (dealt mid-fight when that wave's last
    *  unit fell, or at the clear). Absent/0 ⇒ the open draft is the current wave's own. */
   owedDraftWave?: number;
@@ -815,6 +816,7 @@ export interface HudSnapshot {
   /** HIVE INTELLIGENCE (docs/HIVE-MIND.md): ≥1 worthwhile purchase is affordable right now —
    *  the HUD button glows. Lightly cached in the sim (~0.5 s), so it may lag a beat. */
   hiveReady: boolean;
+  hiveActive: boolean;
   /** THREAT LADDER level of this run (docs/THREAT.md) — 0 = baseline; the header chip shows it. */
   threat: number;
   // Hero Evolution (docs/HERO-EVOLUTION.md) — per-category levels bought this run + total owned.

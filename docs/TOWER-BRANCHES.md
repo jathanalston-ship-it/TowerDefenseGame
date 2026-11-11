@@ -158,6 +158,8 @@ pre-lock. The lock logic (`branchId` pin) already enforces "one path per instanc
 2. **Buying Tier 1** opens a **confirmation modal**:
    > *"Splice the **{Branch}** strain? This permanently commits this tower to one
    > mutation path for the rest of the run. There is no reverting."* → **Commit / Cancel**.
+   Cancel receives initial keyboard focus; Tab stays in the named dialog, Escape cancels,
+   and closing restores focus to the opener or Inspector. Pausing cancels an uncommitted prompt.
 3. On commit: Tier 1 applies, the branch **locks** (other paths greyed for that
    instance), and Tiers 2–5 unlock sequentially as Biomass allows.
 4. Tiers 2–5 buy directly (no further lock warning — the commitment is already made).
@@ -384,3 +386,7 @@ No sim executors, no save change.
 capped); they're tunable in one place if a dense board proves muddy in playtest. Reactor and
 Mindrender have no projectile skin (no projectile attack). Particle/sfx are authored on the
 lock tier; a capstone could set richer ones via the same fold if desired.
+
+Keyboard purchase continuity: when an activated buy button disappears at the final tier or becomes disabled because the next tier is unaffordable, TierDetail moves focus to its selected tier preview. An enabled next-buy button retains focus; unrelated focus is never taken. This affects presentation only, not branch selection or purchase rules.
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.

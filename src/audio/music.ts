@@ -570,6 +570,7 @@ class MusicManager {
   private pinned = false;
   private volume = MUSIC_LEVEL; // effective master gain = MUSIC_LEVEL × the player's Music volume
   private enabled = true;
+  private requested: { category: MusicCategory; opts: PlayOpts } | null = null;
   current: MusicCategory | null = null;
   /** The active track id (dev tools + tests via the debug panel). */
   get currentTrackId(): string | null { return this.active?.def.id ?? null; }
@@ -645,8 +646,11 @@ class MusicManager {
    *  progression + boss binding), bar-aligns the switch, and equal-power crossfades. One-shots
    *  (victory/defeat) play once over the fading bed and end silent. */
   play(category: MusicCategory, opts: PlayOpts = {}): void {
-    if (!this.enabled || !this.ensure() || !this.ctx || !this.master) return;
     if (this.pinned && !opts.force && !opts.trackId) return; // dev-console pin: app requests wait
+    // Remember the latest scene even while muted, but never replay a past ceremony on enable.
+    const requestedDef = (opts.trackId ? TRACK_LIBRARY.find((t) => t.id === opts.trackId) : undefined) ?? TRACKS[category];
+    this.requested = requestedDef.oneShot ? null : { category, opts: { ...opts } };
+    if (!this.enabled || !this.ensure() || !this.ctx || !this.master) return;
     if (this.current === category && this.active && !this.active.def.oneShot && !opts.force) {
       // Same category: only re-pick when a DIFFERENT boss demands its own theme.
       if (!(category === 'boss' && opts.boss && this.active.boss !== opts.boss)) return;
@@ -696,6 +700,7 @@ class MusicManager {
   }
 
   stop(): void {
+    this.requested = null;
     if (!this.ctx || !this.active) return;
     const now = this.ctx.currentTime;
     this.active.bus.gain.cancelScheduledValues(now);
@@ -728,7 +733,7 @@ class MusicManager {
     const t = this.ctx.currentTime + 0.35;
     // 18kHz (transparent) → ~700Hz (underwater) on an exponential perceptual sweep.
     this.duressFilter.frequency.exponentialRampToValueAtTime(18000 * Math.pow(700 / 18000, d), t);
-    this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * d), t);
+    if (this.enabled) this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * d), t);
   }
 
   /** Account progression 0..1 — `lateWeight` tracks (evolved themes) surface more for veterans. */
@@ -782,12 +787,33 @@ class MusicManager {
   /** The player's Music volume, 0..1 (1 = the designed level, MUSIC_LEVEL). */
   setVolume(v: number): void {
     this.volume = MUSIC_LEVEL * Math.min(1, Math.max(0, v));
-    if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(this.volume * (1 + 0.22 * this.duress), this.ctx.currentTime + 0.1);
+    this.updateMasterVolume();
+  }
+
+  private updateMasterVolume(): void {
+    if (this.master && this.ctx) {
+      const gain = this.master.gain;
+      const now = this.ctx.currentTime;
+      const current = gain.value;
+      // Player volume/mute wins over every previously scheduled duck or duress fade.
+      if (typeof gain.cancelAndHoldAtTime === 'function') gain.cancelAndHoldAtTime(now);
+      else gain.cancelScheduledValues(now);
+      gain.setValueAtTime(current, now);
+      gain.linearRampToValueAtTime(this.enabled ? this.volume * (1 + 0.22 * this.duress) : 0, now + 0.1);
+    }
   }
 
   setEnabled(on: boolean): void {
+    if (this.enabled === on) return;
     this.enabled = on;
-    if (!on) this.stop();
+    this.updateMasterVolume();
+    if (!on) {
+      const requested = this.requested;
+      this.stop();
+      this.requested = requested;
+    } else if (this.requested) {
+      this.play(this.requested.category, { ...this.requested.opts, force: true });
+    }
   }
 
   // Lookahead scheduler: render bars slightly ahead of the clock (the standard WebAudio pattern).

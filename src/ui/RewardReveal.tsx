@@ -7,14 +7,14 @@
 // inspect it. Pure presentation: the rewards are already decided + applied upstream. Each landing
 // category plucks the climbing `reveal` cue; a stat's own `cue` (the level-up) follows its row.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
 import type { CSSProperties, ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { audio } from '../audio/sound';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 
-const prefersReduced = (): boolean =>
-  typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const prefersReduced = (): boolean => resolveMotion(motionPrefs(), systemReducedMotion()).motion === 0;
 
 const CATEGORY_MS = 1000; // gap between category reveals → ~5 categories lands in the 5–7s window
 const COUNT_MS = 700; // per-number count-up duration
@@ -94,7 +94,7 @@ function CategoryView({
 }): JSX.Element {
   return (
     <div className={`rr-cat${expanded ? ' is-open' : ''}${revealed ? ' is-in' : ''}`}>
-      <button type="button" className="rr-cat-head" onClick={onToggle} aria-expanded={expanded}>
+      <button type="button" className="rr-cat-head" onClick={(e) => { e.stopPropagation(); onToggle(); }} aria-expanded={expanded}>
         <span className="rr-cat-icon" style={cat.accent ? { color: cat.accent } : undefined}>{cat.icon}</span>
         <span className="rr-cat-title">{cat.title}</span>
         <span className="rr-cat-summary">{cat.summary}</span>
@@ -155,6 +155,8 @@ export function RewardReveal({
   next?: { label: string; onClick: (choiceId?: string) => void; choices?: { id: string; name: string; desc: string }[]; choiceLabel?: string; accent?: string };
   paused?: boolean; // a milestone cinematic is over the capsule — the sequence (and its audio) waits for it
 }): JSX.Element {
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const skipFocused = useRef(false);
   const reduced = useRef(prefersReduced()).current;
   const [instant, setInstant] = useState(reduced);
   const [choice, setChoice] = useState<string | undefined>(next?.choices?.[0]?.id);
@@ -167,6 +169,13 @@ export function RewardReveal({
   const achvDone = achvShown >= achievements.length;
   const hasAchv = achievements.length > 0;
   const sequenceDone = allRevealed && settled && achvDone;
+
+  // Keep keyboard position when the focused Skip control disappears at completion.
+  useLayoutEffect(() => {
+    if (!sequenceDone) return;
+    if (skipFocused.current && document.activeElement === document.body) continueRef.current?.focus({ preventScroll: true });
+    skipFocused.current = false;
+  }, [sequenceDone]);
 
   // Pace the category reveals.
   useEffect(() => {
@@ -186,21 +195,27 @@ export function RewardReveal({
   // then every category that LANDS plucks `reveal` once; a stat's own `cue` trails its row by a
   // beat. A skip (or reduced motion) lands the rest as ONE beat — one pluck, each cue once.
   const voiced = useRef(-1); // # categories already voiced (-1 = not yet unsealed)
-  const cueTimers = useRef<number[]>([]);
-  useEffect(() => {
-    const timers = cueTimers.current;
-    return () => { for (const t of timers) window.clearTimeout(t); };
-  }, []);
+  const pendingStatCues = useRef(new Set<string>());
   useEffect(() => {
     if (paused) return;
     if (voiced.current < 0) { voiced.current = 0; audio.cue('chest'); }
     const shown = Math.min(revealed, categories.length);
-    if (shown <= voiced.current) return;
-    const landed = categories.slice(voiced.current, shown);
-    voiced.current = shown;
-    audio.cue('reveal');
-    const tags = [...new Set(landed.flatMap((c) => c.stats.map((st) => st.cue).filter((t): t is string => !!t)))];
-    if (tags.length > 0) cueTimers.current.push(window.setTimeout(() => { for (const t of tags) audio.cue(t); }, STAT_CUE_MS));
+    if (shown > voiced.current) {
+      const landed = categories.slice(voiced.current, shown);
+      voiced.current = shown;
+      audio.cue('reveal');
+      for (const cat of landed) for (const stat of cat.stats) {
+        if (stat.cue) pendingStatCues.current.add(stat.cue);
+      }
+    }
+    if (pendingStatCues.current.size === 0) return;
+    const timer = window.setTimeout(() => {
+      for (const tag of pendingStatCues.current) audio.cue(tag);
+      pendingStatCues.current.clear();
+    }, STAT_CUE_MS);
+    // A milestone can interrupt between the pluck and stat cue. Keep its pending tags,
+    // but cancel the timer: they resume once, after the covering cinematic releases us.
+    return () => window.clearTimeout(timer);
   }, [revealed, categories, paused]);
 
   // After the stats settle, spotlight achievements one at a time.
@@ -216,6 +231,22 @@ export function RewardReveal({
     setSettled(true);
     setAchvShown(achievements.length);
   }, [categories.length, achievements.length]);
+
+  // Motion reduction completes presentation only; rewards were already applied upstream.
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const sync = (): void => {
+      if (resolveMotion(prefs, media?.matches ?? false).motion === 0) revealAll();
+    };
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    sync();
+    return () => {
+      offPrefs();
+      media?.removeEventListener('change', sync);
+    };
+  }, [revealAll]);
 
   // Click anywhere on the capsule fast-forwards exactly one beat (reveal next / settle / next achv).
   const nudge = useCallback(() => {
@@ -237,7 +268,10 @@ export function RewardReveal({
       {banner}
 
       {!sequenceDone && (
-        <button type="button" className="rr-skip" onClick={(e) => { e.stopPropagation(); revealAll(); }}>
+        <button type="button" className="rr-skip"
+          onFocus={() => { skipFocused.current = true; }}
+          onBlur={() => { skipFocused.current = false; }}
+          onClick={(e) => { e.stopPropagation(); revealAll(); }}>
           Skip ▸▸
         </button>
       )}
@@ -285,10 +319,21 @@ export function RewardReveal({
         {/* The forward step outranks Continue: once it appears, Continue steps down to a plain
             button (still last in the row — the hub door) and the next step wears the primary. */}
         {sequenceDone && next?.choices && next.choices.length > 1 && (
-          <div className="rr-choice" role="radiogroup" aria-label={next.choiceLabel ?? 'Choose'} style={next.accent ? ({ ['--ev']: next.accent } as CSSProperties) : undefined}>
+          <div className="rr-choice" role="radiogroup" aria-label={next.choiceLabel ?? 'Choose'} style={next.accent ? ({ ['--ev']: next.accent } as CSSProperties) : undefined}
+            onKeyDown={(e) => {
+              if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+              const options = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+              const current = options.findIndex((button) => button === document.activeElement);
+              if (current < 0) return;
+              e.preventDefault();
+              const index = e.key === 'Home' ? 0 : e.key === 'End' ? options.length - 1
+                : (current + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1) + options.length) % options.length;
+              options[index].focus();
+              options[index].click();
+            }}>
             <span className="rr-choice-k">{next.choiceLabel ?? 'Choose'}</span>
             {next.choices.map((c) => (
-              <button key={c.id} type="button" role="radio" aria-checked={choice === c.id} className={`rr-choice-opt${choice === c.id ? ' on' : ''}`} onClick={() => setChoice(c.id)}>
+              <button key={c.id} type="button" role="radio" tabIndex={choice === c.id ? 0 : -1} aria-checked={choice === c.id} className={`rr-choice-opt${choice === c.id ? ' on' : ''}`} onClick={() => setChoice(c.id)}>
                 <b>{c.name}</b>
                 <span>{c.desc}</span>
               </button>
@@ -299,6 +344,7 @@ export function RewardReveal({
           <button type="button" className="primary rr-next" onClick={() => next.onClick(choice)}>{next.label}</button>
         )}
         <button
+          ref={continueRef}
           type="button"
           className={`${next && sequenceDone ? 'rr-btn' : 'primary'} rr-continue${sequenceDone ? ' is-ready' : ''}`}
           onClick={(e) => { e.stopPropagation(); onContinue(); }}

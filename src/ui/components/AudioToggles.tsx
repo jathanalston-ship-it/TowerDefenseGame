@@ -44,14 +44,14 @@ export function AudioToggles({ compact = false }: { compact?: boolean }): JSX.El
     <div className={`audio-toggles${compact ? ' is-compact' : ''}`}>
       <label className="set-toggle">
         <span>Sound effects{!compact && <small>Combat cues, UI, rewards.</small>}</span>
-        <button className={`set-switch ${sfx ? 'on' : ''}`} onClick={toggleSfx} aria-pressed={sfx}>
+        <button aria-label="Sound effects" className={`set-switch ${sfx ? 'on' : ''}`} onClick={toggleSfx} aria-pressed={sfx}>
           {sfx ? 'On' : 'Off'}
         </button>
       </label>
       <VolumeRow label="Effects volume" value={sfxVol} enabled={sfx} onChange={changeSfxVol} />
       <label className="set-toggle">
         <span>Music{!compact && <small>The composed soundtrack (menu, combat, bosses).</small>}</span>
-        <button className={`set-switch ${mus ? 'on' : ''}`} onClick={toggleMusic} aria-pressed={mus}>
+        <button aria-label="Music" className={`set-switch ${mus ? 'on' : ''}`} onClick={toggleMusic} aria-pressed={mus}>
           {mus ? 'On' : 'Off'}
         </button>
       </label>

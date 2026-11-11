@@ -136,6 +136,10 @@ export function DraftModal({
   clearedWave,
   onPick,
   forceManual = false,
+  autoOverride,
+  paused = false,
+  onStopAuto,
+  onStartAuto,
   rerollCost = -1,
   biomass = 0,
   onReroll,
@@ -152,6 +156,10 @@ export function DraftModal({
   onPick: (id: string) => void;
   /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
   forceManual?: boolean;
+  autoOverride?: boolean;
+  paused?: boolean;
+  onStopAuto?: () => void;
+  onStartAuto?: () => void;
   /** §reroll: biomass price of the draft's ONE re-deal; -1 hides the button (used / tutorial). */
   rerollCost?: number;
   biomass?: number;
@@ -168,7 +176,9 @@ export function DraftModal({
 
   // Auto Gene Selection (opt-in, persisted): a visible countdown that auto-drafts the
   // recommended card unless the player picks first. Fixed for the life of this draft.
-  const auto = useRef(!forceManual && autoGenePref()).current;
+  const standaloneAuto = useRef(autoGenePref()).current;
+  const [stopped, setStopped] = useState(false);
+  const auto = !stopped && !forceManual && (autoOverride ?? standaloneAuto);
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
 
   // Detail expansion state. Hover dwell + Shift are NON-blocking (a click still drafts);
@@ -201,7 +211,7 @@ export function DraftModal({
   recIdRef.current = options[best].id;
 
   const pick = (id: string): void => {
-    if (!armed.current || picked.current) return; // ignore pre-arm clicks; one pick only
+    if (paused || !armed.current || picked.current) return; // ignore paused/pre-arm clicks; one pick only
     picked.current = true;
     window.clearTimeout(hoverTimer.current);
     setHoverDetail(null);
@@ -249,7 +259,7 @@ export function DraftModal({
   // Countdown → auto-pick the recommended card. A manual pick unmounts the modal, whose
   // cleanup clears the interval — i.e. selecting "immediately cancels the timer".
   useEffect(() => {
-    if (!auto) return;
+    if (!auto || paused) return;
     const start = performance.now();
     const id = window.setInterval(() => {
       const left = Math.max(0, AUTO_SECONDS - (performance.now() - start) / 1000);
@@ -261,15 +271,21 @@ export function DraftModal({
     }, 100);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto]);
+  }, [auto, paused]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
+      if (paused || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
       if (e.key === 'Shift') { setDetailAll(true); return; } // hold to peek exact values
       if (e.repeat) return;
       if (e.key >= '1' && e.key <= String(options.length)) {
         pick(options[Number(e.key) - 1].id);
       } else if (e.key === 'Enter') {
+        // Focused controls own Enter: a different card, Stop Hive, or reroll must not
+        // also commit the recommended gene through this window-level shortcut.
+        if (target?.closest('button, a, [role="button"]')) return;
         pick(recIdRef.current);
       }
     };
@@ -283,7 +299,7 @@ export function DraftModal({
       window.removeEventListener('keyup', onKeyUp);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options]);
+  }, [options, paused]);
 
   return (
     <div className={`overlay${committed ? ' is-committing' : ''}`}>
@@ -298,6 +314,16 @@ export function DraftModal({
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
           Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
         </p>
+        {/* The Hive switch on the draft (owner playtest 2026-11-11: an unstyled button wedged between
+            the subtitle and the cards) — one compact pill in its own row, the battlefield pill's look. */}
+        {!autoOverride && onStartAuto && (
+          <div className="draft-hive">
+            <button type="button" className="draft-hive-btn" onClick={() => { setStopped(false); onStartAuto(); }}
+              title="Turn Hive Intelligence on for this run: it picks the recommended gene after a short countdown, and handles purchases and wave starts">
+              <i className="draft-hive-core" aria-hidden />◈ Enable Hive Intelligence
+            </button>
+          </div>
+        )}
         {auto && (
           <div className="draft-auto" role="timer">
             <span className="draft-auto-k">◆ AUTO-DRAFT</span>
@@ -306,6 +332,7 @@ export function DraftModal({
             </span>
             <span className="draft-auto-n">{Math.ceil(remaining)}s</span>
             <span className="draft-auto-hint">pick any card to override</span>
+            {onStopAuto && <button type="button" className="draft-hive-stop" onClick={() => { setStopped(true); onStopAuto(); }}>■ Stop Hive</button>}
           </div>
         )}
       </div>

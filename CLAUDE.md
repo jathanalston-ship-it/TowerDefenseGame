@@ -251,8 +251,10 @@ economy, and towers. Keep design decisions written down so changes stay coherent
 
 ## 🌐 Website freshness — the site ships with the game
 
+During the active continuous-improvement goal, the owner authorizes deployment of verified batches roughly hourly, with player-facing website notes for every release (2026-11-09). Do not publish a batch with unresolved regression failures.
+
 The public site (assimilationtowerdefense.com — `site/*.ts` → `npm run site` → `public/`) must never
-lag the game. **The owner has asked for it to be kept current on every batch.** Patch notes regenerate
+lag the game. **The owner has asked for it to be kept current on every batch. Every game update must include a player-facing website release note when deployed (reaffirmed 2026-11-09).** Patch notes regenerate
 on every deploy automatically; everything else is editorial and is part of "done" for any change
 players can see:
 

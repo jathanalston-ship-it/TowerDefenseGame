@@ -662,23 +662,187 @@
 - ⚑ `eb7b181` **[Framework]** Status,chronicle: DEPLOYED "First Steps, Walked With You" (a0b332d, run #237); seal v2026.11.06 _(internal)_
 - `0d0d8f4` **[Heroes]** Class Bonds: the class set bonus for towers and heroes, upgradeable, taught end to end
 - `f81d494` **[Towers]** Site: Class Bonds in the tower guide (from the live tables), roadmap entry; devlog 'Class Bonds'
-- `e1968ae` **[Website]** Release notes 'Class Bonds' curated; site + PIL regenerated _(internal)_
-- `24b873b` **[Gameplay]** Release notes: use a valid changelog category (Progression is not one) _(internal)_
+- `e1968ae` **[Website]** Release notes 'Class Bonds' curated; site + PIL regenerated
+- `24b873b` **[Gameplay]** Release notes: use a valid changelog category (Progression is not one)
 - ⚑ `353c962` **[Framework]** Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok _(internal)_
-- ⚑ `72f0432` **[Framework]** Status,chronicle: DEPLOYED "Class Bonds" (353c962, run #238); seal v2026.11.06.2 _(internal)_
-- `1d16e42` **[Backend]** Market Constructs: 8 labelled AI players that grind nonstop and trade on the Auction House _(internal)_
-- `d22f872` **[Gameplay]** Constructs: tick reports name why a save commit was refused (e.g. save-commit-429) _(internal)_
-- `6c8c01b` **[UI]** Status,docs: Market Constructs live-checked in the Auction House UI; full suite 3154/3154 _(internal)_
-## 2026-11-11
+## 2026-11-09
 
-- `0e1896c` **[Gene Cards]** Hive Call: the hive calls the next wave early when its forecast says the board holds; Auto Gene 3 s _(internal)_
-- `1a306d1` **[Gene Cards]** Validation: Hive Call + 3 s Auto Gene PASS over 353c962..HEAD — 3162/3162, mobile gate clean _(internal)_
-- `9521758` **[Gameplay]** Hub quick-buy lag: one shared Power read per save snapshot; no second write; deferred board _(internal)_
-- `14516cd` **[Gene Cards]** Fewer words, more icons: hub action tiles, a medallion unlock card, a three-tile update briefing _(internal)_
-- `f84a66f` **[Website]** Website: devlog "A lighter hub", curated v2026.11.11 notes, regenerated site + PIL report _(internal)_
-- `8e3b073` **[Gameplay]** Playtest list 2: act-only notifications, gated best moves greyed, Continue locked, Hive docked, Infinite End Early + 1/5 containers _(internal)_
-- `1dd6948` **[Enemies]** Infinite wall: past depth 4 + cleared Campaign stage enemy HP ×2/depth; sim:infinite harness _(internal)_
-- `be02da6` **[Website]** Website + notes: regenerated site, curated v2026.11.11 entries, DIL + PIL reports _(internal)_
-- `d6ac95c` **[Framework]** Curate the batch's housekeeping commit out of the v2026.11.11 notes _(internal)_
-- `54f3489` **[Bug Fixes]** Ui: the update briefing's "See all changes" link is a full-size tap target on phones _(internal)_
-- `30bca6f` **[Bug Fixes]** Ui: Growth rows keep their +Power gain visible on narrow layouts _(internal)_
+- `6ace805` **[Website]** Ship Hive Intelligence auto-play and curated website notes _(internal)_
+- `3cc51a8` **[Gameplay]** Improve cinematic reading and gameplay feedback _(internal)_
+- `60dd21e` **[UI]** Verify reward clarity and accessible UI feedback _(internal)_
+- `33676de` **[Visuals]** Ship clearer rewards help and visual feedback _(internal)_
+- `8a3c0cf` **[Bug Fixes]** Ui: isolate draft and pause keyboard controls _(internal)_
+- `b3308c3` **[UI]** Ui: verify pause focus and phone layering _(internal)_
+- `0bdad42` **[Gene Cards]** Verify accessible evolution purchases _(internal)_
+- `2686bc2` **[Framework]** Validation: record controls regression checkpoint _(internal)_
+- `781e81f` **[Heroes]** Verify selected hero console readouts _(internal)_
+- `607300d` **[Audio]** Verify single purchase cue delivery _(internal)_
+- `4e62318` **[UI]** Ui: verify readable field note interactions _(internal)_
+- `bfa87c5` **[Framework]** Release: ship clearer controls and progress feedback _(internal)_
+- `b684a2b` **[Framework]** Docs: record verified progress release _(internal)_
+- `aaaddf1` **[UI]** Ui: verify readable reduced motion feedback _(internal)_
+- `85a42cf` **[UI]** Verify responsive portrait animation lifecycle _(internal)_
+- `c678576` **[UI]** Verify keyboard cosmetic ceremonies _(internal)_
+- `a165a71` **[UI]** Ui: verify accessible star celebrations _(internal)_
+- `880c803` **[UI]** Ui: verify keyboard vault reveal flow _(internal)_
+- `3720b7f` **[UI]** Ui: honor live vault feedback preferences _(internal)_
+- `cf5360c` **[Framework]** Docs: record feedback release verification _(internal)_
+- `0452050` **[UI]** Ui: verify stable reward announcements _(internal)_
+- `066e02d` **[Gene Cards]** Preserve reward cards while reading _(internal)_
+- `0b1ea64` **[Developer Tools]** Test: wait for closed navigation drawer in layout gate _(internal)_
+- `08fcaff` **[UI]** Ui: close drawer on current destination selection _(internal)_
+- `fa4f78b` **[Framework]** Release: ship readable feedback and accessible ceremonies _(internal)_
+- `205a8c4` **[Framework]** Docs: record verified feedback deployment _(internal)_
+- `88943a6` **[Audio]** Smooth sound-effect volume transitions _(internal)_
+- `3462701` **[Music]** Preserve latest music volume setting _(internal)_
+- `cfc0a9b` **[Music]** Restore scene music when re-enabled _(internal)_
+- `955c9fc` **[Music]** Silence scheduled music while muted _(internal)_
+- `a74be40` **[Audio]** Audio: record controls and regression checkpoint _(internal)_
+- `8b491cb` **[Audio]** Audio: record completed mobile release gate _(internal)_
+- `c78aeab` **[Heroes]** Expose hero auto-cast toggle state _(internal)_
+- `663ef58` **[Towers]** Expose armed tower placement controls _(internal)_
+- `4545bff` **[Audio]** Ship responsive audio and accessible controls _(internal)_
+- `cf49f45` **[Audio]** Record verified audio deployment _(internal)_
+- `e4269ab` **[UI]** Ui: clarify conveyor refunds and preserve focus _(internal)_
+- `5471e5d` **[Audio]** Avoid duplicate conveyor recycle cue _(internal)_
+- `738cd92` **[Towers]** Keep tower confirmations keyboard accessible _(internal)_
+- `a50fc9b` **[UI]** Ui: retain focus after completed branch upgrades _(internal)_
+## 2026-11-10
+
+- `4ae0d15` **[UI]** Release: publish clearer battlefield choices and Hive safeguards _(internal)_
+- `c9a6a65` **[Framework]** Docs: record verified battlefield release _(internal)_
+- `9428fa1` **[UI]** Ui: clarify accessible run control states and costs _(internal)_
+- `4d21ded` **[Heroes]** Show effective hero ability readiness _(internal)_
+- `cec6e8b` **[Heroes]** Align selected hero cooldown readouts with combat _(internal)_
+- `7f34809` **[Heroes]** Report observed hero attack and pulse cadence _(internal)_
+- `b7eeefd` **[UI]** Ui: align recovery countdowns with revival modifiers _(internal)_
+- `7dea6a6` **[UI]** Ui: keep active ability gauges stable through upgrades _(internal)_
+- `a6249d3` **[Heroes]** Publish clearer run controls and hero readouts _(internal)_
+- `2bae012` **[Framework]** Docs: record verified run controls deployment _(internal)_
+- `7741797` **[UI]** Ui: give account level notices time to be read _(internal)_
+- `c62fb01` **[UI]** Ui: preserve keyboard focus while dismissing rewards _(internal)_
+- `6c7d2ea` **[UI]** Ui: keep container notifications readable and keyboard accessible _(internal)_
+- `12be6e8` **[UI]** Ui: defer update prompts until the hub _(internal)_
+- `a89e537` **[UI]** Clarify achievement status and rewards _(internal)_
+- `41aa416` **[UI]** Ui: explain trophy rack states and unlocks _(internal)_
+- `0adabeb` **[UI]** Make achievement milestones searchable _(internal)_
+- `e176563` **[Gameplay]** Ship readable rewards and progression controls _(internal)_
+- `660656c` **[Framework]** Docs: record readable rewards production verification _(internal)_
+- `b1d8620` **[UI]** Ui: make profile power explanations expandable _(internal)_
+- `184460c` **[UI]** Ui: make career explanations readable on demand _(internal)_
+- `f5db1eb` **[Backend]** Improve leaderboard recovery and loading feedback _(internal)_
+- `9ec9fbb` **[UI]** Ui: recover replay sharing when clipboard access fails _(internal)_
+- `0a21f15` **[UI]** Ui: improve replay keyboard controls and skip behavior _(internal)_
+- `3d6e652` **[Audio]** Audio: keep replay outcome skips quiet _(internal)_
+- `55763a8` **[UI]** Ui: accept replay links and guard pending input _(internal)_
+- `8bca53e` **[UI]** Release: publish Progress Explained with eight notes _(internal)_
+- `35a8153` **[Framework]** Docs: record verified Progress Explained deployment _(internal)_
+- `97b7042` **[Framework]** Docs: align next release window with verification time _(internal)_
+- `ea2eece` **[UI]** Ui: make update briefings keyboard readable _(internal)_
+- `a064a1d` **[UI]** Ui: keep unlock introductions keyboard accessible _(internal)_
+- `b80b671` **[UI]** Ui: make Help topics easier to read and revisit _(internal)_
+- `1a3838c` **[UX]** Honor live motion preferences in tutorial text _(internal)_
+- `22c4fb2` **[UI]** Restore useful focus after field guides _(internal)_
+- `d1642e2` **[Framework]** Release: publish Clearer Briefings with five notes _(internal)_
+- `af1232f` **[Framework]** Docs: record verified Clearer Briefings deployment _(internal)_
+- `20ba0c4` **[UI]** Apply cutscene motion preferences live _(internal)_
+- `7f969db` **[UI]** Ui: follow live motion settings through the opening film _(internal)_
+- `068efbe` **[UI]** Preserve cutscene reading time in hidden tabs _(internal)_
+- `8941c2c` **[UI]** Ui: preserve opening-film progress while hidden _(internal)_
+- `8299841` **[Framework]** Release: publish Films That Follow You _(internal)_
+- `683ca4b` **[Framework]** Docs: record verified cinematic release deployment _(internal)_
+- `2d318f3` **[UI]** Ui: make recovered memories easier to find and replay _(internal)_
+- `f832f08` **[UI]** Ui: make collection celebrations accessible _(internal)_
+- `0d31f13` **[UI]** Ui: preserve focus while browsing collection categories _(internal)_
+- `2d2fbed` **[UI]** Ui: clarify undiscovered collection entries _(internal)_
+- `ef23cd9` **[Framework]** Release: prepare collection update and record regression gates _(internal)_
+- `e081e6e` **[Music]** Enlarge music console touch targets _(internal)_
+- `7f18a4f` **[Framework]** Release: publish Memories Within Reach _(internal)_
+- `76fbbb6` **[Framework]** Docs: record verified collection release deployment _(internal)_
+- `5563bac` **[Gameplay]** Save: preserve backups and report write failures _(internal)_
+- `c1df2d9` **[Gameplay]** Save: confirm restores and preserve recovery snapshots _(internal)_
+- `030b6d8` **[UI]** Review save files before importing progress _(internal)_
+- `a04cc87` **[Gameplay]** Save: commit imports before replacing session progress _(internal)_
+- `2266190` **[Gameplay]** Save: preserve live progress and tab ownership on restore _(internal)_
+- `bfb1de8` **[Framework]** Release: prepare Progress You Can Trust with five notes _(internal)_
+- `b441f62` **[Framework]** Release: publish Progress You Can Trust _(internal)_
+- `a8e6b4d` **[Gameplay]** Record verified save-management deployment _(internal)_
+- `346b9d3` **[UI]** Make incoming wave intel readable and explicit _(internal)_
+- `21102f9` **[UI]** Constrain wave details to the battlefield _(internal)_
+- `f9d6f03` **[UI]** Give compact wave details room to read _(internal)_
+- `491024e` **[UI]** Ui: explain active run conditions in the drawer _(internal)_
+- `a28e86d` **[Framework]** Release: prepare Know What Is Coming with two notes _(internal)_
+- `8950ec0` **[Framework]** Release: publish Know What Is Coming _(internal)_
+- `6754688` **[Framework]** Docs: record verified intel deployment _(internal)_
+- `57569d2` **[UI]** Ui: make bond explanations accessible and run accurate _(internal)_
+- `eb5c069` **[Gene Cards]** Make drafted gene descriptions readable _(internal)_
+- `52267c3` **[UI]** Keep HUD explanations on screen _(internal)_
+- `d1b0132` **[UI]** Prevent wave starts while reading HUD help _(internal)_
+- `d35b3fd` **[Framework]** Release: seal Read Your Build notes _(internal)_
+- `1ec6dec` **[Framework]** Release: record final build and drawer diagnostic _(internal)_
+- `48b2f2a` **[Framework]** Release: publish Read Your Build _(internal)_
+- `1637569` **[Framework]** Docs: record verified Read Your Build deployment _(internal)_
+- `3e81695` **[UI]** Ui: explain automation controls on touch and keyboard _(internal)_
+- `c078929` **[Framework]** Docs: record automation build and active mobile gate _(internal)_
+- `ed1c8e8` **[Framework]** Docs: record mobile pass and narrow control review _(internal)_
+- `81c4804` **[UI]** Ui: keep early call reachable on narrow phones _(internal)_
+- `2781968` **[UI]** Ui: follow live motion preferences on world status _(internal)_
+- `f084b8c` **[UI]** Release: prepare Know Your Controls _(internal)_
+- `2400521` **[Framework]** Release: publish Know Your Controls _(internal)_
+- `e6ad531` **[Framework]** Docs: record verified controls deployment _(internal)_
+- `e74e507` **[UI]** Respect live motion settings on infestation map _(internal)_
+- `8a96f37` **[UI]** Expose infestation feed selection state _(internal)_
+- `75c147e` **[Gene Cards]** Honor motion preferences in equipment card art _(internal)_
+- `551a76f` **[UI]** Ui: preserve gear inspection with reduced motion _(internal)_
+- `92b6941` **[UI]** Ui: add keyboard gear preview rotation controls _(internal)_
+- `f605db7` **[UI]** Ui: keep salvage confirmation visible and keyboard contained _(internal)_
+- `23c040a` **[UI]** Release: prepare Clearer Gear and Motion _(internal)_
+- `fdd8131` **[Framework]** Release: publish Clearer Gear and Motion _(internal)_
+- `5bc8199` **[Framework]** Docs: record verified gear and motion deployment _(internal)_
+- `2401a8f` **[UI]** Explain disabled equipment upgrades _(internal)_
+- `5e78a28` **[UI]** Ui: contain and restore item details keyboard focus _(internal)_
+- `9b2af4c` **[UI]** Keep pause settings comfortable on touchscreens _(internal)_
+- `a43c562` **[UI]** Ui: clarify quest progress rewards and claims _(internal)_
+- `2a0cf6b` **[UI]** Refresh the visible weekly contract board _(internal)_
+- `316bca1` **[UI]** Ui: keep armory filters recoverable after inventory changes _(internal)_
+- `309a981` **[UI]** Ui: show salvage selections hidden by filters _(internal)_
+- `73b564b` **[Framework]** Release: publish clearer progress and gear _(internal)_
+- `12982a9` **[Framework]** Docs: record verified clearer progress deployment _(internal)_
+- `fd2a2d7` **[UI]** Ui: preserve keyboard position after quest claims _(internal)_
+- `b8575c5` **[UI]** Ui: retain board focus after batch quest claims _(internal)_
+- `c66a8a1` **[UI]** Ui: anchor keyboard quest celebrations to claims _(internal)_
+- `bd295e7` **[UI]** Ui: follow live motion preferences for quest bursts _(internal)_
+- `fa2fc27` **[UI]** Expose accessible live loot meter progress _(internal)_
+- `58ae45f` **[UI]** Honor motion override for loot celebrations _(internal)_
+- `4e5b2c8` **[UI]** Explain unopened loot rewards accurately _(internal)_
+- `7d75368` **[UI]** Ui: retain keyboard focus after reward reveal skip _(internal)_
+- `da7800d` **[Framework]** Release: publish clearer reward feedback _(internal)_
+- `fc8fed3` **[Framework]** Docs: record verified reward feedback deployment _(internal)_
+- `59e0136` **[UI]** Ui: clarify empty help searches and recovery _(internal)_
+- `829c2c4` **[UI]** Ui: pause graft previews and follow live motion _(internal)_
+- `71100c6` **[UI]** Ui: pause nucleus previews and follow live motion _(internal)_
+- `7c39ffd` **[UI]** Ui: keep reforge reveals visible and keyboard accessible _(internal)_
+- `0998a78` **[UI]** Ui: follow live motion preferences in reforge reveals _(internal)_
+- `2307a64` **[UI]** Ui: synchronize reward reveals with live motion preferences _(internal)_
+- `251bfdf` **[UI]** Ui: clarify nucleus socket selection and preserve focus _(internal)_
+- `98802f1` **[UI]** Ui: preserve focus through nucleus chamber opening _(internal)_
+- `9060e09` **[Framework]** Release: publish clearer help and previews _(internal)_
+- `98be43b` **[Framework]** Docs: record verified help and previews deployment _(internal)_
+- `7d4c867` **[Developer Tools]** Dev: make regression validation launch reliably on Windows _(internal)_
+- `e43f808` **[UI]** Ui: keep adaptation reveals visible and keyboard accessible _(internal)_
+- `6b23be6` **[UI]** Ui: add keyboard navigation to graft host tabs _(internal)_
+- `59d3baa` **[UI]** Show the correct graft upgrade currency and binding guidance _(internal)_
+- `85fb488` **[Gene Cards]** Navigate harvest recommendations to their upgrade cards _(internal)_
+- `e15b182` **[UI]** Release: publish clearer upgrade controls _(internal)_
+- `f2fea73` **[Framework]** Docs: record verified upgrade controls release _(internal)_
+- `faffe6f` **[Developer Tools]** Dev: isolate test and production validation environments _(internal)_
+- `1869407` **[UI]** Ui: preserve harvest upgrade focus and growth feedback _(internal)_
+- `50e7885` **[UI]** Explain harvest upgrade costs and requirements _(internal)_
+- `60da498` **[UI]** Pause hidden hive diagram animations _(internal)_
+- `3373670` **[UI]** Ui: preserve focus through hive organ reveals _(internal)_
+- `528569a` **[UI]** Ui: add keyboard navigation to hosted page tabs _(internal)_
+- `2ce05c1` **[Heroes]** Keep focus with dispatched expedition teams _(internal)_
+- `bd8624a` **[UI]** Release: publish smoother growth and navigation _(internal)_
+- `119c194` **[Framework]** Docs: record verified growth and navigation deployment _(internal)_
+- `52e75f6` **[UI]** Clarify equipment codex bonus units _(internal)_
+- `de9bc18` **[UI]** Make the equipment codex searchable _(internal)_

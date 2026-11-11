@@ -976,6 +976,14 @@ function persist(next: SaveData): void {
   }
 }
 
+/** Publish an explicit replacement only after its storage transaction has succeeded. */
+function publishSaveReplacement(next: SaveData): void {
+  if (persistFlushTimer !== null) { clearTimeout(persistFlushTimer); persistFlushTimer = null; }
+  noteClock();
+  stampWriter();
+  store.set(markSnapshot(next)); // a committed snapshot — the per-save memos may key on it (state/saveMemo.ts)
+}
+
 /** v56 Gear Codex ledger (docs/EQUIPMENT.md §codex): every def that enters the inventory — by
  *  ANY path (containers, crafting, grants, trades, undo-salvage) — is folded into the permanent
  *  `equipment.discovered` set at this one chokepoint, so the credit can never be missed and never
@@ -7660,8 +7668,14 @@ export const meta = {
     if (!guardOk('save.import')) return { ok: false, error: 'Rate limited — try again in a moment.' };
     const result = parseImport(text);
     if (!result.ok) return result;
-    saveStore.backup(); // non-destructive: keep the pre-import state recoverable
-    persist(result.data);
+    if (tabIsStale()) return { ok: false, error: 'Another tab is managing this save. Reload before importing.' };
+    const next = withGearDiscoveries(result.data);
+    // Imports are explicitly paced by save.import, but must not use persist's best-effort
+    // write coalescer: report success and notify subscribers only after the disk commit.
+    if (!saveStore.importSave(next, store.get())) {
+      return { ok: false, error: 'Could not save the import. Your current progress is unchanged. Export JSON to keep a separate copy.' };
+    }
+    publishSaveReplacement(next);
     return result;
   },
 
@@ -7682,10 +7696,10 @@ export const meta = {
   },
 
   restoreBackup(id: string): boolean {
-    if (!guardOk('save.restore', id)) return false;
-    const data = saveStore.restoreBackup(id);
+    if (!guardOk('save.restore', id) || tabIsStale()) return false;
+    const data = saveStore.restoreBackup(id, store.get());
     if (!data) return false;
-    store.set(markSnapshot(data));
+    publishSaveReplacement(data);
     return true;
   },
 

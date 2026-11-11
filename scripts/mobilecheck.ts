@@ -24,7 +24,7 @@
 //   2. This gate walks doors BY DISCOVERY (whatever the rail/landings render), so a new
 //      screen is swept and audited the day it ships — there is no second list to update.
 // `npm run validate` runs this gate. Options:
-//   --no-build   reuse dist/ as-is (validate builds beforehand anyway)
+//   --no-build   reuse dist/ as-is (caller must build production first)
 //   --port 4321  fixed port (default: 4310)
 //   --full       sweep the complete published viewport matrix (small-landscape floor,
 //                large phones, big tablets, ultrawide)
@@ -98,7 +98,8 @@ function profileOf(vp: { width: number; height: number }): 'portrait' | 'landsca
 
 async function main(): Promise<void> {
   if (!args.includes('--no-build')) {
-    execSync('npm run build', { stdio: 'inherit' });
+    // vite-node defaults NODE_ENV to development; the gate must probe the deployed runtime.
+    execSync('npm run build', { stdio: 'inherit', env: { ...process.env, NODE_ENV: 'production' } });
   }
   // vite itself, not `npx vite`: npx leaves its vite child orphaned when killed (same as first-session-probe).
   const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
@@ -331,6 +332,17 @@ async function openDrawer(page: import('playwright-core').Page): Promise<void> {
   if (opened) await page.waitForTimeout(300);
 }
 
+/** Wait for the drawer's actual closed state, including its delayed visibility transition.
+ * A fixed wall-clock delay can sample the slide-out on a busy browser. */
+async function waitForDrawerClosed(page: import('playwright-core').Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const burger = document.querySelector<HTMLElement>('.hub-burger');
+    const nav = document.querySelector('.hub-nav');
+    return !burger || burger.offsetParent === null || !nav ||
+      (!nav.classList.contains('is-open') && getComputedStyle(nav).visibility === 'hidden');
+  }, undefined, { timeout: 5000 });
+}
+
 /** Landscape phones: the SAME door→landing→card discovery walk as desktop, through the
  *  narrow-shell drawer (☰ opens the off-canvas rail before each door hop). */
 async function landscapeRailWalk(page: import('playwright-core').Page, vpName: string): Promise<Violation[]> {
@@ -354,6 +366,7 @@ async function landscapeRailWalk(page: import('playwright-core').Page, vpName: s
       }, hub);
       if (!doorOpen) { missing++; continue; }
       await page.waitForTimeout(450);
+      await waitForDrawerClosed(page);
       if (!auditedHubs.has(hub)) {
         auditedHubs.add(hub);
         out.push(...(await audit(page, `hub-${hub}`, vpName, true)));
@@ -366,6 +379,7 @@ async function landscapeRailWalk(page: import('playwright-core').Page, vpName: s
       if (!card) { missing++; continue; }
     }
     await page.waitForTimeout(650);
+    await waitForDrawerClosed(page);
     await dismiss(page);
     out.push(...(await audit(page, nav, vpName, true)));
   }

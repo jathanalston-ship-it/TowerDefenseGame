@@ -445,3 +445,12 @@ progress sweep and holds release beats still — telegraphs are information, nev
 allocation (pooled pulses, per-boss state once, cached colour strings, in-place list compaction).
 **Deliberately left:** the reaction/status float stacking that buries a boss under text (V1's float
 pass), and the HUD boss banner's one-tick verb label (a UI-side hold would fix it).
+
+### Live device motion changes
+The hub root motion/flashes attributes and both MotionSettings layouts subscribe to device reduced-motion changes. The existing Allow motion override remains authoritative, and stored shake strength survives toggling the device preference. Both preference and media-query listeners are removed on cleanup. Sound and motion switches expose stable accessible names.
+
+Opening-film motion lifecycle: InitCutscene subscribes to OS/device motion and flash preferences during gate, film and descent. Changes keep the current scene clock; restoring animation skips elapsed silent-mode beats. A reduced-motion request during the descent completes immediately without the dive afterglow flag, with the existing seen/once-only completion lifecycle preserved. Projector and preference listeners clean up on unmount.
+
+Opening-film visibility: InitCutscene pauses its gate/film/dive projector and caption animations while hidden. Scene holds keep remaining visible time; resume offsets current/previous clocks and the active dive clock by hidden duration. A hidden initial gate waits for visibility. Reduced motion may still end an active hidden dive immediately through the safe no-afterglow completion path. Intro seen/playing and once-only completion semantics remain unchanged; global music settings are not modified.
+
+Audio/motion switches retain a 44px minimum height on coarse-pointer devices, including compact pause settings. Scoped rules beat the narrow-screen 24px generic floor; desktop padding remains compact. The existing pause-card overflow keeps every setting and Resume/Abandon/Keep Playing reachable in short landscape viewports. No audio, motion preference or pause behavior changes.

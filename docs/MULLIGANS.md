@@ -125,27 +125,24 @@ PlayerProfile) shows **"Mulligans"** as its own slice — the required *separate
 `save.mulliganDex: Record<string, MulliganRarity>` (owned pieces → best rarity, the equip
 ceiling + collection source). The v29 sanitizer also enforces §exclusivity: cross-tower or
 within-tower duplicate piece ids null out deterministically (first host in TOWER_ORDER wins).
-Modifier upgrades spend **`save.geneEssence`** — the SAME unified currency Gene Cards level with
-(the short-lived `geneOverflow` wallet was retired; a legacy balance folds into `geneEssence` 1:1
-on load, so nothing banked is lost). All **additive**: pre-v26 saves migrate to empty organisms +
+Modifier upgrades and ascensions spend **`save.mulliganTissue`** (Mulligan Tissue), separate from the Gene Essence used by Gene Cards and Nucleus organs. See ECONOMY.md §8 for the localized-economy migration. All **additive**: pre-v26 saves migrate to empty organisms +
 empty dex. `saveStore.sanitizeMulligans` drops unknown modifier ids, clamps levels to the rarity
 ceiling, and coerces seeds — a malformed slot simply becomes `null` (the organism stays inactive),
 never a crash.
 
 ### Pipeline (`meta` store methods)
 
-`discoverModifier(id, rarity)` (loot) · `grantGeneEssence(amt)` · `equipMulligan(kind, slot, id,
+`discoverModifier(id, rarity)` (loot) · `equipMulligan(kind, slot, id,
 rarity?)` (rarity capped at the discovered ceiling) · `unequipMulligan` · `upgradeMulligan` (spends
-Gene Essence, +1 level within the rarity cap) · `ascendMulligan` (a **maxed** slot → next rarity,
+Mulligan Tissue, +1 level within the rarity cap) · `ascendMulligan` (a **maxed** slot → next rarity,
 Ascension-ready) · reads `mulligan(kind)` / `mulliganResolved(kind)`.
 
 ---
 
-## 7. Upgrade economy (Gene Essence — the unified gene currency)
+## 7. Upgrade economy (Mulligan Tissue)
 
-- Mulligans and Gene Cards spend the **same wallet** (`save.geneEssence`): one currency, two sinks
-  (Gene Archive card levels · Mulligan Lab modifier levels/ascensions) — a deliberate tension.
-- **Level** rises with Gene Essence up to the rarity's `levelCap` (Common 5 … Ascendant 20;
+- Tower Mulligan grafts spend **Mulligan Tissue** (`save.mulliganTissue`) for levels and ascensions. Gene Cards and Nucleus organs retain their Gene Essence wallet.
+- **Level** rises with Mulligan Tissue up to the rarity's `levelCap` (Common 5 … Ascendant 20;
   `MULLIGAN_MAX_LEVEL = 20`, future-proofed).
 - **Ascend** a maxed slot to the next rarity (`ascendCost`) — the **Ascension seam**: higher rarity
   raises stat scaling, Power, upgrade ceiling, and the generator's visual/animation intensity.
@@ -297,7 +294,7 @@ active organism stands on the field (pause holds it; silent on graft-less boards
 ## Help + statistics
 
 Help-wiki mechanic `mulligans` (unlocks with the first sequenced modifier; nav → the Mulligan
-Lab). Profile → Economy carries `Modifiers Sequenced` (dex/registry); upgrades spend the unified Gene Essence wallet;
+Lab). Profile → Economy carries `Modifiers Sequenced` (dex/registry); upgrades spend the Mulligan Tissue wallet;
 the Power Breakdown's dedicated *Mulligans* slice was already live. Four achievement additions:
 `mulligan_dex` (complete sequence), `mulligan_perfected` (a rarity level-cap), `mulligan_ascendant`
 (an ascendant slot, hidden), `mulligan_overlord` (×1.5 organism Power). The Mulligan Lab screen
@@ -342,3 +339,17 @@ the ⟡ crown on adapted rail rows, the class-hued orbiting-thorn crown on the o
 readout, and the COMPLETE CLASS ADAPTATION ceremony (dedicated `adapt` cue) on the equip that
 synchronizes. Genome Rank's mulligan measure now blends assembly + full adaptations
 (`(assembled + adapted) / (towers × 2)`).
+
+Organism preview lifecycle: the lab follows shared resolved motion preferences and live device changes. It paints a still frame when motion is reduced, pauses animation while offscreen/hidden, resumes without hidden-time jumps, and releases observers/listeners/frames on unmount. Reactive organism identity redraws even the still preview after a graft change. Rendering, graft rules, costs and Power calculations are unchanged.
+
+Reforge reveal accessibility (2026-11-10): MulliganLab uses the shared Popup portal to escape transformed lab panels. Its card fits the viewport and scrolls on short displays; keyboard focus enters the dialog, moves to Accept on landing, stays inside on Tab, and returns to the opener (or its programmatically focusable slot when unaffordable). Escape follows the existing landed-only backdrop dismissal. Roll, cost, binding and ceremony duration are unchanged.
+
+Reforge wheel motion (2026-11-10): shared motion resolution honors Allow motion and listens to live preference/device changes. Reducing motion finishes the existing result immediately; a completed reveal never restarts. Animation and listener cleanup run on unmount; normal timing and roll/cost/binding remain unchanged.
+
+Complete class adaptation reveal (2026-11-10): shared Popup portal escapes transformed lab panels; scrollable card fits the app viewport. Continue receives focus without its former delayed entrance, Tab stays inside, and closing by Continue/backdrop/Escape restores the programmatically focusable host heading. Existing equip/adaptation completion and cue are unchanged.
+
+Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.
+
+Graft-host keyboard navigation (2026-11-10): host tablist uses a single selected Tab stop, Arrow keys/Home/End with wrapping and nearest scrolling, and unique tab-to-panel ARIA links. Tab enters the named focusable showcase; class filters expose aria-pressed. Selection still uses the existing selectTower function; progression and graft operations are unchanged.
+
+Graft currency guidance (2026-11-10): level/ascend buttons, icons, tooltips and accessible names use the actual Mulligan Tissue wallet. Library guidance for a reforged organism explains permanent binding and continued upgrades within caps instead of offering unavailable clearing. Help mirrors the same wallet; costs, affordability, spending and binding logic are unchanged.

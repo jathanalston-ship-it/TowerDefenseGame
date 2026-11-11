@@ -51,12 +51,12 @@ export const POSTS: BlogPost[] = [
     body: `
 <p>Farming a stage you have mastered should feel fast. Two changes make the Hive a better co-pilot there.</p>
 <h2>Early calls, when it is safe</h2>
-<p>Turn on <b>Auto Wave</b> and the Hive watches every fight. It measures how far down the field enemies get before your towers kill them, counting only the distance past where your towers first reach them. Then it asks one question: if the next wave landed on top of this one, would your board still kill everything with room to spare? When the answer is a clear yes, it calls the next wave early and banks the Early Call Biomass for you. A callout and the Hive Intelligence ticker tell you the wave it called, what it earned and how comfortable the forecast was.</p>
+<p>Turn on <b>Hive Intelligence</b> or <b>Auto Wave</b> and the Hive watches every fight. It measures how far down the field enemies get before your towers kill them, counting only the distance past where your towers first reach them. Then it asks one question: if the next wave landed on top of this one, would your board still kill everything with room to spare? When the answer is a clear yes, it calls the next wave early and banks the Early Call Biomass for you. A callout and the Hive Intelligence ticker tell you the wave it called, what it earned and how comfortable the forecast was.</p>
 <p>It is deliberately careful. It never calls into or over a boss wave, never once your Core has taken damage that wave, never on a wounded Core, and only once before the field clears. We tuned it by forcing hundreds of calls in simulation and checking what really happened against the forecast. The threshold sits where calls stopped costing the Core at all. In our test runs, boards that let the Hive call early lost less often than the same boards without it.</p>
 <h2>Faster drafts</h2>
 <p><b>Auto Gene</b> now takes the recommended card after three seconds instead of ten. Any pick you make yourself still wins.</p>
-<h2>Only where you've earned it</h2>
-<p>Like the rest of Hive Intelligence, both act only on content you have already beaten: Infinite and campaign replays. On your frontier, in the Daily and in Boss Rush record runs, the calls stay yours.</p>
+<h2>Where it works</h2>
+<p>Like the rest of Hive Intelligence, both work in Campaign and Infinite once you have cleared Campaign Stage 5. In the Daily and in Boss Rush record runs, the calls stay yours.</p>
 `,
   },
   {
@@ -79,6 +79,15 @@ export const POSTS: BlogPost[] = [
 <h2>Also fixed</h2>
 <p>While building this we found a bug that stopped synced accounts from listing on the Auction House. The server misread your campaign stage, so everyone looked like a brand-new account. That's fixed: once the Auction House is open for you, the Sell tab works.</p>
 `,
+  },
+  {
+    slug: 'let-the-hive-take-over', date: '2026-11-09', title: 'Let the hive take over',
+    category: 'Release', tags: ['gameplay', 'heroes', 'quality of life'],
+    summary: 'After Campaign Stage 5, Hive Intelligence can handle repetitive setup, waves, gene picks and hero abilities while you watch or take over.',
+    body: `<p>Easy waves should not mean placing the same organisms over and over. Hive Intelligence is now an optional continuous assistant.</p>
+<h2>Unlock it after Campaign Stage 5</h2><p>Complete Stage 5 on any difficulty, then turn on <b>HIVE INTELLIGENCE</b> in Campaign or Infinite. It works on new campaign stages as well as replays.</p>
+<h2>What the hive handles</h2><ul><li>Deploying towers, buying mutations and hero upgrades, and merging conveyor organisms.</li><li>Starting waves after the setup countdown and picking the recommended gene after a visible countdown.</li><li>Directing the lead hero toward threats and using their ability when ready.</li></ul>
+<h2>You stay in control</h2><p>Switch it off whenever you want, including during a gene draft. Pick a gene yourself to override the recommendation. Pause suspends automation, and the toggle starts off each run.</p><p>This is a simple helper, not a guaranteed win. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain manual. The hive does not spend permanent or premium currencies, sell your towers, or launch another run.</p>`,
   },
   {
     slug: 'class-bonds',

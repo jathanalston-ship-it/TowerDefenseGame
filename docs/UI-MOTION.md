@@ -100,3 +100,17 @@ each Rising separately — nested Rises double the motion and read as jank.
   the acknowledgement.
 - **Reduced motion** is honored by the existing global media query — new keyframes
   and transitions collapse automatically; no per-rule opt-out needed.
+
+Hero symbiote and tower preview canvases resolve device reduced motion plus the player override through resolveMotion and subscribe to changes. Hero CSS aura/pulse/orbit decorations have explicit still states. Offscreen/hidden preview loops stop; artwork and progression remain unchanged.
+
+Tutorial Typewriter (ui/tutorial/primitives.tsx) now resolves state/prefs motion live, including Allow motion, and exposes a stable complete sentence separately from the aria-hidden visual reveal. Reduced motion finishes the current reveal; restoring motion preserves already-read content.
+
+CutscenePlayer resolves motion/flashes live. Changing preferences preserves film timing; elapsed beats under reduced motion are not replayed when animation resumes. Reduced stills retain coda dimming and repaint on resize/scene/coda changes.
+
+InitCutscene applies live resolved motion/flashes at the pre-roll gate and during playback. Reduced motion during an active dive ends the transition cleanly; normal dive duration and single completion remain unchanged. Restoring animation consumes past film beats without sound catch-up.
+
+Story cutscenes suspend their visual clock and caption animations while hidden; auto scene/coda holds retain remaining visible time. On return the projector resumes without hidden-time sound catch-up. This does not alter global music settings.
+
+Opening-cinematic visibility suspends gate/film/dive motion and caption CSS animations. Resume preserves scene hold and dive progress. Reduced motion requested during a hidden dive completes safely rather than waiting in a frozen transition.
+
+Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.

@@ -1,5 +1,17 @@
 # PROJECT_STATUS.md — the live state board
 
+> **LIVE 2026-11-10 ~04:30 UTC:** v2026.11.09.4 Progress You Can Follow, commit bfa87c50. Actions 42756081493 succeeded. Normal public game/home/news URLs verified: play-CtxVJXHT.js and all expected release content. 3150 tests and full mobile gate passed. Ongoing improvement goal continues; prior prepared/pending notices below are historical.
+
+> **v2026.11.09.4 release prepared:** all source through 4e62318d passes production build, all 3150 tests, and the full 27-screen/nine-viewport mobile gate. Seven curated website notes included. Publishing Progress You Can Follow; verify Actions and live game/home/news before claiming deployed. Ongoing experience-improvement goal remains active.
+
+> **2026-11-10 04:06 UTC verified local checkpoint:** `0bdad42e` production build, all 3150 tests in 353 files, and the full 27-screen/nine-viewport mobile gate PASS. v2026.11.09.4 notes prepared; production remains 33676de6 (remote verified). Next investigate the selected hero's recovery/ability readout, which currently uses primary-hero fields. Goal remains active; this batch has not deployed yet.
+
+> **2026-11-09 next local batch:** production 33676de6 and website release v2026.11.09.3 verified live. Local v2026.11.09.4 improves progress accessibility and draft/pause keyboard ownership. Chrome interaction probes, strict build, 63 card/draft/Hive tests and 43 tutorial/Hive tests pass. Next batch not yet deployed; ongoing goal remains active.
+
+> **2026-11-09 clarity release prepared:** reward audio/interaction fixes, complete Help search and related navigation, calmer portrait/count-up animation, continuous wallet totals, keyboard-friendly currency popovers, canonical hero class glyphs. Full 3150-test checkpoint and nine-viewport mobile gate pass; final glyph/site/docs checks and build pass. Website v2026.11.09.3 included. Broader experience goal remains active.
+
+> **2026-11-09 experience batch — verified for release:** manual cinematic reading and keyboard navigation, resize-safe stills, live device-motion updates, clear hero timers and Hive-managed controls. Production build, 3148 tests (full run plus generated-doc freshness reruns), doc/site audits and nine-viewport mobile gate pass. Website release v2026.11.09.2 prepared. Ongoing broader experience goal remains active.
+
 > Maintained at the END of every session (paired with `docs/AI_HANDOFF.md` — the constitution's
 > workflow step 4). This is the "where are we?" answer; `docs/GAME-STATE.md` remains the deeper
 > per-system built-vs-planned index, `docs/PROJECT_MANIFEST.md` the system map.
@@ -1392,3 +1404,788 @@ already registered per system) · platform decision on backend (cloud saves, dai
 - Zero runtime import cycles (type-only back-edges by design); RC sweep verified ZERO orphan modules (209 files, all imported) and zero TODO/FIXME in shipping code.
 - Registry-enforced: no orphan source files, no unresolvable system references.
 - Debt ranked and bounded (`docs/ENGINEERING-AUDIT.md` §4–5); no unbounded growth surfaces known.
+
+
+## 2026-11-09 — Hive Intelligence continuous play (local branch)
+
+Implemented on `codex/hive-autoplay`, not deployed: Stage 5 completion unlocks continuous purchases, wave starts, gene picks and lead-hero ability/rally control in Campaign and Infinite. See `docs/AI_HANDOFF.md` and `docs/HIVE-MIND.md`. No save migration.
+
+Next local batch follow-up: pause dialog focus containment/restoration and safe confirmation focus verified in Chrome. Mobile pause now overlays open Status drawers; 390x844 visual and click checks pass. These changes remain local for the next release.
+
+Evolution follow-up local: keyboard purchasing fixed in shared hold-to-buy hook; hero purchase focus and multi-buy level feedback corrected; console layering fixed. Browser purchase/affordability checks, 19 evolution tests and production build pass.
+
+Selected-hero readout follow-up: corrected hero-specific recovery, shield and ability countdown; accessible roster tabs; removed Infinity attack rate for non-attackers. Three-hero desktop/phone probe and 19 focused tests pass.
+
+Audio follow-up local: purchase cues now drain during pause without advancing sim or adding shake; duplicate hero/conveyor sounds removed. Dispatcher browser check and 68 gameplay/upgrade regression tests pass.
+
+Field-note local improvement: readable hover/focus hold, keyboard Dismiss and polite announcement. Chrome expiry/interaction/phone checks and 8 first-hour tests pass.
+
+Next local batch v2026.11.09.5: readable static upgrade/Power/Mastery feedback under reduced motion, verified by CSS and actual purchase browser probes. .4 remains the live release.
+
+Portrait preview local improvement: offscreen/hidden symbiote drawing stops, live motion changes work for hero/tower canvases, and hero CSS decorations still under reduced motion. Browser lifecycle checks and 15 rendering/motion tests pass.
+
+Cosmetic ceremony local improvement: keyboard focus/Tab/Escape behavior verified across single, sequence and backlog reveals; final cabinet action unchanged. Browser checks and 38 wardrobe tests pass.
+
+Local .5 follow-up: tower star ceremony keyboard focus/dismissal verified in Chrome; included in the ceremony website note. Full release suite running.
+
+Local .5 now includes full Vault ceremony keyboard flow; browser single/legendary/batch checks and 16 model tests PASS. Prior full suite passed 3150 tests; final build pending. Four curated website notes.
+
+Vault final build and styled phone keyboard flow PASS; mobile release gate running against the completed build.
+
+Vault motion follow-up locally verified: live heartbeat prefs, flash suppression and zero shake; phone keyboard checks still pass. Mobile gate continues on preceding build; final motion build pending.
+
+.5 release checkpoint05:03UTC: final build, mobile gate, website sync and focused follow-up checks passed. No processes left running. Still local; next approximate deployment05:30UTC. Website verifier updated to .5 markers.
+
+Local .5 adds stable reward/Vault total accessibility text while retaining visual count-up. Chrome AX-tree and47 model checks PASS; fifth website note prepared.
+
+Reward announcement production build and website-sync checks PASS; local .5 now five notes. All local processes stopped.
+
+Reward card reading holds now verified across hover, focus, expanded summary and incoming bursts. Original merge timing preserved; accessible-count probe re-passed. Full release regression running. Fifth website note expanded.
+
+Reward reading production build PASS. Final full suite34772 and mobile37446 continue; same handles/logs recorded in handoff.
+
+Final suite3150 PASS. Mobile gate identified a drawer-transition sampling race; focused landscape diagnostic and controlled settling check passed. Gate now waits for actual closed visibility; full rerun83603 active. Deployment waits for this result.
+
+Same-destination drawer close fixed and browser-verified with no extra Back stop. Build and19 navigation tests PASS. Final mobile72291 running; six website notes.
+
+.5 final mobile gate PASS at05:36UTC; deploying verified six-note release. Full3150 suite plus focused19 nav/back and4 site checks passed; final build and focused browser checks passed.
+
+LIVE ~05:38UTC Nov10: v2026.11.09.5 Feedback That Stays Readable, commitfa4f78bc, six website notes. Actions42763247079 success; normal game/home/news verified against built hashplay-DZzequMq.js. Next approximate deployment06:38UTC; continuous improvement goal remains active.
+
+New local batch .6 Sound That Responds Smoothly; .5 sealed/live. First change:20ms SFX volume/mute ramps verified by real offline audio samples, including rapid changes and fallback. One Audio website note prepared.
+
+.6 SFX smoothing final build and website synchronization PASS; local checkpoint ready. .5 remains live, next deployment around06:38UTC.
+
+.6 music slider now supersedes older duck/duress recovery. Real audio rendering reproduces/fixes zero-volume rebound; rapid settings and fallback PASS,42 audio tests PASS. Second Audio website note prepared.
+
+.6 music slider final build and website checks PASS; two audio improvements saved locally. .5 remains live; next deployment around06:38UTC.
+
+Local .6 follow-up: music re-enable now restores latest looping scene (including muted scene changes/boss binding), without stale ceremony replay.46 audio tests,4 site-sync tests, actual Chrome toggle checks and earlier volume probes PASS; production build PASS. Three Audio website notes prepared, still local. Next approximate deployment06:38UTC.
+
+Local .6 shared mute now silences scheduled musical flourishes via100ms master fade. Actual reward-stinger offline output after mute changed fromRMS0.017549 to0; muted volume/duress remain silent.47 audio+4 site tests PASS, scene/volume browser regressions PASS. Four local website notes; awaiting final build result.
+
+Final shared-mute production build28873 PASS (music-mute-build.log); all task processes terminal. Four notes prepared for .6; next approximate deployment06:38UTC. Live remains .5.
+
+Audio .6 checkpoint:353 files/3155 tests PASS; actual shared keyboard audio controls and compact persistence PASS; docs checks PASS. Full mobile gate29287 remains running; poll same handle. Game/website still live .5, .6 four notes local; deployment target approximately06:38UTC.
+
+Audio .6 mobile gate CLEAN all9 viewports (29287 terminal0). All batch gates completed; no processes remain. Four website notes local, next approximate release06:38UTC.
+
+Local .6 accessibility follow-up: hero auto-cast exposes pressed state after unlock or under Hive management; locked purchase remains a normal button. Actual Chrome AX tree and keyboard actions PASS;41 focused tests PASS. Five website notes prepared; final build pending.
+
+Final auto-cast accessibility build19427 PASS (autocast-accessibility-build.log), all processes terminal. Five notes local for .6; live remains .5.
+
+Local .6 placement controls now expose armed state; conveyor Deploy names the organism and free/live cost. Real Game keyboard/AX checks PASS for selection/clearing/switching and free/paid labels; auto-cast AX re-PASS,4 site tests PASS, production build23561 PASS. All processes terminal. Five notes prepared, still local.
+
+Release .6 sealed and verified:5 curated website notes, final production build/site sync PASS. Publishing now under ongoing deployment authorization; live verification pending.
+
+LIVE .6 Sound That Responds Smoothly:4545bff2ed18e243009ba5ce8e283a454141c1c9, Actions42767736604 SUCCESS. Normal custom-domain play assetplay-BAy15d18.js matches build and returns200; home/news and all5 notes verified06:22UTC. .6 sealed. Next approximate deployment07:22UTC, with a new release batch. No processes running.
+
+New LOCAL .7 Clearer Battlefield Choices: correct zero starting-gift refund, retained keyboard focus after recycle/merge, named transaction buttons. Actual browser matrix and20 tests PASS; build65033 PASS. One UI website note prepared. Live .6 remains, next approximate deployment07:22UTC. No processes running.
+
+Local .7 recycle confirmation now plays once via sim queue. ActualGameView direct+queued trace reproduced2 ->1; stale retry0.35 focused tests PASS; build40516 PASS. Two website notes, local only. All processes terminal.
+
+Local .7 tower sale/first-branch prompts now have safe Cancel focus, named modal semantics, Tab containment, Escape/restoration and cancel on Pause. Actual keyboard matrix, styled 3viewport measurements and fullGameView Back/Pause/Resume PASS;29 tests and build96060 PASS. Three local notes. Nextapprox deployment07:22UTC, live .6 unchanged. No running processes.
+
+Local .7 branch focus retained at final/unaffordable upgrade, with unrelated focus preserved. Browser and20 tests PASS; build/docs PASS. Full3155 batch suite PASS; mobile63403 stillRUNNING. Four local notes. Nextapprox deployment07:22UTC, live .6 unchanged.
+
+Local .7 final follow-up: Hive-aware confirmations keep sale quotes live and reject stale requested branch tiers. Actual Chrome race reproduced unintended tier2/2800 spend, fixed to tier1/0; fresh tier2 still succeeds. Changed prompts disable Commit and focus Cancel. Live sale quote tracks75->525. Confirmation keyboard and actual Pause/Resume probes PASS. Final build/docs PASS. Full mobile gate PASS27screens/nine run viewports before this no-layout follow-up. Core/economy/save data unchanged. Final suite running; release not yet deployed.
+
+
+Release .7 final verification: all353 test files/3155 tests PASS (155.11s), final build and docs anchors/references/freshness PASS. Prior mobile gate PASS27 screens plus9 gameplay viewports. Actual Chrome Hive race, changed-state Cancel, live sale quote, keyboard matrix and full GameView Pause/Resume PASS. Five player-facing website notes sealed for Clearer Battlefield Choices. Windows validate wrapper limitation remains as documented; direct gates used. No core/economy/save changes.
+
+Release v2026.11.09.7 Clearer Battlefield Choices is LIVE. SHA4ae0d15ecca52bda8a03a14b0ee34e1170f54050; Actions42773576301 SUCCESS with exact-SHA production verification. Normal custom-domain play/home/news verified07:14UTC Nov10: play-DxebhRO7.js matches local build and returns200; all five website notes present. Final353files/3155tests, sealed build, four site-sync tests and docs check PASS; mobile27screens/nine run viewports PASS before final no-layout Hive-confirmation follow-up; targeted browser probes PASS after follow-up. Continuous improvement goal remains active; next approximate release08:14UTC. No servers or test sessions running. Untracked devlog draft remains unpublished.
+
+Local v2026.11.10.1 Clearer Run Controls: speed aria-pressed and descriptive live Early Call/Splice names; presentation only. Actual GameView Chrome/AX probe PASS for mouse/F cycling1->2->5->1, matching timeScale, live wave2 overlap/reward and800 Biomass Splice price. Build PASS,12 browserBack/siteSync tests PASS, docs anchors/references/freshness PASS. No CSS/core/save/cost changes. One website note prepared; not deployed yet. Full suite/mobile remain last release results, not rerun for these three accessibility attributes. No running sessions.
+
+Local v2026.11.10.1 now has two notes: Hero Ops uses effective abilityCdMax and reports recovery/armed state accurately, plus run controls. Actual Chrome probe reproduced half-progress .75/.25 with cooldown modifiers; now .5 for1/.5/1.5 multipliers. Recovery7s, armed, fully ready and AX image name plus ability description PASS.24 heroes/equipment/evolution and4 site tests PASS. Docs check PASS. No core/CSS/save/cost changes; not deployed. Both generated devlog drafts remain unpublished.
+
+Hero readiness final build65590 PASS (Vite7.59s); all processes terminal. Next release remains roughly08:14UTC with matching website notes; live .7 unchanged.
+
+Local selected-hero readout follow-up: ability and unlocked skill totals now match the cooldowns used by casts. Effective ability text rounds to one decimal; downed gauges show Unavailable and zero fill. New heroSelect regression PASS5tests includes actual cast timer/readout agreement and read-only snapshot check. Chrome selected-hero-check and styled label-fit checks at1366x768/844x340/390x664 PASS. Build44563 PASS8.59s, docs98411 PASS. Full regression68135 running. Third website note generated. No combat timers/effects, cost, save or CSS changes.
+
+Selected-hero final full regression68135 PASS:353files/3156tests,156.14s. Build/docs/browser checks all passed; no active processes. Local v2026.11.10.1 has three unsealed player-facing website notes. Last live .7 unchanged; next deployment roughly08:14UTC.
+
+Local v2026.11.10.1 fourth note: hero attack/pulse gauges capture the actual interval after each timer starts in private WeakMaps. No timer math changed; maps are not serialized or consulted by combat. Selected attack speed follows that interval (behavior baseline before first action).18 heroSelect regressions PASS: every hero with haste and Vitriol mega-raid-to-siege transition. Chrome real hasted attack shows3.64/s and50% halfway. Build77223 PASS8.01s, docs97323 PASS; full87589 pending. No UI/CSS/save/economy changes.
+
+Hero cadence final full suite87589 PASS:353files/3169tests191.64s. Build, docs and real browser checks PASS; all processes terminal. Local v2026.11.10.1 remains unsealed with four website notes. LIVE .7 unchanged; next deployment roughly08:14UTC.
+
+Local fifth release note: recovery countdowns use remaining simulation seconds after reviveSpeedMult across HUD, Inspector, Toolbar, selected-hero panel, Combat Console and canvas. Raw recovery timer unchanged.20heroSelect tests PASS including elapsed revival1x/2x; actual Chrome panels and drawGame canvas all show3s for6raw/2x. Build96717 PASS7.24s, docs57891 PASS. Full75923 still running; no failures observed. No simulation/save/economy changes.
+
+Recovery final full75923 PASS353files/3171tests166.75s. Build, docs, browser UI and real canvas verification PASS. All processes terminal. Local v2026.11.10.1 has five unsealed website notes; latest live .7 unchanged. Next approximate deployment08:14UTC.
+
+Local sixth note: active ability gauges retain the duration recorded at cast time through Overdrive purchases, then show the shorter next-cast duration once ready. Browser baseline25%->0 with unchanged6s reproduced; fixed25%->25%.21 focused tests PASS including actual next cast. Full14798 PASS353files/3172tests187.38s. Mobile57569 PASS27navscreens/nine gameplay viewports on recovery build before this readout-only follow-up; no subsequent UI/CSS changes. Docs28636 PASS. Final build57126 pending. Live .7 unchanged. ../verify-current-release.ps1 prepared for exact asset/home/news/all release-note verification.
+
+Final cycle build57126 PASS; all processes terminal. Six notes prepared, next approximate deployment08:14UTC.
+
+Release .10.1 final UI follow-up: Hero Ops ability explanation was clipped above/right of its scrolling panel. Replaced with44px button+inline disclosure using aria-expanded/controls; Escape contained, no ability/wave action. Actual GameView Space/Escape PASS; standalone Enter/Space/click/Escape and three viewport bounds PASS; all12 hero descriptions fit168px sidebar at340px height. Screenshot ../hero-details-panel.png visually reviewed. Readiness AX and confirmation matrix re-PASS.40focused tests PASS; final sealed build54139 PASS5.47s; four sealed site-sync tests PASS; docs53698 PASS. Full3172 suite preceded this UI/CSS-only follow-up. Final mobile46835 RUNNING(run-controls-final-mobile.log), do not overwrite dist. Seven notes sealed; deployment verifier ../verify-current-release.ps1 prepared.
+
+Release v2026.11.10.1 Clearer Run Controls: final sealed-build mobile46835 PASS27navscreens/nine gameplay viewports, drawer/rotate/run-chrome contracts clean, no overflow/clipped text/sub24px targets. Sealed build and site sync PASS; full3172 suite PASS before final UI-only disclosure, which passed40 focused tests plus actual full GameView keyboard, all12 narrow-sidebar descriptions, screenshot and readiness/confirmation probes. Seven notes sealed; all processes terminal; ready for authorized deployment.
+
+LIVE v2026.11.10.1 Clearer Run Controls, seven sealed website notes. SHAa6249d385614942cfe6d902b987330b4ecb1c2d9; Actions42779296326 SUCCESS including exact-SHA production check. Normal custom-domain game/home/news/all7notes and entry asset verified08:03UTC Nov10; play-Tn7MFVuY.js matches local and returns200. Initial custom-domain request served prior .7, then propagated normally after20s. Verifier local reserved-variable error corrected before successful verification. Full3172 suite PASS before final UI-only disclosure;40focused tests, final sealed build/four site-sync tests, docs and mobile27screens/nine gameplay viewports PASS after it. All processes terminal; continuous goal active, next approximate release09:03UTC.
+
+Local v2026.11.10.2 Rewards You Can Read: AccountLevelToast pauses while hovered/focused, supports explicit keyboard dismissal and queue/final focus restoration, preserves unrelated focus, and resumes after unlock holds without replaying sound. Timer removes only its own front item. Browser controlled-clock lifecycle probe PASS (normal/milestone expiry, hover/focus, Enter/Space queue, held/resume, audio); styled long reward text fits1366/390/320 widths with24px dismiss target; screenshot visually reviewed. Build77587 PASS5.21s,61 accountLevel/rewardVisibility/rewardToast/siteSync tests PASS, docs43827 PASS. No grant/XP/economy/save changes. All sessions terminal; one website note prepared, not deployed.
+
+Local .10.2 reward-stack follow-up: dismissal captures focused stack controls and restores only after the node is removed and focus falls to body. Next card receives focus; final/Dismiss All restores prior external control; disappearing footer covered. Navigation opts out. Actual Chrome baseline card remains but BODY focused; fixed next/final/clear/footer/outside/nav cases PASS. Existing reading-hold/burst-pinning/merge-window probe re-PASS. Build40357 PASS5.35s,40 rewardToast/rewardVisibility/siteSync tests PASS, docs59978 PASS. No queue/grant/CSS/save changes. All processes terminal; two unsealed website notes, not deployed.
+
+## 2026-11-10 — readable container notifications (local .10.2)
+
+LootToaster now holds expiry while hovered/focused, provides a labeled 24px dismiss button, transfers focus through its queue and restores prior focus afterward. Independent cue effect prevents replay during reading. Removed the fixed CSS exit timer so held notices stay visible; entry/glow and reduced-motion rules remain. No loot grants, economy, saves or simulation changes.
+
+Validation: production build PASS (Vite 5.74s); 45 loot/queue/progression/vault/site tests PASS, regenerated site-sync 4 tests PASS. Actual Chrome probes ../loot-toast-check.cjs and ../loot-toast-game-check.cjs PASS reading holds, expiry, queue/final/unrelated focus, single cues, Enter/Space safety in GameView, and desktop/390px/320px fit. Dev server stopped. Website note generated as the third unsealed .10.2 entry; not deployed yet.
+
+## 2026-11-10 — update prompt timing (local .10.2)
+
+UpdateToast holds outside idle hub, retaining events across run/tutorial/results/roulette/Arena transitions. hasWaitingUpdate exposes the existing pending worker for late prompt mounts. Dismiss restores prior connected focus only when its focused control disappeared; label localized EN/ES/PT. No automatic refresh or service-worker activation policy changes.
+
+Validation: production build84638 PASS6.50s; subsequent typecheck87169 PASS with new tests. 24 locale/navigation tests,3 new worker lifecycle tests,9 registry tests and4 regenerated site-sync tests PASS. ../update-toast-check.cjs actual Chrome PASS early worker event, held/resumed event, keyboard dismiss/focus, no dismissal activation, explicit SKIP_WAITING, EN/ES/PT layout at1366/390/320. App wiring uses existing menuIdle (excludes live Arena); full App transition browser check not run separately. Four unsealed website notes; next deploy roughly09:03UTC. Docs8157 terminal PASS.
+
+## 2026-11-10 — achievement clarity (local .10.2)
+
+AchievementPanel labels earned/in-progress/undiscovered states explicitly, names Genome Core rewards below goal text, and shows existing next-rung ladder rewards. Removed whole-card opacity from unfinished cards; secret names/descriptions/rewards remain concealed. No checks, thresholds, grants or saves changed. Manifest's obsolete Shard reward description corrected to Genome Cores.
+
+Validation: production build82292 PASS6.16s;17achievement tests+4site-sync tests PASS; docs87144 PASS. ../achievement-panel-check.cjs actual Chrome PASS earned status, concealed secret names/rewards, matching ladder previews, normal unfinished opacity and all-card overflow checks at1366/390/320. ../achievement-panel.png visually reviewed. Five website notes generated for .10.2, not deployed. All processes terminal; next approximate deploy09:03UTC.
+
+## 2026-11-10 — Trophy Rack instructions (local .10.2)
+
+Profile trophy cards expose mounted state with aria-pressed, visible mount/unmount/full-rack instructions, and locked source requirements. Next-slot hint derives from TROPHY_SLOT_THRESHOLDS; disabled cards remain readable. Real equipTrophy logic, ownership, slot limits and effects unchanged.
+
+Validation: build61662 PASS (before final article wording correction);13Nemesis tests and4site-sync tests PASS. Actual Chrome ../trophy-rack-check.cjs PASS twice, including final wording: real boss ownership, Space mount/Enter unmount, pressed state/full-rack handling,5/12 thresholds and all-card fit1366/390/320. ../trophy-rack.png reviewed. Final typecheck69908 and docs35776 terminal PASS. Six unsealed .10.2 website notes; next approximate release09:03UTC.
+
+## 2026-11-10 — achievement search (local .10.2)
+
+AchievementPanel uses shared ListControls for trimmed/case-insensitive visible name/description search and All/Not earned/Earned chips. Live result count and empty guidance; concealed milestones match only public placeholder text until earned. Lifetime ladders stay separate; no save writes or progression changes.
+
+Validation: production build66372 terminal PASS;21achievement/site-sync tests PASS. ../achievement-search-check.cjs actual Chrome PASS keyboard filters, pressed state, case/trim search, no secret leak, earned secret becomes searchable, empty recovery, and card/control fit1366/390/320. Screenshot reviewed. Docs65310 terminal PASS. Seven unsealed .10.2 website notes; next work is full release regression and final mobile checks before approximate09:03UTC deployment.
+
+## 2026-11-10 — v2026.11.10.2 release validation
+
+Rewards You Can Read sealed with seven website notes: readable account/container notices, reward-dismiss focus, hub-only update prompts, clearer achievement/trophy information, and milestone search. No simulation, balance, reward grants or save schema changes.
+
+Full run43607:3174/3175 tests passed across354files in184.59s; the sole failure was DIL_GRAPH missing the new swRegister test node. Regenerated graph (998nodes1943edges);all7DIL tests then PASS. No product code changed after this full run. Final sealed build16310 PASS5.97s and4site-sync tests PASS. Mobile74803 terminal PASS:27navigation screens and9gameplay viewports, drawers/rotate/touch/overlap contracts clean. Wrapper validate --base a6249d38 still exits1 due known Windows spawn handling; direct gates above provide evidence. All focused browser checks are recorded in preceding entries. All processes terminal. Deployment pending.
+
+## Deployment verified — 2026-11-10 08:52 UTC
+
+LIVE v2026.11.10.2 Rewards You Can Read, seven sealed website notes. SHA e176563d06bd43881dabd1a579bea51d21f0521e; Actions42785759629 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all7notes verified08:52UTC Nov10; asset /assets/play-Bj9XiPk2.js matches local build and returns200. Full run3174/3175PASS;sole stale generated DIL graph corrected and7DIL tests re-PASS. Final sealed build5.97s,4site-sync tests and mobile27screens/9gameplay viewports PASS. All processes terminal; continuous goal remains active. Next approximate deployment09:52UTC.
+
+## 2026-11-10 — Power explanations (local .10.3)
+
+Profile Power rows use native details/summary with44px minimum targets, inline descriptions and persistent open state. Pointer/Enter/Space supported. Multiplier display uses2–4decimals to preserve small positive bonuses; score/share/bar calculations unchanged. First unsealed website note prepared for .10.3 Progress Explained.
+
+Validation: build13806 PASS6.02s before final precision formatting; final ../power-details-check.cjs actual Chrome PASS all6disclosures, keyboard/pointer controls, unchanged values, small positive multiplier visible and1366/390/320 fit with44px targets. Screenshot reviewed.24profile/power/site tests PASS;docs66410 PASS. Final typecheck24831 terminal PASS. Live stays .10.2, next approximate deployment09:52UTC.
+
+## 2026-11-10 — Career detail controls (local .10.3)
+
+StatCell hints now use explicit44px Details buttons with expanded state and controlled inline text; ordinary cells remain static. Open hints survive parent Fold close/reopen. Removed two internal documentation references from player-facing hints. No statistic calculations or saves changed.
+
+Validation: build89016 PASS7.28s before final wording-only cleanup;10profile tests PASS again after cleanup,4site-sync tests PASS,docs52147 PASS. ../career-details-check.cjs actual Chrome PASS42hints,Enter/Space/click,controlledregions,parentfoldpersistence,unchangedvalues and1366/390/320fit/44px. First probe failed because its dynamic closed-section selector shrank during iteration; corrected probe passed, no product defect there. Screenshot reviewed. All processes terminal. Two unsealed website notes prepared for .10.3;live .10.2 remains,next deploy roughly09:52UTC.
+
+## 2026-11-10 — leaderboard feedback (local .10.3)
+
+LeaderboardBlock now has retry/refresh, disabled loading controls, status feedback and named table/column headers. Mode effects clear old results and cleanup ignores stale requests; rendering also requires matching response mode. Submission/ranking/API logic unchanged.
+
+Validation: build93517 terminal PASS before final table-header markup; final ../leaderboard-feedback-check.cjs Chrome PASS loading/offline/keyboardretry/focus/recovery/refresh, mode reset, late-response race, empty response and1366/390/320fit. Mock transport only; no live leaderboard submitted by probe.5epoch/site-sync tests PASS. Docs40902 terminal PASS. Three unsealed .10.3 website notes;next approximate deploy09:52UTC.
+
+## 2026-11-10 — replay copy recovery (local .10.3)
+
+ShareReplayButton adds localized pending/success/failure feedback, disabled pending button and selectable read-only fallback for missing/denied clipboard. Request generation and timer cleanup prevent stale UI after blob changes/unmount. Existing code/link encoding and cutoff unchanged; no network share or live clipboard used by probe.
+
+Validation: build90718 PASS5.99s;11codec/i18n tests+4site-sync tests PASS. ../replay-copy-check.cjs actual Chrome PASS denied/missingclipboard, selected fallback roundtrip, retry success,pending lock, old-result rejection,longrawcode and3locales x desktop/390/320fit,zero page errors. Initial probe needed a DOM lookup for intentionally hidden empty status; corrected probe PASS. Docs16894 terminal PASS. Four unsealed .10.3 notes;next deploy roughly09:52UTC.
+
+## 2026-11-10 — Replay Theater controls (local .10.3)
+
+Replay viewer now owns initial/contained/restored focus, consumes Escape locally, focuses/describes the outcome and hides covered controls from accessibility tree. Pressed playback state and localized progressbar added. Skip clears pause before advancing to outcome. Simulation stepping/private events/verification unchanged.
+
+Validation: build12778 PASS12.22s before final outcome-copy spacing/covered-header Tab adjustment; final browser ../replay-controls-check.cjs PASS modalTab/Escape/restore,pause/speed/progress,skipfrompause,verifiedactualrecord,unchangedsave and1366x768/390x844/320x568/844x390fit. Initial save assertion included scheduled startup powerLog; probe now waits for that documented0ms snapshot before baseline, then save equalityPASS.20replay/codec/i18n tests PASS. Final typecheck/site/docs2159 terminal PASS (4site tests). Five unsealed .10.3 notes;next approximate deploy09:52UTC.
+
+## 2026-11-10 — quiet replay skipping (local .10.3)
+
+SpectateView always drains sim SFX but only plays them during normal playback. Pending LastKill ticks still advance while skipping, consuming fanfare timing silently. No global mute/music, simulation pacing or outcome changes.
+
+Evidence: ../replay-skip-audio-check.cjs baseline failed with a compressed batch(kill3,edie_squelch3,assimilate3); after fix skip audio[] and full viewer/verified-outcome/save-isolation checks PASS. ../replay-normal-audio-check.cjs PASS normal x16 playback retains4audio batches and identical outcome/save. Build25769 PASS17.31s;30replay/lastKill/cues/site tests PASS;docs45666 terminal PASS. Six unsealed .10.3 website notes;next approximate deploy09:52UTC.
+
+## 2026-11-10 — replay paste compatibility (local .10.3)
+
+Added local-only decodeReplayInput adapter for HTTP(S) share links/raw codes; existing codec validation unchanged. Daily input is an Enter-submit form with localized checking, invalid feedback association, duplicate-submit lock and request-generation cancellation on edit/unmount. No pasted URL is fetched.
+
+Validation: build71068 PASS22.64s;13codec/i18n tests PASS including2new link/malformed-link regressions. ../replay-input-check.cjs actual Daily browser PASS real link/rawdecode,Enter,error clear/association,pending lock,late edit/unmount rejection and3locale1366/390/320fit. Initial unmount test resolved before React committed unmount; corrected test waits for removal and PASS. Final site/docs83285 terminal PASS (4site tests). Seven unsealed .10.3 notes; next work full release regression/mobile gates toward roughly09:52UTC deploy.
+
+## 2026-11-10 — Progress Explained release gates
+
+v2026.11.10.3 has seven sealed player-facing notes, generated for the game, homepage and news page. Full regression suite: 354 files / 3177 tests PASS (478.92s). Final production build including app/functions TypeScript checks PASS; Vite 20.45s. Four sealed site synchronization tests PASS. Documentation check PASS, no stale systems. Required validation wrapper exited 1 on the known Windows npx/spawnSync launcher issue; direct gates provide the validation evidence. Final sealed mobile sweep is running in session90178; do not rebuild dist until it completes. No gameplay, balance, Power formula or save changes.
+
+## 2026-11-10 — tablet update briefing gate correction
+
+Initial sealed mobile gate session90178 failed only three tablet-landscape1024x768 target measurements: Full patch notes, Dev blog and Never show again (24px tall). Increased their module CSS minimum height to44px; added eighth release note and updated canonical pipeline/manifest docs. No behavior change. Rebuilt final artifacts: app/functions TypeScript plus Vite PASS11.63s; four site-sync tests and documentation check PASS. Full3177-test result remains applicable to unchanged behavior. Final mobile rerun session66791 uses progress-explained-mobile-final.log; wait for its terminal result before publishing.
+
+Final sealed mobile rerun session66791 terminal PASS: 27 navigation screens and nine gameplay viewports, landscape drawers, portrait rotation/run contracts, overlap, clipping and target checks all clean. Ready to deploy eight sealed notes with the game and website.
+
+## 2026-11-10 13:33 UTC — Progress Explained live
+
+v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment14:33UTC; continuous improvement goal remains active.
+
+## 2026-11-10 — keyboard-readable update briefings (local .10.4)
+
+UpdateBriefing now claims focus on Continue only while visible, contains Tab across its actions and named scrolling note regions, consumes Escape as normal acknowledgement, and restores the connected opener on hide/unmount. Fresh baselines and mechanic-intro precedence remain unchanged. No balance, simulation, reward, Power or save-shape changes.
+
+Verification: ../briefing-keyboard-check.cjs terminal PASS for initial/contained/restored focus, Escape/Continue/opt-out, keyboard note scrolling, intro/fresh precedence, unmount and action layouts at1366x768/1024x768/844x390/320x568. Screenshot ../briefing-keyboard.png reviewed: scrolling region focus visible, actions remain in view with large note backlog. Final app/functions TypeScript + build PASS10.26s;8patchNotes/site tests PASS;docs PASS. Required validation wrapper again exited1 with empty child-command output on its known Windows launcher path; detailed report preserved in briefing-keyboard-wrapper-report.log. Direct checks supply evidence; browser assertions do not prove every screen reader. One unsealed note in v2026.11.10.4 Clearer Briefings. Not deployed yet; next approximate deployment14:33UTC. All processes terminal; goal active.
+
+## 2026-11-10 — keyboard-accessible unlock queues (local .10.4)
+
+WhatsNew owns one focus session across sequential and batch introductions. Each single card has mechanic-specific dialog naming and identity, receives Got it focus, traps Tab and exposes its explanation to keyboard focus. Summary lists are focusable for native scrolling; Escape clicks the same acknowledgement action. Queue closure/unmount restores a connected original opener. Archive, navigation, guide dispatch, fanfare and specimen settlement logic unchanged.
+
+Verification: ../unlock-keyboard-check.cjs terminal PASS on real components with fixture action boundaries: single/queued/batch focus, next-card focus, original-opener restoration, local Escape, guide dispatch order, one fanfare per card, batch specimen settlement, summary arrow scrolling, empty/unmount behavior. Settled screenshot ../unlock-keyboard.png reviewed (first capture was during entrance fade; recaptured after700ms). Final app/functions TypeScript and build PASS16.80s;42real mechanics/unlocks/guided/text/site tests PASS;docs PASS. Required audit wrapper exited1 on known Windows child-command launcher path; report preserved in unlock-keyboard-wrapper-report.log. Browser behavior checks do not prove all screen readers. Two unsealed .10.4 Clearer Briefings notes; not deployed. Next approximate deployment14:33UTC. All processes terminal; continuous goal active.
+
+## 2026-11-10 — Field Manual reading navigation (local .10.4)
+
+Help index selection now focuses its article, including the already-selected topic. Enter from search reads the current result; typing and empty-result Enter keep search focus. Back to topics focuses the current index entry, with search fallback. Related links keep clearing the query and focus their destination. Visible search guidance and44px Back control added. No ranking, unlocked-filter, game navigation or progression changes.
+
+Validation: ../help-reading-check.cjs terminal PASS with real mechanics/search data: typing focus, Enter, index selection/current selection, Back, related-filter clearing, empty results, navigation dispatch and1366x768/844x390/390x844/320x568 article visibility/no overflow. Screenshot ../help-reading.png reviewed. App/functions typechecks + build PASS11.91s;18search/mechanics/text/site tests PASS;docs PASS;diff check clean. Three unsealed .10.4 notes. No release deployment yet; next approximate14:33UTC. Full release/mobile gates remain before publication. Known Windows validation-wrapper launcher limitation remains recorded in the preceding batch checks. All processes terminal, goal active.
+
+## 2026-11-10 — readable tutorial transmissions (local .10.4)
+
+Typewriter now uses live resolved OS/device motion preferences, including Allow motion. Reduced motion exposes the full sentence immediately; turning motion back on preserves completed text. The complete sentence is a stable visually clipped accessibility node; the animated copy is aria-hidden. Existing final-size reservation, click completion and28ms/capped reveal pacing remain. Listeners/timers clean up on unmount; lesson steps/rewards unchanged.
+
+Validation: ../tutorial-text-check.cjs terminal PASS for one complete accessible sentence in Chrome AX tree, stable final layout, normal/same-text animation, live OS and preference changes/override, click completion and timer/unmount cleanup. Initial fixture advanced to a new lesson before the OS media-change event settled; waiting two animation frames before that independent scenario fixed the fixture. App/functions typechecks + build PASS8.29s;45motion/tutorial/gate/anchor/DIL/site tests PASS;docs PASS. DIL regeneration998nodes/1943edges. Screen-reader application behavior remains outside AX-tree verification. Four unsealed .10.4 notes; next approximate deployment14:33UTC after full release/mobile gates. All processes terminal; continuous goal active.
+
+## 2026-11-10 — field-guide completion focus (local .10.4)
+
+GuidedUnlock completion recovers lost/owned keyboard focus onto Stay here, describes the completion/reward from both actions, and handles Escape locally. Connected opener restoration is conditional on guide-owned/lost focus, preserving focus in separate real-action ceremonies. Completion width is viewport-capped; actions wrap and have44px minimum heights. No practice-click, grant, replay or navigation behavior changed.
+
+Evidence: ../guide-completion-check.cjs baseline FAILED with focus falling to body after keyboard completion. Fixed browser run PASS completion focus/description, Escape/restore, repeated-guide reward display, Command Center navigation, real practice click once, separate ceremony focus preserved and1024x768/390x844/320x568/844x390fit. Screenshot ../guide-completion.png reviewed. App/functions TypeScript + build PASS10.71s;18guided/reward/anchor/site tests PASS;docs PASS. Five unsealed .10.4 Clearer Briefings notes. All processes terminal. Next work full release regression then sealed mobile/build/site checks for approximate14:33UTC deployment. Continuous goal active; prior live8bca53e6 unchanged.
+
+## 2026-11-10 — Clearer Briefings release gates
+
+v2026.11.10.4 Clearer Briefings: five sealed notes generated for game/home/news. Full regression suite session91942 terminal PASS354files/3177tests (323.86s). Final app/functions TypeScript and production build PASS16.25s;4sealed site-sync tests PASS;docs PASS. Mobile session35980 terminal CLEAN:27nav screens/nine gameplay viewports, landscape drawer, rotate/portrait run contracts, overlap/clipping/target gates. Required validation wrapper exited1 on its known Windows child-command launcher path; separate report clearer-briefings-wrapper-report.log retained and direct gate evidence recorded. Five focused browser probes passed earlier. No combat/balance/progression/save-shape changes. All processes terminal; ready to publish.
+
+## 2026-11-10 14:20 UTC — Clearer Briefings live
+
+v2026.11.10.4 Clearer Briefings deployed at SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6. Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified by ../verify-current-release.ps1; asset /assets/play-hhnWgeY7.js matches sealed local build and returns200. Initial check saw cached prior asset; same URLs passed after propagation. Full3177tests, final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. No remaining release checks. Next approximate deployment15:20UTC. Continuous goal active.
+
+## 2026-11-10 — live cutscene motion preferences (local .10.5)
+
+CutscenePlayer now subscribes to resolved OS/device motion and flash preferences. Projector changes preserve scene/copy/reading clocks; resuming animation silently consumes elapsed reduced-mode sound beats and plays only future beats. Reduced mode remains a single still per scene/resize/coda change; coda dimming now applies in both modes. Preference subscriptions and animation frames clean up on unmount. Rewards, unlocks, scene durations and reading-mode controls unchanged.
+
+Verification: ../cutscene-motion-check.cjs uses the real painter with traced frame specs and silent audio callbacks. PASS live OS/override/flash changes, stationary reduced mode, unchanged scene/copy, no elapsed sound burst, future cues once, next scene, resized painted still, coda, one finish and projector cleanup/focus restore. Initial fixture used an incomplete exact Next scene label (omitted arrow); corrected selector then PASS. Screenshot ../cutscene-motion.png reviewed. App/functions typechecks + build PASS8.84s;41cutscene/premiere/film/feel/site tests PASS;docs PASS;diff check clean. One unsealed note in v2026.11.10.5 Films That Follow You. Not deployed; next approximate15:20UTC. All processes terminal; continuous goal active.
+
+## 2026-11-10 — live opening-cinematic preferences (local .10.5)
+
+InitCutscene resolves OS/device motion/flashes live across pre-roll, film and dive. Animation resume consumes elapsed silent-mode beats without replay; scene/reading clocks stay intact. A reduced-motion request during the active descent completes once without the dive afterglow flag rather than freezing. Existing mark-seen and intro-playing lifecycle retained; subscriptions/projector clean up.
+
+Evidence: ../intro-motion-check.cjs actual-renderer PASS live gate/film preferences, still resize, preserved scene/audio timing, reduced exit, reduction during dive, normal1.5s dive once despite repeated Escape, gate skip, focus return and cleanup. First fixture timed out waiting for the intentionally pulsing gate button to become stable; changed its activation to native keyboard Enter, then all scenarios PASS. App/functions TypeScript + build PASS13.69s;44intro/film/feel/cutscene/site tests PASS;docs PASS;diff check clean. Two unsealed .10.5 Films That Follow You notes; not deployed. Next approximate15:20UTC with full release/mobile gates. All processes terminal; continuous goal active.
+
+## 2026-11-10 — preserve story films across hidden tabs (local .10.5)
+
+CutscenePlayer pauses remaining scene/coda timeout while hidden, offsets current/previous film clocks on return, stops projector frames/SFX, and pauses caption CSS animations. Resume keeps the visible-time position and future beats; manual reading retains its existing timer behavior. Initially hidden mounts wait for visibility. Global music ownership/settings unchanged. Visibility listeners/timers/projector clean up.
+
+Validation: ../cutscene-visibility-check.cjs terminal PASS with synthetic document.visibilitychange/hidden fixtures and the actual renderer: remaining scene hold, coda held beyond6.2s hidden, caption/projector freeze, no hidden or catch-up SFX, future cue, initial hidden mount and finish/cleanup. This verifies event-handler behavior, not OS-level tab switching. ../cutscene-motion-check.cjs re-PASS all live preference/scene/resize/coda checks after integration. App/functions typechecks + build PASS10.18s;41cutscene/premiere/film/feel/site tests PASS;docs PASS. Required wrapper exited1 on known Windows launcher path; report cutscene-visibility-wrapper-report.log preserved. Three unsealed .10.5 notes; next approximate15:20UTC deployment after full release/mobile gates. All processes terminal; goal active.
+
+## 2026-11-10 — opening-film hidden-tab continuity (local .10.5)
+
+InitCutscene pauses gate/film/dive projector and caption animations while hidden. Scene holds retain remaining time; resume offsets scene/previous/dive clocks rather than skipping ahead. Initially hidden gate does not render. A live reduced-motion request still safely completes a hidden dive with no afterglow. Global music and seen/once-only completion semantics unchanged.
+
+Validation: ../intro-visibility-check.cjs actual renderer with synthetic visibility events PASS hidden initial gate, scene/caption/beat clock pause, remaining scene hold, paused dive resumes in place, completion/seen once, cleanup and reduced-motion exit during hidden dive. ../intro-motion-check.cjs re-PASS all live preference and normal/reduced exit scenarios. Tests cover visibility handlers rather than OS-level window switching. App/functions TypeScript + build PASS10.76s;44intro/film/feel/cutscene/site tests PASS;docs PASS;diff check clean. Four unsealed .10.5 Films That Follow You notes. All processes terminal; next full release regression/seal/build/mobile/site gates toward approximate15:20UTC deployment. Continuous goal active.
+
+## 2026-11-10 — Films That Follow You release gates
+
+v2026.11.10.5 Films That Follow You: four sealed notes generated for game/home/news. Full suite39809 terminal PASS354files/3177tests (324.57s). Final app/functions TypeScript + production build PASS8.17s;4sealed site tests PASS;docs PASS. Mobile94048 terminal CLEAN27nav screens/nine gameplay viewports, drawers, rotate/portrait run contracts, overlap/clipping/tap-target gates. Four focused browser probes passed, with real painters and synthetic visibility events. Required validation wrapper exited1 on documented Windows launcher path; separate films-release-wrapper-report.log retained. Direct gates provide evidence. No gameplay/balance/save-shape changes. All processes terminal; ready to publish.
+
+## 2026-11-10 15:04 UTC — Films That Follow You live
+
+v2026.11.10.5 deployed at SHA82998411c90caf74ec77d5c847e6bc1645b708a0. Actions42840127306 SUCCESS including exact-SHA production guard. ../verify-current-release.ps1 confirmed normal custom-domain game/home/news/all4notes; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs after propagation. Full3177tests, build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All release checks complete; next approximate deployment16:04UTC. Continuous goal active.
+
+## 2026-11-10 — Memory Archive discovery (local .10.6)
+
+Added revealed-copy search, All/Recovered/Unrecovered filters with pressed state and live count, explicit locked headings, automatic-passive explanation and 44px replay controls. Empty reset restores search focus. Replay/unlock/effects unchanged. Actual Chrome probe ../memory-archive-check.cjs PASS: hidden title concealment, trim/case, unlock hints, keyboard filters, empty reset/focus, replay returns focus/filter/music, desktop/390/320 fit and touch targets. Screenshot inspected. Build/app+functions TS PASS;21 cutscene/collection tests PASS;docs anchors/references/staleness PASS. New unsealed website note in .10.6. Full release/mobile gates remain before next approximate16:04UTC deploy.
+
+## 2026-11-10 — accessible collection rank-up celebration (local .10.6)
+
+Named modal, initial Continue focus, contained Tab/Shift+Tab, Escape dismissal and opener restoration; focusable scrollable promotion region keeps Continue visible on phone/landscape. Live OS/override motion preferences suppress scale/rotation without replaying the fanfare. No reward/power/save semantics changed. ../collection-rankup-check.cjs PASS actual component/renderer:24 promotions at1366x900/320x568/568x320, scroll by keyboard, modal focus/Escape/restore, live motion, single cue; screenshot inspected. Probe now explicitly focuses opener and waits resize frames. Initial release note category corrected to UX after compiler rejection. Initial UI gate caught raw100dvh; changed to var(--app-h), browser and34 collection/feel/UI/site tests re-PASS. App/functions TS+build PASS16.02s before final CSS-only app-height correction; final sealed build remains required. Docs PASS. Validation wrapper exit1 on known Windows launcher; rankup-wrapper-report.log preserved, direct checks used. Two unsealed website notes generated. No active processes; next release about16:04UTC.
+
+## 2026-11-10 — collection keyboard navigation (local .10.6)
+
+Linked tabs/panels with roving tab stop and ArrowLeft/Right/Home/End activation. Opening category focuses its heading; back restores the exact category tile. Switching wings clears detail without stale focus restoration. Back control44px minimum. ../collection-navigation-check.cjs PASS all keyboard/association/focus behaviors, 1366/390/320 fit and back target. Archive and rank-up probes re-PASS after panel integration. App/functions TS+production build PASS20.80s;34 collection/feel/UI/site tests PASS;docs anchors/references/staleness PASS;diff clean. Three unsealed website notes generated. No gameplay/save/balance changes. Full release/mobile gates pending next approximate16:04UTC deploy. All processes terminal; continuous goal active.
+
+## 2026-11-10 — readable undiscovered collection entries (local .10.6)
+
+EntryGrid now conceals tier-zero names in tooltips as well as visible copy, labels them Undiscovered entry, removes whole-card dimming, uses readable status text and wraps long names. Named list/listitems support assistive navigation. Discovered names/status/mastery and progression unchanged. ../collection-entry-check.cjs PASS all29categories:1162hidden/24revealed entries, exact status/mastery retention, no name leaks, no overflow at390/320. Production build/app+functions TS PASS16.95s;21collection/UI/site tests PASS. Fourth unsealed website note generated. Full release regression is RUNNING session45035 in collection-release-tests.log; poll existing handle. Mobile/final sealed build/live release gates remain. Continuous goal active.
+
+## 2026-11-10 — collection release regression checkpoint
+
+v2026.11.10.6 Memories Within Reach now has four sealed notes generated for game/home/news. Full suite45035 terminal PASS354files/3177tests (430.11s). Final app/functions TS+build PASS24.20s;4sealed site tests PASS. Four focused browser probes PASS archive/rank-up/navigation/all29category entry states. Required validation wrapper still exits1 on known Windows launcher path; collection-release-wrapper-report.log preserved, direct gates used. MOBILE98307 RUNNING on final dist in collection-release-mobile.log; no rebuild until terminal. Docs12576 finishing. No deployment yet; exact-SHA workflow/live checks follow mobile. Continuous goal active.
+
+## 2026-11-10 — release mobile finding and console target fix
+
+Mobile98307 terminal exit1: only violation Settings tablet1024x768 input119x24. Inspected optional MusicDebug: both boss-name input and slider helper had inline minHeight24; raised both to44. No audio/control logic changed. ../music-console-target-check.cjs actual component PASS at1024/844/568 widths, all input heights44, widths120, no page overflow, boss name editing and keyboard range endpoints. Fifth sealed website note generated. Final build/tests/docs RUNNING session75574, collection-final-build.log. Full3177suite passed before this two-style-value change; full mobile rerun required after rebuilt dist is ready. No deployment yet. Goal remains active.
+
+## 2026-11-10 — Memories Within Reach final release gates
+
+Five sealed notes. Full354files/3177tests PASS430.11s before two inline MusicDebug height values changed24→44. Actual console browser probe PASS sizes/edit/keyboard across3widths. Final app/functions TS+build26.02s PASS;11UI/site tests anddocs PASS. Mobile80163 terminal CLEAN27navigation screens and9gameplay viewports, drawers, rotation, portrait/landscape contracts, no clipping/overflow/sub24targets. Prior mobile98307 failed one optional debug input; final run verifies correction. Four collection browser probes previously PASS. Required wrapper failure documented with preserved report; direct release gates PASS. Final asset /assets/play-CEgN7IqO.js. Ready to publish; exact-SHA Actions/live verification next. All local processes terminal.
+
+## 2026-11-10 15:53 UTC — Memories Within Reach live
+
+LIVE v2026.11.10.6 Memories Within Reach, five sealed notes. SHA7f18a4f7fe74450f26650da823b789ce5bb4468d; Actions42848792447 SUCCESS including exact-SHA production guard. Normal public game/home/news/all5notes verified 2026-11-10 15:53 UTC; asset /assets/play-CEgN7IqO.js matches final build and returns200. Full3177tests PASS before two inline console target heights; final build26.02s,11UI/site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active. Next approximate deployment16:53 UTC.
+
+## 2026-11-10 — truthful backup feedback and failure safety (local .10.7)
+
+SaveStore.set now returns write success privately; ordinary save callers retain prior behavior. backup rejects absent/corrupt current blobs, returns null on snapshot/index write failure, publishes the new index before pruning, and cleans an unlisted new snapshot on index failure. Older snapshots remain unchanged. SaveManager reports success only for a backup result, offers Export JSON after failure, and uses a persistent status region. No schema/checksum/cap/gameplay changes; migration not needed. Three new fault/corruption tests FAILED on baseline and PASS after fix, covering ring preservation, restoreability and retries. All50save/site tests PASS, production app/functions TS+build13.84s PASS, docs PASS, ../backup-feedback-check.cjs actual UI PASS keyboard/success/failure/export/preserved list/1024-390-320 fit. Required wrapper exit1 known Windows launcher; backup-wrapper-report.log preserved, direct checks used. One unsealed .10.7 website note generated. All processes terminal; next approximate16:53UTC release. Goal active.
+
+## 2026-11-10 — recoverable, confirmed backup restoration (local .10.7)
+
+SaveManager uses a dated native confirmation before restore, uniquely labels each Restore button, refreshes the backup list and announces truthful results. SaveStore preloads selected data, preserves readable current progress via backup, protects the selected source from pruning even in a full ring, and reports success only after main write succeeds. Safety-backup failure stops restore; corrupt/absent main data can still be repaired. Schema/cap/gameplay unchanged. Three restore assertions failed on baseline;29saveStore tests now PASS including undo snapshot, failure preservation, full-ring oldest-target retry and corrupt-main repair. All53save/site tests, app/functions TS+build16.56s anddocs PASS. ../restore-feedback-check.cjs actual UI PASS dated labels/native keyboard confirmation/cancel-no-mutation/accept-once/error/success/list/focus/phone fit; ../backup-feedback-check.cjs re-PASS. Initial probe selected the newly inserted first row for focus; corrected to original dated button. Required wrapper exit1 known Windows launcher; restore-wrapper-report.log preserved. Two unsealed website notes generated. All processes terminal; next approximate16:53UTC release; goal active.
+
+## 2026-11-10 — review before importing save files (local .10.7)
+
+SaveManager reads/validates with existing file helper/parser into a cancellable review showing filename and sanitized currency/wave/run totals. Explicit Replace progress applies via existing importText; Cancel/Escape leave progress untouched. Heading focus, return focus,44px actions, long-name wrapping, reading status and epoch-based late-read rejection added. Invalid/unreadable files never invoke import. Failed apply retains preview for retry. Corrected misleading no-account copy. ../import-preview-check.cjs PASS real FileReader/parser plus controlled out-of-order callbacks, invalid/read errors, same-file reselect, heading/Escape/cancel/focus, explicit apply/retry,320px long filename/targets. Phone screenshot inspected. Backup and restore UI probes re-PASS. App/functions TS+build14.44s,60save/UI/site tests anddocs PASS. Third unsealed website note generated. Confirmed import still uses prior persistence method; durable failure handling remains next. All processes terminal; goal active.
+
+## 2026-11-10 — commit confirmed imports before session replacement (local .10.7)
+
+Baseline actual-browser fault probe showed snapshot/index failures still applied imports and main-write failure changed session while disk stayed old, all claiming success. SaveStore.importSave now snapshots supplied live current state via shared private writeBackup, then commits incoming data. meta.importText retains strict guard/parser, rejects stale tabs, enriches gear discovery, and only after storage success cancels pending flush, notes clock/stamps writer and publishes store.set. Ordinary persist unchanged. Added4storage cases plus3meta integration tests. ../import-storage-check.cjs PASS real meta/Storage failures at3stages, same memory/disk on failure, stale-tab no-write, durable-before-subscriber, live pending-state recovery and canceled old300ms flush. Build app/functions TS+Vite23.79s PASS;104save/meta/discovery/site tests PASS;docs PASS. Required wrapper exit1 known Windows launcher; import-storage-wrapper-report.log preserved. Fourth unsealed website note generated. All processes terminal; next approximate16:53UTC release, full goal active.
+
+## 2026-11-10 — live-state and tab-safe restore integration (local .10.7)
+
+Two baseline tests reproduced stale-tab restore and recovery snapshot missing pending live progress. meta.restoreBackup now rejects stale tabs before storage, passes store.get() into SaveStore.restoreBackup, and uses shared publishSaveReplacement with imports. Successful committed replacements clear old flush/note clock/stamp writer before notifying; failed paths preserve session/flush. Headless restore callers keep readable disk fallback. Both tests PASS;78targeted tests then102save/meta/site tests PASS; app/functions TS+build20.09s PASS. ../restore-storage-check.cjs actual browser PASS3write failure stages, stale-tab no mutations, durable-before-notify, writer stamp, live recovery and old-flush cancellation; ../import-storage-check.cjs re-PASS shared helper. Required wrapper exit1 known Windows launcher; restore-live-wrapper-report.log retained. Fifth unsealed note generated. FULL REGRESSION26406 RUNNING in save-release-tests.log; docs15424 finishing. Do not restart running handles. Release seal/final build/mobile/live gates next; goal active.
+
+## 2026-11-10 — Progress You Can Trust release checkpoint
+
+Five sealed notes generated for game/home/news. Full suite26406 terminal PASS354files/3192tests454.39s. Final app/functions TS+build22.72s,4sealed site tests anddocs PASS (26535 terminal). Actual browser probes cover save UI previews/confirmations/focus/phone fit plus storage failure stages, tab ownership, live recovery and pending flush handling. Required wrapper exit1 known Windows launcher; save-release-wrapper-report.log preserved; direct gates supply evidence. MOBILE34331 RUNNING on final dist in save-release-mobile.log; do not rebuild until it completes. Source batch complete, no deployment yet. All other processes terminal. Goal remains active.
+
+## 2026-11-10 — Progress You Can Trust ready to publish
+
+Five sealed notes. Full354files/3192tests PASS454.39s; final app/functions TS+build22.72s,4site tests anddocs PASS. Mobile34331 terminal CLEAN27nav screens and9gameplay viewports, drawers/rotation/portrait+landscape/run-chrome contracts, no clipping/overflow/sub24targets. Focused save UI and real-storage browser probes PASS fault injection, confirmation/cancel, preview races, focus, tab ownership, latest-state recovery and flush cancellation. Required wrapper limitation documented with save-release-wrapper-report.log; direct gates PASS. Final asset /assets/play-D1KgKJPZ.js. Source/schema/gameplay unchanged since final gates. All local processes terminal; publishing next.
+
+## 2026-11-10 16:41 UTC — Progress You Can Trust live
+
+LIVE v2026.11.10.7 Progress You Can Trust with five sealed website notes. SHAb441f62cf0512d7da5c8d0692d53d3927fead962; Actions42856634182 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified 2026-11-10 16:41 UTC; asset /assets/play-D1KgKJPZ.js matches final build and returns200. Initial cached prior entry resolved on same URLs after20s. Full3192tests/354files PASS454.39s; final build22.72s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All processes terminal. Continuous goal active. Next approximate deployment17:41 UTC.
+
+
+## 2026-11-10 16:57 UTC — wave briefing checkpoint
+
+LIVE remains v2026.11.10.7, SHA b441f62cf0512d7da5c8d0692d53d3927fead962, verified normal game/home/news with five notes. LOCAL .8 Know What Is Coming has one generated website note. Incoming-wave reward/enemy/adaptation chips now open a readable detail region outside the mobile scroller. Base Biomass/HP/armor and inclusive elite counts are explicit. Keyboard opening, Escape/Close restoration, preview-change dismissal, reading-key isolation, phone/landscape geometry and real-game launch/inert behavior pass the isolated Chrome probe. No core, balance or save changes. Continuous goal remains active.
+
+Poll existing handles, never restart on observation timeout: final production build21016 (wave-briefing-release-build.log); full regression suite77517 (wave-briefing-full-tests.log); browser probe60232 printed PASS but Chrome shutdown was still live at last poll. Earlier builds90994 and19517 succeeded; latter predates final reading-key isolation.13 registry/site tests and docs check PASS. After final build completes, run mobilecheck against its dist, then continue improvements toward approximate17:41 UTC deployment. .8 remains unsealed; regenerate/build if further changes. Existing Windows validate wrapper launcher failure reproduced (wave-briefing-wrapper-report.log); direct gates required. Do not stage the two untracked devlog drafts.
+
+Canonical HUD.md and manifest updated. READABILITY and REWARD-PRESENTATION require no changes: no reward flow, thresholds, mechanics or tutorial step changed. Chronicle pipeline unchanged; curated note generated. Baseline mobile bubble extended above its scrollport (top -194.75 vs scrollport top131); replacement region fits 320/390 portrait and844x390 landscape. Screenshot ../wave-briefing-phone.png inspected. No new src files.
+
+
+## 2026-11-10 17:06 UTC — integrated wave details
+
+Full3192tests/354files PASS321.95s (77517 terminal). Build21016 PASS10.40s. Mobile94526 CLEAN27nav/9gameplay viewports (terminal), predating last CSS-only constraint. Actual GameView probe found 320x568 clipping: detail bottom509 exceeded canvas bottom440. BuildControls max-height now subtracts controls strip, bar does not shrink, details shrink/scroll. Full-game campaign probe passes 390x844,320x568,844x390,1280x800 geometry, End scrolling, Escape focus restoration and Space isolation; latest10106 terminalPASS. Two original fixture failures were from endless mode intentionally lacking previews; campaign uses actual preview. Screenshot ../wave-briefing-game-phone.png inspected: final sticky44px close header remains visible but leaves only about20px of reading height at320x568. This is a remaining usability issue: refine details presentation before release, preserving full-text scrolling, accessible Close/Escape and existing Start Wave behavior. No core changes; website note remains unsealed .8.
+
+Next: improve 320x568 detail reading area (sticky header currently consumes most of83px region). Consider using more of the existing briefing area while details are open, rather than squeezing text below all launch controls; verify in actual GameView with ../wave-briefing-game-check.cjs. Final CSS build22763 terminal PASS11.88s (wave-briefing-constrained-build.log). Local Vite95476 stopped intentionally; browser10106 terminal. All earlier handles terminal. After any final layout change run the real-game probe, build and mobile gate on final dist. Fullsuite3192 and13registry/site tests already pass; repeat only when justified by later code changes. Next approx deployment17:41UTC; live .7 remains verified. Do not stage two untracked devlog drafts.
+
+
+## 2026-11-10 17:12 UTC — readable compact wave details
+
+LIVE .7 remains SHA b441f62cf0512d7da5c8d0692d53d3927fead962 with five verified notes. LOCAL unsealed .8 Know What Is Coming has one generated website note for readable wave intel and explicit base stats/rewards. Final phone refinement now hides only the compact intel row while details are open, preserves launch controls, and restores focus after the row reappears. Short/long elite-probe explanations pass actual GameView at390x844,320x568,844x390,1280x800; no clipping, keyboard End reaches text, Close stays44px/visible, reading does not dispatch Space, Escape restores chip focus. Screenshots inspected: ../wave-briefing-game-phone.png and ../wave-briefing-long-phone.png. The prior20px reading-area issue is RESOLVED. Build38551 PASS12.07s. No core/balance/save changes.
+
+Current live handle: final mobile99756 (wave-briefing-reading-mobile.log), run against final reading-layout dist; poll same handle. Docs96417 terminal PASS (anchors/references/staleness). All browser probes and devserver76491 terminal. Fullsuite3192/354files passed321.95s before final UI-only focus/layout refinements; targeted browser checks cover these refinements. Previous mobile94526 passed27nav/9gameplay but predates refinement; final99756 is authoritative.13site/registry tests passed earlier; website artifacts unchanged this turn. Continue useful improvements while respecting active mobilecheck dist (do not overwrite dist). Approx next deployment17:41UTC; seal/regenerate/build/test finalrelease when due. One next read-only investigation: Hud.tsx doctrine/vow/threat chips are title-only and mention docs/*.md, so phone explanation/accessibility may be improvable; do not assume a functional defect without probing. Do not stage untracked devlog drafts.
+
+
+## 2026-11-10 17:21 UTC — run conditions checkpoint
+
+LIVE remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962. LOCAL .8 Know What Is Coming now has two generated website notes: readable/base-value wave intel and accessible Run conditions. BuildPanel native44px disclosure lists existing selected doctrine, run-captured vows, active Threat rungs, biome/hazard, run identity and current event. GameView passes doctrine and vow blurb alongside existing name/icon (same Daily/tutorial exclusions); no simulation/state/schema changes. Empty conditions are omitted and obsolete event/hazard text disappears while expanded state survives refresh. Summary/reading keys cannot trigger battlefield shortcuts; Escape retains normal propagation. HUD titles no longer display internal docs paths. Existing Active Effects empty message no longer claims there are no run modifiers.
+
+Actual GameView ../run-conditions-check.cjs PASS on1280x800,390x844,320x568,844x390: real Glass Doctrine, Vows of Flesh/Haste, only Threat1–3; Space disclosure does not launch wave;44px target; drawer scroll/width. ../run-conditions-state-check.cjs PASS neutral omission, live biome/hazard/event descriptions, stale removal and expanded-state preservation. Screenshot ../run-conditions-phone.png inspected. Earlier final wave-only mobile99756 CLEAN27nav/9gameplay, terminal. Combined build39830 PASS11.67s; docs21518 PASS; validation wrapper known Windows launch failure recorded in run-conditions-wrapper-report.log. All Chrome/dev sessions terminal.
+
+Poll fullsuite45403 (run-conditions-full-tests.log) and combined-release mobile59105 (run-conditions-mobile.log). Do not overwrite dist while mobilecheck runs. After gates pass, prepare hourly release around17:35–17:41UTC: seal .8, regenerate site, finalbuild and site-sync test, preserve generated handoff judgments, commit/push authorized production ref and verify Actions exactSHA plus normal custom-domain game/home/news/all2notes. No further source changes required for the two current notes unless validation finds a defect. Do not stage two untracked devlog drafts.
+
+HUD.md/manifest updated. No mechanic/tutorial/reward changes: READABILITY, REWARD-PRESENTATION, help, save and Power documentation need no revision. Chronicle mechanics unchanged; two curated notes generated.
+
+
+## 2026-11-10 17:33 UTC — sealed intel release gates
+
+Preparing sealed v2026.11.10.8 Know What Is Coming with two website notes (wave intel and Run conditions). Live remains .7 SHA b441f62cf0512d7da5c8d0692d53d3927fead962; remote production branch rechecked unchanged. Full regression45403 terminal PASS3192tests/354files332.80s.4sealed site-sync tests PASS; docs21518PASS; combined pre-seal build39830PASS11.67s. Final sealed build86377 is running (intel-release-final-build.log).
+
+Combined mobile59105 terminated with waitForDrawerClosed timeout5000ms in landscapeRailWalk; no passing claim for that run. No gate or production-code changes were made to bypass it. Diagnostic52251 on the SAME unchanged dist passed all27nav screens across844x390,926x428,844x340,915x356 and gameplay/tutorial checks (intel-drawer-diagnostic.log). Failure did not reproduce; root cause remains unproven. Final original full mobile gate must be rerun after sealed build completes. Earlier99756 mobile PASS covers final wave-reading layout before Run conditions. All focused wave/conditions probes pass and screenshots inspected.
+
+Poll final build86377, then run original full mobilecheck --no-build on final dist (with Chrome compatibility shim); do not overwrite dist while it runs. Only after PASS: record all final evidence, branch-check/add-u/chore(release)commit; push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl (remote expected b441f62c), monitor Actions exactSHA production guard, run ../verify-current-release.ps1 against normal URLs, record liveSHA/asset/job/time. Do not stage two devlog drafts. Deployment remains authorized; no user confirmation needed. Continuous goal remains active.
+
+## 2026-11-10 17:34 UTC — final sealed build
+
+Final sealed build86377 terminal PASS11.83s (intel-release-final-build.log). Original full mobile retry20386 is live against that exact dist (intel-release-mobile-final.log). Poll same handle; do not rebuild or overwrite dist. After success, record result and deploy sealed .8 through the authorized production branch, then verify workflow exactSHA and normal custom-domain game/home/news/all2notes. No other processes active.
+
+## 2026-11-10 17:40 UTC — final intel release gates passed
+
+Release .8 Know What Is Coming is ready to deploy with two sealed notes. Full3192tests/354files PASS332.80s; final sealed build86377 PASS11.83s;4site tests and docsPASS. Final ORIGINAL full mobile20386 PASS27nav/9gameplay viewports, including landscape drawer, rotation, tutorial, phone run and run-chrome contracts. Earlier mobile59105 drawer-close timeout did not reproduce in unchanged-build focused diagnostic52251 or final full retry20386; no gate weakened and no code changed to bypass it. All local task processes terminal. Deploy authorized production ref and verify exactSHA workflow + normal custom-domain game/home/news/all2notes.
+
+## 2026-11-10 17:42 UTC — verified live intel release
+
+LIVE v2026.11.10.8 Know What Is Coming with two sealed website notes. SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0; Actions42867374482/job130009207291 SUCCESS, including exact-commit production verification. Normal custom-domain game/home/news/all2notes verified2026-11-10 17:42UTC; asset /assets/play-jTgwUWdh.js matches final build and returns200. Initial cached .7 entry resolved after20s on the same URLs. Full3192tests/354files PASS332.80s; finalbuild11.83s;4site tests/docsPASS; final original mobile27nav/9gameplay PASS. Earlier drawer timeout was not reproduced by focused four-landscape diagnostic or final full retry; recorded in validation history. All task processes terminal.
+
+Continue active playability/clarity/accessibility/presentation goal with a new unsealed release; next approximate deployment18:42UTC. No live process handles. Read-only next candidate: BuildPanel BondsSection uses non-focusable span.tt chips for bond effects; investigate keyboard/touch access and scroll clipping before changing it. The new Run conditions disclosure is separate and verified. Do not stage two untracked devlog drafts; keep production pushes explicit to claude/zen-hawking-rh1gxl. Current liveSHA8950ec0d,assetplay-jTgwUWdh.js.
+
+
+## 2026-11-10 17:55 UTC — readable and accurate bond effects
+
+LIVE .8 Know What Is Coming remains SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0, verified17:42UTC. LOCAL unsealed .9 Read Your Build has two generated website notes. BuildPanel class-bond chips are now native44px disclosures with keyboard/touch access, current tier/unit accessible names, in-flow explanations and reading-key isolation. Baseline Tab skipped old span.tt chips (tabIndex-1); new disclosures pass. Daily display bug proven in actual GameView: account Kinetic4 showed+13% while run used level0/+10%. HUD bond snapshot now carries resolved level, and BuildPanel reads it instead of meta.bondLevels. Normal run remains+13%, Daily now+10%; no bond fold, combat, reward or save changes.
+
+25 classBonds/site/registry tests PASS, including2new checks comparing displayed run level/effect with actual simulation bond factor. ../bond-details-check.cjs PASS keyboard/tap, live tier/threshold updates, max tier, empty prompt,4viewport widths; ../bond-details-game-check.cjs PASS actual320px game, hero+paid tower placement, tier1 atlevel4, retained reading and keyboard isolation; ../bond-daily-value-check.cjs failed baseline on wrong effect and nowPASS normalized Daily. Screenshot ../bond-details-game-phone.png inspected. Initial full-game fixture race from late orientation change corrected by mounting portrait and stepping simulation after placement; first Daily fixture used invalid boolean, corrected to actual modifierIds/towerPool object. All probes and devserver5885 terminal. Earlier accessibility-only build90330 PASS11.14s predates snapshot fix; not final. Wrapper audit82524 terminal reproduced known Windows npx launcher failure; report saved bond-daily-wrapper-report.log.
+
+Poll existing handles: final current build24359 (bond-daily-build.log); fullsuite30801 (bond-daily-full-tests.log); docs23726 (bond-daily-docs.log). Do not restart on observation timeout. After build completes, run final mobile layout gate against dist; fullsuite expected3194tests/354files if allpass. Resolve failures, then continue next batch toward approx18:42UTC deployment. .9 remains unsealed with2notes. Canonical CLASS-BONDS.md/HUD.md and manifest updated. No mechanic/tutorial change; no save migration needed. Do not stage two untracked devlog drafts. Possible next read-only candidate: Gene Card chips in BuildPanel remain tt-bubble explanations in the scrollable drawer; test touch/keyboard clipping before changing.
+
+Final bond build checkpoint: Build24359 terminal PASS18.69s; docs23726 terminalPASS. Fullsuite30801 remains live (bond-daily-full-tests.log). Poll it first, then run mobilecheck against current dist; avoid overlapping the heavy checks where possible. All other task processes terminal. Two .9 notes remain unsealed; live .8 unchanged.
+
+
+## 2026-11-10 18:03 UTC — readable drafted genes
+
+Live: v2026.11.10.8 Know What Is Coming, SHA8950ec0d44d7f3959d988c4e6460b42f0a468ca0, Actions42867374482 SUCCESS, asset /assets/play-jTgwUWdh.js; normal game/home/news verified17:42UTC. Local: unsealed .9 Read Your Build with three generated website notes. Bond and drafted-Gene Card chips are native44px disclosures with in-flow explanations, keyboard/touch access and safe reading keys. HUD bond snapshots carry the run-resolved level so Daily descriptions show actual base strength. Gameplay/balance/save behavior is unchanged. Continuous goal active; next approximate deployment18:42UTC.
+
+Full regression30801 terminal PASS3194tests/354files356.10s. Final current build53780 PASS8.93s (gene-details-build.log); docs2263 PASS;11site/UI-standard tests PASS. Earlier25bond/site/registry tests PASS including2new simulation-vs-display checks. Focused browser probes all terminalPASS: ../bond-details-check.cjs, ../bond-details-game-check.cjs, ../bond-daily-value-check.cjs, ../gene-details-check.cjs, ../gene-details-game-check.cjs. Actual phone screenshots inspected. Baselines: Tab skipped bond span.tt chips; Daily accountlevel4 displayed+13% while the run applied+10%; gene tooltip outside overflow:hidden chip (bubble103..155 vs chip158..181). These are fixed. Native disclosures preserve expanded state during live count/tier changes; repeated genes label descriptions Per copy. Real GameView probe drafted actual cards and confirmed descriptions/counts and phone portrait/landscape bounds.
+
+Only active handle: mobile99507, read-build-mobile.log, running original full mobilecheck --no-build against current dist. Poll SAME handle; never restart because observation timed out. Do not overwrite dist while it runs. After PASS, continue scoped improvements until the approximate18:42UTC release, or prepare deployment if due. Seal/regenerate/build/site-sync-test final release, record gates, then push authorized ref and verify Actions exactSHA plus normal URLs. Do not claim pending mobile passed.
+
+
+## 2026-11-10 18:16 UTC — HUD explanation placement (local)
+
+Unsealed Read Your Build now has four website notes. CSS-only HUD explanations open below readouts with inward edge alignment and active stacking above run controls. Baseline negative top coordinates and an intermediate toolbar occlusion were reproduced; final keyboard GameView probe39136 passed four viewport sizes, and the phone screenshot was inspected. Eleven site/UI-standard tests38320 and docs check passed. Prior three-note mobile99507 completed CLEAN (27 nav +9 gameplay profiles); final build39671 passed10.42s; original updated mobile30430 is running, hud-tooltip-mobile.log. No balance/save changes. Live remains .8; next approximate deployment18:42UTC.
+
+
+## 2026-11-10 18:20 UTC — HUD reading keys (local)
+
+Reproduced Space on focused Core explanation starting a wave. GameView now consumes that key for HUD cells; real browser probe1764 passed Core/Power/Biomass reading, Hero Console activation and normal board Space wave start. Added fifth website note and canonical HUD documentation. Eleven site/UI tests78230 and docs38229 passed. Typecheck96986 and prior-build mobile30430 are still running; no dist overwrite while mobile owns it. Gameplay simulation unchanged.
+
+
+## 2026-11-10 18:23 UTC — Release sealed; mobile failure under investigation
+
+Sealed v2026.11.10.9 Read Your Build with five website notes; regenerated site, four siteSync tests passed552ms. Latest typecheck96986 terminalPASS. Original mobile30430 terminalFAIL at waitForDrawerClosed (5000ms) in landscapeRailWalk, repeating prior .8 failure signature; root cause unproven. Unchanged-build diagnostic81740 is active, preserves original assertions/timeouts and captures drawer state on failure. Do not overwrite dist while it runs. Final five-note release build and original full mobile gate remain pending. Remote production branch checked and remains8950ec0d.
+
+
+## 2026-11-10 18:29 UTC — Final release build; full mobile gate active
+
+Unchanged-build drawer diagnostic81740 terminalPASS:27nav screens and gameplay checks across four landscape profiles. Earlier original mobile30430 drawer timeout remains an unexplained failure, not erased by this result. Final sealed five-note build20300 terminalPASS21.92s (read-build-final-build.log, SWmwb0wbmg). Original complete mobile72320 now running against final dist (read-build-final-mobile.log); do not overwrite dist or start competing heavy checks. Live remains .8, next approximate deploy18:42UTC.
+
+
+## 2026-11-10 18:35 UTC — Read Your Build ready for deployment
+
+Final ORIGINAL mobile72320 terminalPASS:27nav screens and nine gameplay profiles, no overflow/clipping/target/run-chrome violations. Final build20300 PASS21.92s, prior full suite3194tests/354files PASS, typecheck/docs/focused browser and sealed siteSync checks PASS. Earlier mobile30430 drawer timeout remains documented; unchanged-build diagnostic81740 passed and no gate was weakened. Sealed .9 contains five website notes and is ready for authorized deployment; production verification still pending.
+
+
+## 2026-11-10 18:38 UTC — Read Your Build LIVE
+
+Deployed SHA48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc. Actions42876793393/job130042106520 SUCCESS including exact-commit production guard. Normal custom-domain game, homepage, news, all five notes and asset verified by verify-current-release.ps1; asset /assets/play-7JbVGzDZ.js. Final original mobile72320 PASS27nav+nine gameplay layouts. Release v2026.11.10.9 Read Your Build is live. Goal remains active; next approximate deployment19:38UTC.
+
+
+## 2026-11-10 18:47 UTC — Automation help (local .10)
+
+Added44px help beside Auto Wave/Auto Gene using existing bounded briefing reader. It exposes waiting, gate reason, Hive management and manual draft override without changing settings. Live state updates and safe reading/focus behavior verified. Initial compact label overflow fixed with wrapping; final real GameView unlocked85873 and locked32996 passed four viewport sizes, screenshots inspected. Standalone state probe passed; eleven site/UI tests1292 and docs70306 passed. Final build78237 is running; original full mobile check remains pending. One generated website note in unsealed v2026.11.10.10 Know Your Controls. Live remains .9; next approximate deploy19:38UTC.
+
+
+## 2026-11-10 18:49 UTC — Automation help build passed; mobile running
+
+Final build78237 terminalPASS16.19s (automation-help-final-build.log, SWmwb1m0tw). Original full mobile53228 started against that exact dist, automation-help-mobile.log; do not overwrite dist or run competing heavy checks while pending. Worktree source unchanged this turn. Next possible inspection: Pause seemed partly cut off in320x568 locked-profile screenshot, but no runtime bounds evidence yet; do not infer a confirmed bug. Live remains .9, local .10 has one note.
+
+
+## 2026-11-10 18:57 UTC — Automation mobile passed; narrow Pause reviewed
+
+Original full mobile53228 terminalPASS27nav+nine gameplay profiles. Focused run-controls probe88649 PASS320x568/390x844/844x390: all controls inside viewport and hit-testable, Pause opens and documented P resumes. Screenshots inspected. No Pause clipping reproduced; no source change justified. Earlier39716 probe wrongly assumed Escape resumes; corrected to documented P. Fixed landscape controls are not clipped by board ancestor despite naive geometry flags. Local .10 automation help now has passing build/docs/tests/browser/mobile checks; live .9 unchanged. Next approximate deployment19:38UTC.
+
+
+## 2026-11-10 19:02 UTC — Early Call reachable on narrow phones
+
+Real mid-wave baseline47721: Early Call at320x568 spanned x=-43.45..18.70, offscreen and not hit-testable. CSS-only portrait<=380px second-row layout reserves canvas padding; current probe14282 PASS three viewports, all control hit tests/Pause and actual wave1->2 plus displayed23Biomass reward. Screenshot inspected; no battlefield overlap. Initial probe17322 incorrectly advanced3.2s in one clamped call, corrected to normal-sized steps. Eleven site/UI tests2738 and docs72656 PASS. Build11357 running, early-call-layout-build.log; updated full mobile pending. Second note generated in local unsealed .10 Know Your Controls. No balance/save/action changes.
+
+
+## 2026-11-10 19:16 UTC — World Status live motion preferences
+
+Early Call build11357 PASS23.95s and original full mobile10866 terminalPASS27nav+nine profiles. New WorldStatus baseline confirmed57frames/second after OS reduced motion enabled. Fixed media/pref subscriptions, still account/resize redraw, pixel-stable spores, visibility/cleanup. Final browser18462 terminalPASS all cases; still screenshot inspected. Eleven site/UI tests62654 and docs PASS. Initial build82064 failed unsupported Accessibility note category; corrected to existing UI/regenerated. Final build93090 RUNNING, world-status-motion-final-build.log. Local .10 now three notes, unsealed; updated mobile pending. No simulation/save changes.
+
+
+## 2026-11-10 19:20 UTC — Know Your Controls sealed; final mobile running
+
+Corrected-category build93090 PASS16.32s. Sealed .10 three notes and generated website; four siteSync tests PASS657ms. Final build63376 PASS17.35s, SWmwb2p9ip. Final review corrected automation close label; focused2045 PASS and built GameView-C8pzR7tP.js explicitly contains Close automation help. Original full mobile51961 is RUNNING, controls-release-mobile.log; keep dist fixed/no competing heavy checks. Remote production checked, still48b2f2a8. Live unchanged; deploy after final gate near19:38UTC.
+
+
+## 2026-11-10 19:27 UTC — Know Your Controls ready to publish
+
+Final ORIGINAL mobile51961 terminalPASS27nav+nine gameplay profiles on sealed build63376 (17.35s, SWmwb2p9ip). Focused automation/early-call/motion checks, docs, eleven UI-site and four sealed siteSync tests passed. All handles terminal. Three notes ready; production verification pending authorized push. No balance/save changes.
+
+
+## 2026-11-10 19:30 UTC — Know Your Controls LIVE
+
+Deployed SHA2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. Actions42885435823/job130072400258 SUCCESS including exact-commit production guard. verify-current-release.ps1 passed NORMAL custom-domain game/home/news/all THREE notes/entry asset; /assets/play-DLqe10Zs.js. Final original mobile51961 passed27nav+nine gameplay profiles. Live v2026.11.10.10 Know Your Controls. Goal remains active; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:37 UTC — Infestation live motion controls (local .11)
+
+Baseline20669 measured57frames/sec after reduced motion enabled. InfestationBoard now subscribes to OS/shared preferences, resizes still canvas via ResizeObserver and cancels RAF while hidden. Expanded browser68906 PASS motion/override, backing dimensions,16sector targets, pin action, hidden-document lifecycle, collapse/reopen and cleanup; still screenshot inspected. Initial fixture counted wrong drawing API; another used a too-short fixed resume delay; corrected before final pass. Eleven UI/site tests10221 and docs28515 PASS. Build84198 PASS12.89s (SWmwb3bmh4). Original full mobile93548 RUNNING, infestation-motion-mobile.log; no dist writes/competing heavy checks. One note generated in unsealed .11 Map Motion Controls. No simulation/save changes.
+
+
+## 2026-11-10 19:46 UTC — Infestation feed selection accessibility
+
+Original motion mobile93548 terminalPASS27nav+nine gameplay profiles. Feed buttons now expose actual selected state and full region names; region-resolved sector markers are identified as next feed rather than direct pins. Real browser keyboard/click probe passed region selection, direct pin, toggle off and Spread. Docs check and eleven UI/site tests PASS6.02s. Build63586 PASS (Vite8.87s, SWmwb3o18o), infestation-selection-build.log. Mobile coverage predates the ARIA/label-only follow-up; final release gate pending. Two notes generated in unsealed .11 Map Motion Controls. No simulation/save changes. Live remains .10; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:50 UTC — Equipment card motion
+
+Premium ItemArt now follows live OS/shared motion preferences, renders a nonblank still, pauses offscreen/hidden and resumes without a hidden-time jump. Baseline browser drew30frames/500ms while reduced. Fixed ../item-art-motion-check.cjs PASS0frames plus override/revoke, viewport/visibility pause-resume and cleanup. Initial fixed probe saw one settling frame with100ms media wait;500ms settling interval passed. Fifteen artwork/UI/site tests PASS2.51s; docs7282 PASS; build21859 PASS9.54s (SWmwb3sfoa), item-art-motion-build.log. No gameplay/save changes. Final release mobile remains pending. Local unsealed .11 has three generated website notes; live remains .10. Next approximate deployment20:30UTC.
+
+
+## 2026-11-10 19:54 UTC — Hero gear preview motion
+
+HeroGearPreview now honors live motion preferences, pauses offscreen/hidden and redraws on drag in still mode. Idle spin uses elapsed time at prior60Hz speed. Pointer cancel/lost capture ends dragging. Baseline browser29frames/500ms under reduce; fixed final6195 PASS0frames, visible pixel change on drag with real WEAPONS[0] equipment, no loop restart, override/revoke, offscreen/hidden pause-resume and cleanup. Fifteen artwork/UI/site tests PASS2.58s, docs16411 PASS. Build88220 PASS16.66s (SWmwb3x5eo), gear-preview-motion-build.log. Original full mobile64256 RUNNING against this dist, motion-controls-mobile.log. Four generated notes in unsealed .11 Motion and Map Controls. No gameplay/save changes. Live remains .10; next approximate deployment20:30UTC. Keyboard rotation remains a follow-up.
+
+
+## 2026-11-10 19:58 UTC — Gear preview keyboard controls pending verification
+
+UNCOMMITTED follow-up: HeroGearPreview wraps its canvas with two labeled native Left/Right44px buttons. Focus on controls pauses animation; blur out resumes by motion/visibility policy. Buttons rotate by PI/8 and repaint in either still/focused mode; canvas has named image role. EQUIPMENT.md and manifest updated. Prepared ../gear-preview-controls-check.cjs (NOT RUN) mounts real ItemDetails with isolated WEAPONS[0] exotic item, checks320/390/844, focus pause, Enter/Space, Tab order, target bounds/hit tests, reduced-motion keyboard rotation, screenshots. Original mobile64256 still confirmedrunning against PRE-keyboard dist. Do not run competing browser/heavy checks or overwrite dist. After terminal, run prepared controls probe, inspect screenshots, rerun motion probe, add fifth curated note, generate site, tests/docs/build, final mobile before release. Current keyboard changes are unvalidated, uncommitted and not yet in ledger; preserve them.
+
+
+## 2026-11-10 20:02 UTC — Keyboard gear inspection verified
+
+Original mobile64256 terminalPASS27nav+nine gameplay profiles on pre-keyboard build. New native Left/Right44px buttons verified in real ItemDetails at320/390/844: keyboard rotation, Tab order, focus pause/blur resume, target hit testing and reduced motion. Screenshots inspected; motion lifecycle rerun passed. Fifteen tests PASS2.26s, docs32157 PASS, build47084 PASS15.52s (SWmwb47opn). Five generated notes in local unsealed .11 Motion and Map Controls. Final release mobile remains pending. All handles terminal. Live .10 unchanged; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 20:07 UTC — Salvage confirmation stays visible
+
+Salvage confirmation baseline at320x568: dialog top=-550.77,bottom=-341.23 after scroll730, entirely offscreen. ItemDetails now portals nested confirmation to viewport, uses alertdialog with linked warning, focuses Cancel, makes underlying box inert, traps Tab and restores invoking focus; Escape/backdrop/Cancel only cancel prompt.44px action targets and bounded scroll use shared --app-h. ../salvage-confirm-check.cjs final normal26417 and stronger-gear19618b probes PASS320/390/844: visible dialog, focus/trap, inert release, safe cancellation and actual isolated salvage. Warning screenshots inspected. Initial23test run82308 failed UI viewport-token rule; changed100dvh tovar(--app-h), replacement75347 passed23tests5.99s and build13.48s (SWmwb4exfh), salvage-confirm-build.log. Docs25457 PASS. Final full mobile pending; gameplay/salvage rules unchanged. Six generated notes in local unsealed .11 Motion and Map Controls. All handles terminal. Live .10 unchanged; next approximate deployment20:30UTC.
+
+
+## 2026-11-10 20:11 UTC — Clearer Gear and Motion sealed
+
+Favorite/item salvage lock/affix lock now have stable accessible names and aria-pressed; randomize names its affix. Isolated ../item-toggle-check.cjs PASS real keyboard toggles and preserved salvage protection. Sealed .11 Clearer Gear and Motion with SEVEN generated notes. Final23 UI/artwork/site/back tests PASS4.59s; docs77844 PASS; build19916 PASS11.17s (SWmwb4izai), clearer-gear-release-build.log, asset/assets/play-CSQGqZlk.js. ORIGINAL final mobile27718 RUNNING, clearer-gear-release-mobile.log. Production ref checked still2400521c2dbf87dda58e5e9f5d161fb4800e6cd2. No simulation/save changes. Deployment pending final mobile; live .10 unchanged.
+
+
+## 2026-11-10 20:17 UTC — Clearer Gear and Motion ready to publish
+
+Final ORIGINAL mobile27718 terminalPASS27nav+nine gameplay profiles on sealed build19916 (11.17s, SWmwb4izai, asset/assets/play-CSQGqZlk.js). All focused browser,23 UI/artwork/site/back tests and docs checks passed. Seven release notes sealed/generated. All handles terminal. Authorized production push pending; live remains2400521c2dbf87dda58e5e9f5d161fb4800e6cd2.
+
+
+## 2026-11-10 20:20 UTC — Clearer Gear and Motion LIVE
+
+LIVE v2026.11.10.11 Clearer Gear and Motion, SEVEN notes. SHA fdd8131f40aaed078f0c7e3932e8192accf95127. Actions42893701543/job130101131626 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes and entry asset verified20:20UTC by ../verify-current-release.ps1; asset/assets/play-CSQGqZlk.js. Final original mobile27718 passed27nav+nine gameplay profiles. Build19916 PASS11.17s,23focused tests and docs passed. Goal remains active; next approximate deployment21:20UTC. Custom-domain responses initially lagged Actions (also with cache-bypass) but then normal URLs passed without redeployment. Read-only diagnostics found connector logs unsupported, gh unavailable and wrangler auth absent; all terminal, no remaining deployment blocker.
+
+
+## 2026-11-10 20:25 UTC — Upgrade guidance
+
+LOCAL unsealed v2026.11.10.12 Upgrade Guidance has one generated website note. ItemDetails disabled upgrades preserve their normal description and add exact material shortfalls or affix-lock/tier/rarity/no-affix reasons, based on existing opAvailable/canAfford/reforgeCost. Dashed border replaces faded text for readable disabled cards. ../upgrade-reasons-check.cjs PASS shortage, live funding, actual Enhance toT2, tier cap, locked affix, rarity cap, no-affix and320/844 layouts; screenshot inspected.27crafting/UI/site tests PASS4.59s; docs3686 PASS; build31876 PASS17.56s (SWmwb52fxx), upgrade-guidance-build.log. No simulation/save/cost/availability changes. Final release mobile pending. All handles terminal. Live .11 unchanged; next approximate deploy21:20UTC.
+
+
+## 2026-11-10 20:29 UTC — Item Details keyboard entry and exit
+
+ItemDetails baseline browser left focus on opener behind panel. It now has named modal semantics, focuses Close on entry, wraps enabled-button Tab/Shift+Tab, restores connected enabled invoker on close and defers to nested salvage while confirming. ../item-details-focus-check.cjs PASS initial focus, both wraps, Escape and return focus; ../salvage-confirm-check.cjs --stronger rerun PASS320/390/844 focus, nested trap, inert release, cancellation and actual isolated salvage.35crafting/UI/site/back tests PASS5.36s; docs54015 PASS; build68639 PASS11.36s (SWmwb572k9), item-details-focus-build.log. All processes terminal; final release mobile pending. No gameplay/save changes. Two generated notes in unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deploy21:20UTC.
+
+
+## 2026-11-10 20:34 UTC — Pause touch controls
+
+Pause touch baseline: compact audio/motion switches ~28px. Removing min-height0 alone still left28px because later narrow-screen generic24px rule beat global coarse44px. Final scoped coarse-pointer audio/motion switch rule establishes44px while preserving desktop padding. ../pause-touch-check.cjs final37797 PASS320x568/390x844/844x340, real GameView: switches/sliders44px, viewport bounds/hit testing, actual toggles/slider keys retain pause, Abandon->Keep Playing and Resume remain reachable via existing scrolling. Landscape screenshot inspected.11UI/site tests PASS2.38s; docs26064 PASS; build76710 PASS10.18s (SWmwb5d8bd), pause-touch-build.log. No audio/motion/pause behavior changes. Original full mobile started, upgrade-guidance-mobile.log; pending handle recorded below. Three notes in unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deploy21:20UTC.
+
+Active original mobile handle5046; poll same process and keep dist unchanged.
+
+
+## 2026-11-10 20:42 UTC — Quest progress and claims clarified
+
+Original mobile5046 terminalPASS27nav+nine gameplay profiles on three-change .12 build76710. Subsequent QuestBoard accessibility: quest-qualified mission progress/claims (weekly/story names can repeat), bounded displayed/ARIA values, ready/claimed text, full reward descriptions/tooltips and named finales. First browser probe failed ambiguous repeated Open the Larder name; added quest context, final ../quest-accessibility-check.cjs PASS unique target, bounded progress, descriptions, actual keyboard claim and claimed state,320/844 layout.45quest/UI/site tests PASS4.81s; docs72296 PASS; build69088 PASS13.30s (SWmwb5oixe), quest-accessibility-build.log. No claim eligibility/reward/save changes. Final release mobile remains pending. Four notes in unsealed .12 Upgrade Guidance. All handles terminal. Live .11 unchanged; next approximate deploy21:20UTC.
+
+
+## 2026-11-10 20:46 UTC — Weekly contract display rollover
+
+ContractsCard baseline retained Apex Hunt/Ascetic/Mortar Covenant after advancing past weekly rollover and visibility return; expected Iron Line/Lean Garrison/Deep Stand. Added owned minute clock and visibility refresh; same Date feeds roster, week completion key and countdown. Hidden ticks skip updates; cleanup removes interval/listener. Expanded ../contract-rollover-check.cjs PASS current/next week roster, old completion marker removal, registered minute callback, hidden suppression, return refresh and timer cleanup.27contract/UI/site tests PASS2.35s, docs47236 PASS, build4182 PASS8.21s (SWmwb5t2de), contract-rollover-build.log. No rule/reward/save changes. Final release mobile remains pending; all handles terminal. Five notes in local unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deployment21:20UTC.
+
+
+## 2026-11-10 20:50 UTC — Armory filter recovery
+
+Armory baseline: select rare, remove last rare through real meta.salvageItem in isolated inventory; rarity controls vanished while stale filter hid remaining common item. EquipmentPanel now retains selected rarity in choices, exposes filter states and offers Clear filters for active category/rarity/favorites. Reset preserves sort/inventory/salvage selection-mode and focuses All categories. ../armory-filter-check.cjs PASS real inventory update, keyboard recovery, name sort preservation, remaining inventory unchanged, combined category/favorite clear and320/844 layouts; screenshot inspected.11UI/site tests PASS1.77s; docs91868 PASS; build96532 PASS9.03s (SWmwb5xwai), armory-filter-build.log. Final release mobile pending; all processes terminal. Six notes in local unsealed .12 Upgrade Guidance. Live .11 unchanged; next approximate deployment21:20UTC.
+
+
+## 2026-11-10 20:55 UTC — Hidden Quick-Salvage selections
+
+Quick-Salvage now reports eligible selected items hidden by current filters. Quick-grab tooltips describe inventory-wide scope. Existing selection and two-step confirmation remain unchanged. ../salvage-hidden-selection-check.cjs passed partial/all hidden selections, clear-filter selection preservation, confirmation, cancel and320/844 layouts;320 screenshot inspected. Build log salvage-hidden-build.log ends with successful8.06s Vite build and SW stamp mwb620ge. Docs check and11UI/site tests passed1.68s (session48633 terminal). Earlier .12 focused browser/check results are recorded chronologically in PROJECT_STATUS/VALIDATION_REPORT. Original mobile5046 passed27nav+nine gameplay profiles before the last four changes; final release mobile still required. Local .12 renamed Clearer Progress and Gear with seven generated notes; not yet deployed. Live .11 unchanged.
+
+
+## 2026-11-10 21:02 UTC — Sealed release checks
+
+Full regression suite88615 PASS3194tests354files178.58s (clearer-progress-tests.log). Required validate wrapper failed again with empty child output; source still uses spawnSync npx with shell:false on Windows. Preserved prior report; raw wrapper/report logs clearer-progress-wrapper*.log. Direct docs33749 and siteSync4tests passed. Sealed .12 Clearer Progress and Gear with seven notes; final build41170 PASS8.35s, SWmwb6anyq, asset/assets/play-CWH1Jmla.js. Original final mobile4857 remains running; release not deployed. Registry follow-ups: equipment, quests and contracts docs updated; gameplay/reward/help/tutorial/save/audio rules unchanged, so no new mechanic/help/cue/migration registration needed. UI probes from preceding entries cover the changed controls and lifecycle.
+
+
+## 2026-11-10 21:05 UTC — Final mobile gate passed
+
+Original final mobile4857 terminal PASS27 navigation screens and nine gameplay viewport profiles, clearer-progress-release-mobile.log. No gate assertions/timeouts changed. Full suite3194tests354files, final build, siteSync and docs passed. Sealed seven-note .12 candidate ready for authorized production push; public deployment verification remains pending.
+
+
+## 2026-11-10 21:08 UTC — Clearer Progress and Gear verified live
+
+LIVE v2026.11.10.12 Clearer Progress and Gear, seven notes. SHA73b564bbe72b1d9edf7741283b09679ee6d40c30. Actions42901613298/job130128733728 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes/asset verified 2026-11-10 21:08UTC by ../verify-current-release.ps1; asset/assets/play-CWH1Jmla.js. Initial public verification served prior .11; retry after25seconds passed without redeploy/config change. Full suite3194tests354files178.58s, final build8.35s, original mobile27nav+nine gameplay profiles, siteSync and docs passed. All processes terminal. Goal remains active; next approximate deployment22:10UTC.
+
+
+## 2026-11-10 21:13 UTC — Quest mission keyboard continuity
+
+Quest mission keyboard baseline dropped focus to BODY after real Enter claim. MissionRow is now a named programmatically focusable group; claimMission reports existing meta success, and successful focused claims move focus to the persistent row before its button disappears. Rejected claims retain button focus. ../quest-claim-focus-check.cjs PASS real success, simulated rejection, Tab continuation, existing reward/progress labels and320/844 layouts;320 screenshot inspected. Initial edit missed two CRLF-sensitive replacements and probe10021 timed out; corrected source, final probes passed.45quest/UI/site tests PASS2.53s; docs/handoff86371 PASS; build39065 PASS9.84s, SWmwb6s3nm, quest-claim-focus-build.log. All processes terminal. Local unsealed .13 Smoother Quest Claims has one generated note. Live .12 unchanged; next approximate deployment22:10UTC.
+
+
+## 2026-11-10 21:16 UTC — Batch quest keyboard continuity
+
+Quest Claim all baseline dropped focus to BODY after real batch reward claim. Added programmatically focusable board heading and focus transfer only when the batch button was focused and at least one existing claim succeeded. No extra Tab stop, no change to batch contents/finale exclusion. ../quest-batch-focus-check.cjs PASS rejection preserves focus, actual batch claims, heading focus, Tab continuation and320/844 layouts; individual ../quest-claim-focus-check.cjs also rerun PASS. Initial probe locator anchored Claim all text and missed its accessible-name prefix; corrected to actual .qb-claimall control before reproducing baseline.45quest/UI/site tests PASS3.51s; docs/handoff21221 PASS; build8545 PASS10.89s, SWmwb6wxnb, quest-batch-focus-build.log. All processes terminal. Existing .13 note expanded to cover both individual and batch keyboard continuity. Live .12 unchanged; .13 remains local with one combined note. Next approximate deployment22:10UTC.
+
+
+## 2026-11-10 21:19 UTC — Keyboard quest celebration origin
+
+Quest keyboard celebration baseline used(0,0) despite claim button center(696.836,554.812). Shared celebrate now uses currentTarget center for detail0 activations, preserving pointer client coordinates. ../quest-burst-origin-check.cjs PASS measured keyboard origin and real claim; pointer probe PASS clicked origin; reduced probe PASS no burst. Existing progress/rewards and320/844 layouts passed.11UI/site tests PASS1.77s; docs/handoff50553 PASS; build7580 PASS9.31s, SWmwb70nwq, quest-burst-origin-build.log. All processes terminal. Second UI note generated in local .13. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:24 UTC — Live quest motion preferences
+
+Live motion baseline: changing OS to reduce while Quest Board stayed mounted still created one burst. QuestDirectives now checks shared resolveMotion at claim time and subscribes to device/shared preferences to clear active bursts when disabled; cleanup releases subscriptions. Removed burst-only CSS OS veto so explicit Allow motion actually animates. ../quest-live-motion-check.cjs PASS no burst after live OS change; override probe PASS qb-burst-rise animation and clear within500ms after revoking; interrupt probe PASS active burst clear within500ms on OS change; origin probe PASS keyboard placement. First override probe waited for visible zero-size parent, corrected to attached parent plus computed animated child.45quest/UI/site tests PASS3.25s; docs/handoff70277 PASS; build32157 PASS10.92s, SWmwb76fbb, quest-live-motion-build.log. All processes terminal. Third note generated in local .13. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:27 UTC — Accessible live loot progress
+
+Loot meter baseline exposed zero progressbars. Added rarity-qualified progress semantics derived from existing filled/cost/pct, plus named focusable group linked to existing explanation with useId. No per-tick live-region announcement, no visual fill/queue/gate/award change. ../loot-meter-accessibility-check.cjs PASS live40/85percent values, next-rarity3percent rollover, visual width equality, bounded values, keyboard description and320/844 layouts.22lootQueue/UI/site tests PASS2.15s; docs/handoff15956 PASS; build66318 PASS8.22s, SWmwb7aqbk, loot-meter-accessibility-build.log. All processes terminal. Quest ring candidate was disproven by shared @keyframes in index.css; no ring edit made. Local .13 renamed Clearer Reward Feedback, four generated notes. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:30 UTC — Loot celebration motion override
+
+Loot flight baseline under OS reduce plus explicit Allow motion: root data-motion full, computed flight animation none. GameView.css reduced-motion rule now excludes root full override; portaled flight remains covered via root scope. Kept shimmer pseudo-element outside :is so its reduced-motion rule remains valid. ../loot-motion-override-check.cjs PASS explicit override yields loot-fly/loot-fly-land, revoking disables flight/chest/shimmer, missing-root fallback still disables shimmer.11UI/site tests PASS1.70s; docs/handoff94192 PASS; build42274 PASS7.41s, SWmwb7efw2, loot-motion-override-build.log. All processes terminal. No timing, queue, reward, fill or save changes. Fifth note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:32 UTC — Accurate loot reward guidance
+
+Loot tooltip incorrectly said opened into shards on completion. Confirmed syncRunLoot banks PendingContainer entries unopened and openContainer grants rewards later in Genetic Vault. Tooltip now describes that actual flow. Remaining display clamps at0 rather than1, fixing100percent/owed-state guidance without touching queue/award code. Expanded ../loot-meter-accessibility-check.cjs PASS full-meter zero-point description, Vault guidance, live progress/rollover/width and320/844 layouts.22lootQueue/UI/site tests PASS2.12s; docs/handoff51001 PASS; build85793 PASS7.78s, SWmwb7hhhw, loot-guidance-build.log. All processes terminal. Sixth note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:35 UTC — Post-run reveal keyboard continuity
+
+RewardReveal baseline: Enter on focused Skip removed the button and left BODY focused. Track Skip focus and, on completed sequence, restore persistent Continue only if focus fell to body; blur clears intent. ../reveal-skip-focus-check.cjs PASS Skip, natural completion while Skip focused, actual Continue callback and unrelated focus preserved.11UI/site tests PASS1.72s; docs/handoff2547 PASS; build99771 PASS7.02s, SWmwb7lg8q, reveal-skip-focus-build.log. All processes terminal. No reward/audio/timing/save changes. Generated devlog draft remains untracked/unpublished. Seventh note generated in local .13 Clearer Reward Feedback. Live .12 unchanged; next approximate deployment22:10UTC. Final release mobile pending.
+
+
+## 2026-11-10 21:41 UTC — Clearer Reward Feedback release validation
+
+Sealed .13 Clearer Reward Feedback with seven notes. Full suite24615 PASS3194tests354files159.36s (clearer-feedback-tests.log). Docs77929 PASS. SiteSync4tests PASS; final build62175 PASS5.86s, SWmwb7rg5c, asset/assets/play-Yt8wuaAi.js (clearer-feedback-release-build.log). Required validate wrapper again failed its child launches with empty output; raw report/output preserved in clearer-feedback-wrapper*.log and prior canonical report restored. Original final mobile29807 RUNNING against unchanged build, clearer-feedback-release-mobile.log. Poll SAME handle; observation timeout is not failure. No competing heavy/browser work or dist writes during mobile. Registry follow-ups reviewed: quest/HUD/loot docs updated; reward economy, mode rules, help/tutorial unlocks, audio cues and saves unchanged, so no additional registrations or economy/migration docs needed. Focused runtime probes are recorded above. Release not yet deployed.
+
+
+## 2026-11-10 21:46 UTC — Final reward-feedback mobile gate passed
+
+Original mobile29807 terminal PASS27nav+nine gameplay profiles on sealed .13 build; clearer-feedback-release-mobile.log. Full suite3194tests354files159.36s, final build5.86s, siteSync and docs passed. All local checks complete, production push authorized; deployment/public verification pending.
+
+
+## 2026-11-10 21:48 UTC — Clearer Reward Feedback verified live
+
+LIVE v2026.11.10.13 Clearer Reward Feedback, SEVEN notes. SHA da7800db61388e86c9a7a987b6bb823a6bd48e20. Actions42908261432/job130151844885 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes/asset verified 2026-11-10 21:48UTC with ../verify-current-release.ps1; asset/assets/play-Yt8wuaAi.js. Full suite3194tests354files159.36s, final build5.86s, original mobile27nav+nine gameplay profiles, siteSync and docs passed. All processes terminal. Goal remains active; next approximate deployment22:50UTC.
+
+
+## 2026-11-10 21:52 UTC — Help search recovery
+
+Help empty-search baseline advertised Enter to read a nonexistent selected topic. HelpWiki now reports matching count/empty-state guidance in its described status and offers Clear search for empty matches; clearing restores unlocked topics and search focus. Existing 44 px Help button style reused. ../help-search-recovery-check.cjs passed clear/keyboard recovery, existing article/related/back/navigation flow, four viewport reading checks and 320/844 recovery bounds. Phone screenshot inspected. Fixture uses actual mechanic registry with meta visibility fixture; unlocked gating and search ranking code unchanged. Initial probe/edit calls used wrong parent-relative paths; corrected before final probes. 23 search/mechanics/UI/site tests passed in 2.49 s; docs/handoff42351 passed; build62437 passed in 7.15 s, SW mwb862p4, help-search-recovery-build.log. All processes terminal. Local .14 Clearer Field Manual has one note. Live .13 unchanged; next approximate deployment22:50UTC.
+
+
+## 2026-11-10 21:58 UTC — Graft preview motion lifecycle
+
+Mulligan OrganismPreview baseline drew16frames/300ms after live reduced motion. Added shared preference/device subscription, IntersectionObserver and visibility lifecycle with elapsed-time pause, initial/still draw and complete cleanup. Reactive organism dependency updates still artwork after graft changes. ../graft-preview-motion-check.cjs PASS zero steady-state frames, nonblank still, visual-seed update, override/revoke, offscreen/hidden pause-resume and unmount; screenshot inspected. Initial instrumentation patched wrong draw method and timed out; corrected to clearRect. First fixed probe saw one settling redraw at150ms;500ms settling then300ms observation passed zero. 19 model/render/UI/site tests passed2.68s; docs/handoff28618 passed; build31360 passed7.36s, SWmwb8dp06, graft-preview-motion-build.log. All processes terminal. Fixture uses isolated real meta with three gate entries and registry graft slots; no real save modified. Second note generated in .14 Clearer Help and Previews. Live .13 unchanged; next approximate deployment22:50UTC. Final release mobile pending.
+
+
+## 2026-11-10 22:01 UTC — Nucleus preview motion lifecycle
+
+Nucleus preview baseline drew17frames/300ms after live reduced motion. Added shared/device preference subscription, IntersectionObserver and visibility lifecycle with paused elapsed time, initial/still draw and complete cleanup. Existing mutation-list dependency remains. ../nucleus-preview-motion-check.cjs PASS zero steady-state frames, nonblank still, actual registry-organ mutation image update, override/revoke, offscreen/hidden pause-resume and unmount; screenshot inspected.33 nucleus/UI/site tests passed2.44s; docs/handoff78072 passed; build39593 passed7.03s, SWmwb8ho5g, nucleus-preview-motion-build.log. All processes terminal. No organ/chamber, cost, Power or save changes. Third note generated in .14 Clearer Help and Previews. Live .13 unchanged; next approximate deployment22:50UTC. Final release mobile pending.
+
+## 2026-11-10 22:09 UTC — reforge reveal accessibility (local .14)
+
+Reforge baseline at 320x568 in a transformed lab placed the card at y=-3320 and left focus on the spin button. Shared Popup portal, responsive scrollable card and modal focus lifecycle now pass real-browser checks at 320x568, 844x340 and 390x844. Both normal (1000 Ichor) and last-affordable (40 Ichor) fixtures pass focus entry/result/Tab/Shift+Tab/Escape/return, and verify no second charge or roll alteration. Phone screenshot inspected. 22 model/UI/site tests passed in 2.58s; build58938 passed (5.59s Vite, SWmwb8rjat); docs and handoff62070 passed. All processes terminal. Website note generated; not deployed. No changes to roll weights, cost, binding, Power, save format or simulation; no new help/audio registrations needed. Existing Windows validation wrapper limitation remains; direct checks above passed. Final release gates remain pending.
+
+## 2026-11-10 22:12 UTC — reforge live motion (local .14)
+
+Reforge baseline ignored Allow motion under OS reduced motion. Wheel now subscribes to shared preferences and device changes, resolves the shared motion setting, reveals the existing result on reduction and never restarts a completed reveal. Parent reforge-motion-check.cjs passed override/revoke/live OS change/result preservation/normal completion; original responsive keyboard probe passed. Initial multi-roll probe hit the existing400ms action-dedupe guard; spacing rolls1000ms passed without changing that guard. 22 model/UI/site tests passed2.51s; docs and handoff passed. Production build33174 passed (6.17s Vite; SWmwb8wxnw, reforge-motion-build.log). All processes terminal. No roll, cost, binding, save, Power or simulation changes. Website/game notes regenerated. Full release validation remains pending; existing Windows validate launcher limitation is unchanged.
+
+## 2026-11-10 22:18 UTC — reward live motion (local .14)
+
+RewardReveal and shared useCountUp now resolve shared motion preferences and follow device/preference changes. Actual browser fixtures passed live completion, override/revoke, focus retention/no restart, Continue action, cinematic audio suppression and single resumed cue sequence, count-up completion and unmount. Prior skip-focus regression passed. Full tests36415 PASS all3194tests/354files in160.28s (reward-motion-full-tests.log); build83428 PASS7.52s Vite, SWmwb91dkw (reward-motion-build.log). All processes terminal. Docs/handoff81271 passed. Website note generated (six .14 notes). No reward/cost/save/Power/simulation changes. Final release mobile remains pending; existing Windows validate launcher limitation remains recorded. Live remains .13; next approximate deployment22:50UTC.
+
+## 2026-11-10 22:22 UTC — Nucleus socket clarity (local .14)
+
+Added pressed selection and names to sockets/filters, a visible filled-socket outline, selected-destination guidance, organ-specific graft/extract actions, and focus return after successful socket changes. Actual-browser isolated-meta flow passed saved graft/extract slots and focus;320px screenshot inspected and computed2px outline verified. Initial edit script const reassignment stopped before CSS; corrected and rerun passed.33 nucleus/UI/site tests passed2.20s; docs/handoff passed. Build39773 passed5.49s Vite, SWmwb984ah (nucleus-socket-build.log); all processes terminal. Final accessible label checked in bundled artifact. Seven website/game notes generated; local only. No costs, effects, guards, Power, save format or simulation changes. Prior full suite3194/354 passed160.28s before this UI-only change; final release mobile still pending.
+
+## 2026-11-10 22:25 UTC — Nucleus opening focus (local .14)
+
+Baseline confirmation dropped keyboard focus. Named confirmation now includes chamber/cost, focuses Not yet on entry, restores opener on cancel and focuses the new chamber first socket on success. Parent nucleus-opening-focus-check.cjs passed keyboard-only flow with actual meta unlock and isolated eligible gate snapshot: no charge on entry/cancel;300 Ichor debited once after confirmation. Socket graft/extract regression passed.33 nucleus/UI/site tests passed2.23s; docs/handoff/build34749 passed (5.71s Vite, SWmwb9chs4, nucleus-opening-build.log); all processes terminal. Eight game/website notes generated; not live. No gate/cost/XP fold/save/simulation changes. Final release mobile remains pending.
+
+## 2026-11-10 22:35 UTC — .14 release gates
+
+v2026.11.10.14 Clearer Help and Previews sealed with8notes, generated into website and game. Final suite20592 PASS3194tests/354files159.24s, help-preview-release-tests.log. Final build86909 PASS7.56s Vite, SWmwb9ev4e, /assets/play-OJ1qam35.js, help-preview-release-build.log. Original mobile59018 PASS27nav screens plus nine gameplay profiles/drawer/rotation/run-chrome, help-preview-release-mobile.log. Docs11500 and handoff passed. Wrapper failed launching children; direct spawnSync npx with shell:false reproduced ENOENT/statusnull. Raw wrapper evidence preserved in help-preview-wrapper.log and help-preview-wrapper-report.log, prior canonical report restored. All direct gates passed; all processes terminal. No gameplay/balance/save changes. Release pending push and external verification.
+
+## 2026-11-10 22:36 UTC — .14 deployed and verified
+
+LIVE v2026.11.10.14 Clearer Help and Previews,8notes. SHA9060e09a7e98ae12c569b0dca8e137eed2012a00; Actions42915852269/job130177928821 passed including exact-commit production guard. Normal public game/home/news and all8notes verified22:36UTC, asset /assets/play-OJ1qam35.js. No cache-bypass needed. Game and website updated together. Final gates:3194tests/354files159.24s; build7.56s; original27nav/nine gameplay mobile profiles passed. Goal remains active; next approximate deployment23:35–23:40UTC. This post-deployment record is a local docs-only commit.
+
+## 2026-11-10 22:48 UTC — portable validation launcher
+
+Replaced npm/npx shim spawning with process.execPath and installed JS CLI paths, shell:false. Unchanged full suite bounded to2workers/1minimum. Launch errors, signals and nonzero status now reported with12tail lines. Parent diagnostic probe passed real success, nonzero child and missing executable. End-to-end npm run validate50536 passed typecheck,3194tests, original build-and-mobile gate and doc checks; generated VALIDATION_REPORT.md now PASS. Local Chrome environment/preload documented in handoff; all processes terminal. No game changes or new public release; live remains .14 verified22:36UTC.
+
+## 2026-11-10 22:55 UTC — adaptation reveal (local .15)
+
+Complete class adaptation reveal baseline was y=-3012 at320px and lost focus. Shared Popup, bounded scrolling card, immediate Continue focus, keyboard trap and host-heading focus return now pass actual-meta completing-graft browser checks at320x568,844x340,390x844. Escape, Continue and backdrop preserve saved graft; reforge regression passed. Phone screenshot inspected. Additional ray check exposed373px horizontal content in320px overlay; clipped decorative wrapper fixes it to320/320 and final browser flow passes.22 model/UI/site tests passed2.45s and final11 UI/site tests passed1.75s. Docs/handoff52466 passed. Initial build before ray fix passed; final build58033 passed5.67s, SWmwbaelwf. All processes terminal. One .15 website/game note generated, local only; .14 remains live. No equip/adaptation effects, costs, audio cue, Power or save changes. Full validator3194tests/mobile passed before this UI change; full .15 release validation remains pending.
+
+## 2026-11-10 22:58 UTC — graft-host keyboard navigation (local .15)
+
+Baseline tablist ignored ArrowDown and made all hosts Tab stops. Added selected-tab roving focus, arrows/Home/End/wrap/nearest scrolling, unique named tabpanel linkage and pressed class filters. Desktop and320px browser probes passed navigation, focus and unchanged saved progression; adaptation overflow/focus regression passed.22 model/UI/site tests passed2.51s; docs/handoff passed; build40115 passed6.17s, SWmwbaj6ob. All processes terminal. Two .15 website/game notes prepared; not live. Full .15 release validation pending.
+
+## 2026-11-10 23:04 UTC — correct graft currency guidance (local .15)
+
+UI falsely advertised Gene Essence while meta/model already spend Mulligan Tissue. Corrected level/ascend icons, text, tooltips, accessible names, empty-library copy and Mulligans Help. Locked-organism hint no longer offers unavailable clearing and explains capped upgrades. Desktop/320px actual-meta probes passed Tissue debit for upgrade/ascend, unchanged Essence/binding, accurate hints and retained Nucleus Essence icons; screenshot inspected.37 focused tests passed3.39s; docs/handoff passed; build26268 passed5.44s Vite, SWmwbapv4u. All processes terminal. MULLIGANS.md upgrade-wallet prose corrected. .15 renamed Clearer Graft Controls with3notes; not live. No economy, cost, affordability, save or simulation changes; full release validation remains pending.
+
+## 2026-11-10 23:09 UTC — harvest recommendation navigation (local .15)
+
+HarvestScreen receipt Grow next previously only dismissed because onGrow was omitted. View next upgrade now focuses and nearest-scrolls the named recommended node after closing, without purchasing it. Actual-meta desktop/320px probes passed focus/scroll and unchanged wallet/nodes; arrival receipt callback passed once with no spend. Phone screenshot inspected.63 idle/production/UI/site tests passed2.55s; docs/handoff/build53232 passed (7.58s Vite, SWmwbaxbdg). All processes terminal. Four website/game notes prepared under Clearer Upgrade Controls; not live. Collection, recommendation and pricing unchanged. Full release validation pending.
+
+## 2026-11-10 23:26 UTC — upgrade controls release validation
+
+Full v2026.11.10.15 Clearer Upgrade Controls validation passed at23:26UTC: 3194 tests, typecheck, production build/original mobile audit and doc anchors/references. Session23275 completed exit0; log upgrade-controls-validation.log. Five game/website notes sealed and generated. Focused harvest phone/short-landscape, keyboard, arrival focus and recommendation/no-spend probes passed. Arena consumer rules, saves, rewards, audio, help and tutorials require no changes for this presentation-only adjustment. Deployment pending.
+
+## 2026-11-10 23:32 UTC — clearer upgrade controls live
+
+LIVE v2026.11.10.15 Clearer Upgrade Controls. SHAe15b1827f86bdb6c8c722d7e049091a12260d98d; Actions42923489450/job130203938604 SUCCESS including exact-commit production guard. Normal public game/home/news/all5notes verified at23:32UTC; asset /assets/play-BKBxfanN.js matches standalone production build (5.90s, SWmwbbp895). Full normal validator23275 PASS3194tests/typecheck/mobile/docs at23:26. Caveat discovered during public verification: validator launched under vite-node inherited development NODE_ENV for its nested build, producing development JSX runtime and different entry hash. All241 entry source-map sources match apart from React runtime selection; live HarvestScreen source matches exactly. Standalone production build56606 passed and normal URL check passed. Follow up validator environment isolation next; do not treat the previous hash mismatch as stale deployment. No gameplay/save changes. Both untracked devlog drafts preserved. Goal remains active; next approximate deployment00:32UTC.
+
+## 2026-11-10 — validation environment correction in progress
+
+LOCAL validation environment fix: validate.runNode accepts child env overrides; Vitest explicitly NODE_ENV=test. Mobilecheck build explicitly NODE_ENV=production, preserving other env values, so vite-node development defaults cannot alter production JSX runtime. Parent validation-environment-check.cjs passes actual CLI success/failure/ENOENT and inherited-env override/preservation. FULL audit currently RUNNING session85990, log production-environment-validation.log; last verified live in test-suite phase. Resume SAME handle, do not restart on timeout. No source/dist changes or competing heavy/browser jobs during mobile. Live .15 remains SHAe15b1827f86bdb6c8c722d7e049091a12260d98d, verified23:32UTC; next deployment~00:32UTC. Goal active.
+
+At23:36UTC the active validator’s newly built dist/play entry exactly matched verified live /assets/play-BKBxfanN.js; its source map has no development JSX runtime. This proves nested build environment isolation. Mobile interaction audit85990 remains running; poll same handle. Parent harvest-growth-focus-check.cjs is prepared but NOT RUN, awaiting mobile completion.
+
+## 2026-11-10 23:44 UTC — production audit passed; harvest focus fix local
+
+LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades, one game/website note. Harvest node successful purchase previously remounted focused Grow and dropped focus to body (browser reproduced, cost60 unchanged). Card/button now stable, only ring/header remount to replay animation; focused purchase retains enabled Grow or falls back to named card when gated/unaffordable. Actual-meta probes passed normal/repeated growth, exact debits, gate/zero-wallet fallback, live reduced motion and recommendation navigation.63 relevant tests3.21s, docs/handoff and production build28608 PASS5.66s/SWmwbc6bfe. All processes terminal. Corrected-environment FULL validator85990 PASS23:41UTC3194tests/mobile/docs, BEFORE this UI edit; nested build exact production hash verified. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Goal active; next approximate deployment00:32UTC.
+
+## 2026-11-10 23:47 UTC — contextual harvest upgrade guidance local
+
+LOCAL unsealed v2026.11.10.16 Smoother Hive Upgrades now has TWO notes. Added exact Chitin shortfall to unaffordable ungated production upgrades; accessible Grow names/tooltips specify node/nextlevel/price. Card name includes current level and stable useId descriptions expose blurb plus shortage/gate. Actual browser accessibility snapshots passed level1/81Chitin and level9/Campaign25 unlock, exact debits and existing focus fallback; repeated growth/animation/reducedmotion regression passed.320px screenshot inspected/no horizontal overflow.63 tests3.16s, docs/handoff and build18366 PASS5.88s/SWmwbcaxms. All processes terminal. Full .16 audit pending; latest full3194tests/productionmobile PASS23:41 before .16UI. Live .15 remains verified23:32UTC; next approximate deploy00:32UTC. Goal active.
+
+## 2026-11-10 23:51 UTC — Hive diagram motion lifecycle local
+
+LOCAL .16 Smoother Hive Upgrades now THREE notes. HiveOrganism offscreen SVG animation reproduced still running; added shared live motion prefs + intersection/document visibility lifecycle to pause SVG timeline and CSS animations, respect explicit allowMotion, disable fill transitions under reduction. Starts static before layout effect resolves. Browser probes hive-organism-motion-check.cjs and hive-organism-lifecycle-check.cjs passed offscreen pause/resume, live reduction/opt-in/revoke, simulated hidden-document stopped clock/CSS, rerender stability and visibility resume.320px screenshot reviewed.31 tests3.13s/docs/handoff/build7826 PASS5.65s/SWmwbcfo8l. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
+
+## 2026-11-10 23:54 UTC — Hive growth reveal accessibility local
+
+LOCAL .16 Smoother Hive Upgrades now FOUR notes. Hive Growth ceremony baseline browser probe reproduced missing entry focus. Added focused Return button, Tab trap, aria-modal, parent cleanup returning to enabled Grow or named tier card for maxed/unaffordable organs, viewport-bounded scrollable reveal. Actual-meta probes hive-growth-dialog-{check,phone-check,maxed-check,poor-check}.cjs passed320x568/844x340, Escape/Return/backdrop, focusfallback and unchanged post-purchase save. Phone screenshot reviewed.36tests2.90s/docs/handoff/build89665 PASS5.91s/SWmwbck1m9. All processes terminal. Live remains .15 SHAe15b1827f86bdb6c8c722d7e049091a12260d98d verified23:32UTC. Next~00:32UTC; full .16 audit pending. Goal active.
+
+## 2026-11-11 00:01 UTC — shared host-tab keyboard navigation local
+
+LOCAL .16 renamed Smoother Growth and Navigation, FIVE notes. Shared HostedScreen/HostTabs baseline real Hive probe reproduced missing ArrowRight behavior. Added stable useId tab/panel relationships, one selected Tab stop, arrow/Home/End navigation through existing guarded click, focusable named panel only when tabs exist. Locked teasers arrow-focusable but never activate. Actual Hive/QuestBoard/EquipmentPanel/Wardrobe320px probes passed selection/wrap/panel association/focus/width; locked teaser Enter and deep-link fallback/live unlocked Production deep links passed. Initial deep-link probe imported duplicate Vite module instance; corrected to host-imported timestamp URL, no source workaround. Existing growth dialog phone/maxed tests passed.50tests4.43s/docs/handoff/build29163 PASS10.82s/SWmwbcsgb7. All processes terminal. Live .15 remains verified23:32UTC; next~00:32UTC. Full .16 audit pending. Goal active.
+
+## 2026-11-11 00:05 UTC — expedition dispatch clarity local
+
+LOCAL .16 Smoother Growth and Navigation now SIX notes. Expedition dispatch baseline reproduced focus falling off removed send button. Successful focused send now targets matching named Away Team group after render and nearest-scrolls it; status id exposes ETA/claim state. Send/claim accessible names identify hero/mission, send adds hours/risk/multiplier. Actual-meta320px probes expedition-send-focus-check.cjs and expedition-send-slots-check.cjs pass correct distinct tickets, unchanged wallets/fielded loadout, accessible ETA, three slots/full-board removal and matched focus. Screenshot reviewed.29tests4.34s/docs/handoff/build81881 PASS11.59s/SWmwbcyjtg. All processes terminal. Live .15 verified23:32UTC; next~00:32UTC. Full .16 validation pending. Goal active.
+
+## 2026-11-11 00:13 UTC — sealed growth/navigation release audit running
+
+LOCAL .16 Smoother Growth and Navigation SEALED with SEVEN notes; website generated. Added expedition receipt focus and persistence: focused claim moves to named/described status receipt, no9-second expiry, explicit dismiss returns Mission Board heading, next claim replaces receipt, material chips spell names. Baseline claim focus failure reproduced. Actual completed-ticket probes passed >9300ms persistence, Tab-to-dismiss, unchanged save/rewards on dismiss, two claims and dispatch regression; phone screenshot reviewed. Consecutive-claim probe initially hit existing800ms security cooldown; waited1000ms, then passed, guard unchanged.29tests25.93s passed (machine slower than prior checks). FULL release validation RUNNING session92800, log smoother-growth-release-validation.log; poll SAME handle, do not restart on timeout. No source/dist edits or competing heavy/browser tasks while active. Handoff14030 complete. Receipt/notes/docs are uncommitted pending full release result. Live .15 remains verified23:32UTC. Target deployment~00:32UTC subject to audit completion. Goal active.
+
+## 2026-11-11 00:40 UTC — growth/navigation release validated
+
+Full sealed v2026.11.10.16 Smoother Growth and Navigation validation92800 PASS at00:39UTC:3194tests, typecheck, production build/original mobile and doc anchors/references. Log smoother-growth-release-validation.log. All seven notes generated; all focused browser probes passed as recorded. Audit finished exit0 despite slow machine. No active build/test/browser processes. Prior Vite5174 stopped; restart for future probes. Release deployment pending.
+
+## 2026-11-11 00:43 UTC — smoother growth/navigation live
+
+LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.
+
+## 2026-11-11 — equipment effect units verified locally
+
+LOCAL unsealed v2026.11.11 Clearer Equipment Details: shared effect-language formatter fixes Codex percentage/count units without changing equipment effects.33 focused tests passed11.77s; desktop/narrow and true portrait browser probes passed, screenshot inspected, save unchanged. Docs and production build passed (25.98s Vite, SWmwbeqii5). Full next-release validation pending. Live remains .16 verified00:43UTC; next approximate deployment01:43UTC. Goal active; devserver64507 active.
+
+## 2026-11-11 — equipment codex search verified locally
+
+LOCAL unsealed v2026.11.11 Clearer Equipment Details now has TWO website/game notes. Codex search uses shared organizer/controls for name, description, slot and set; preserves authored order/discovery, reveals phone hits, reports counts and restores input focus on clear. Real phone/desktop probes passed including unchanged save and query reset after remount; screenshot reviewed.43 equipment/effect/list/UI tests passed, and all4siteSync tests passed after completed regeneration (initial intermediate ledger mismatch explained in handoff). Docs and production build53660 PASS44.94s Vite/SWmwbf2eoq. All check processes terminal; devserver64507 active. Full release audit pending; live .16 remains verified00:43UTC; next deployment~01:43UTC. Goal active.
+
+## 2026-11-11 01:12 UTC — clearer equipment release audit running
+
+Three notes sealed and site/game regenerated. Current-tier affix text correction passed34 equipment/reforge tests and actual phone Enhance check: Keen T1→T2, +5%→+5.9%, applied1.059 and exactly5Scrap spent. Screenshot inspected. Full validator19908 RUNNING, log clearer-equipment-release-validation.log. Poll same handle; do not edit source/dist or run competing heavy/browser checks. Live remains .16 verified00:43UTC; next deployment~01:43UTC; goal active.
+
+## 2026-11-11 01:40 UTC — equipment release validated
+
+Sealed v2026.11.11 Clearer Equipment Details full validation19908 PASS at01:39UTC:3195tests, typecheck, production build/mobile layout audit and doc anchors/references. Log clearer-equipment-release-validation.log. Three notes generated for game/home/news. Human equipment pass completed with actual phone/desktop Codex search/units and ItemDetails Enhance probes, save preservation, exact material debit and screenshots. Equipment philosophy, reforge, Help, tutorial and audio need no changes because equipment effects, costs, acquisition and save rules are unchanged. All checks terminal. Deployment pending; goal active.

@@ -16,7 +16,7 @@ Tapping a living hero opens the **Hero Selection Panel** (bottom-left of the boa
   combat class, and **Level** (hero mastery level).
 - **Health** — HP / max, with a shield overlay when the hero has an absorb pool.
 - **Effective combat stats** — live **Damage**, **Attack Speed** (/s), **Move Speed** (px/s), and the
-  base **Ability Cooldown**. Damage/attack read `—` for a non-attacker (support/controller). These fold
+  effective **Ability Cooldown**. Damage/attack read `—` for a non-attacker (support/controller). These fold
   gear + stars + mastery + biome, matching what combat actually uses.
 - **Cooldowns** — a gauge per relevant timer: the signature Ability (always), Attack (attackers),
   role Pulse (support/control).
@@ -73,3 +73,11 @@ cooldown gauge, so wiring a cast button is additive. New buff/debuff chips are o
   autoplay never selects a hero**, so every pinned outcome is byte-identical (verified: `golden.test.ts`
   unchanged; `heroSelect.test.ts` pins the behavior + the "no selection in autoplay" contract).
 - The panel is a read-model over the snapshot; opening/closing it does not touch the run.
+
+Selected-hero ability cooldown totals use the existing heroAbilityCooldownFor calculation; star-skill totals use the same progression multiplier as skill casts. HeroSelectPanel displays the live ability total to one decimal place and suppresses Ready/fill while downed. This is observational only: no cast timers, combat effects, saves or balance changed. Attack/pulse gauges use the observed cadence described below.
+
+Observed attack/pulse cadence: Game keeps presentation-only WeakMaps keyed by hero, recording the unchanged timer immediately after each attack/pulse starts. Selected-hero gauges and attack-speed text read that interval, including siege/mega-raid transitions; before the first action they use the behavior baseline. These maps are never read by combat or serialized. Regression probes cover all12 heroes with haste and a Vitriol raid-to-siege transition.
+
+Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.
+
+Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.

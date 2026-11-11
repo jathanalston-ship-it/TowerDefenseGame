@@ -9,7 +9,7 @@
 // fresh instead of transitioning backward from full (the old "meter stays full" latch bug —
 // docs/BUGFIX-LOG.md #10). No gameplay, no sim.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { costOf, rarityRegistry } from '../core/loot';
 import { meta } from '../state/meta';
@@ -32,6 +32,7 @@ export function LootMeter(): JSX.Element | null {
 }
 
 function LootMeterBody(): JSX.Element {
+  const descriptionId = useId();
   const { lootQueue } = meta.use();
   const frontId = lootQueue.queue[0] ?? 'common';
   const nextId = lootQueue.queue[1];
@@ -41,7 +42,7 @@ function LootMeterBody(): JSX.Element {
   const cost = costOf(frontId);
   const filled = Math.min(Math.max(0, lootQueue.progress), cost);
   const pct = cost > 0 ? Math.min(1, filled / cost) : 0;
-  const toGo = Math.max(1, Math.ceil(cost - filled));
+  const toGo = Math.max(0, Math.ceil(cost - filled));
   const hot = pct >= 0.85; // near-full: the bar breathes — a container is imminent
 
   // Completion detection: the front rarity changed OR banked progress dropped (a box was
@@ -77,6 +78,9 @@ function LootMeterBody(): JSX.Element {
     <div
       className={`hud-cell hud-loot tt${celeb ? ' is-celebrating' : ''}`}
       tabIndex={0}
+      role="group"
+      aria-label="Loot meter"
+      aria-describedby={descriptionId}
       style={{ ['--hud-acc' as string]: color }} /* the vessel's chrome wears the incubating rarity */
     >
       <div className="hud-k">Loot</div>
@@ -96,6 +100,12 @@ function LootMeterBody(): JSX.Element {
         </span>
         <div className="loot-bar-wrap">
           <div
+            role="progressbar"
+            aria-label={`${front?.name ?? 'Common'} Bio-Container progress`}
+            aria-valuemin={0}
+            aria-valuemax={cost}
+            aria-valuenow={filled}
+            aria-valuetext={`${Math.floor(pct * 100)}% — ${Math.floor(filled)} of ${cost} loot points`}
             className={`loot-bar ${celeb ? 'is-complete' : ''}${hot ? ' is-hot' : ''}`}
             style={celeb ? { ['--cc' as string]: celeb.color } : undefined}
           >
@@ -132,9 +142,9 @@ function LootMeterBody(): JSX.Element {
           </span>,
           document.body,
         )}
-      <span className="tt-bubble">
+      <span id={descriptionId} className="tt-bubble">
         Filling toward a <b style={{ color }}>{front?.name ?? 'Common'}</b> box ({Math.floor(filled)}/{cost}). {toGo} pts
-        to go — banked live as you play, opened into shards on completion.
+        to go. Filling the meter banks an unopened Bio-Container in the Genetic Vault. Open it there to collect rewards.
         {next && (
           <>
             {' '}

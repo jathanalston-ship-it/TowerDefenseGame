@@ -65,3 +65,8 @@ path (configured forks) · Mutate button.
 - Raising the tower cap to 10 increases maxed-account power (up to +60% dmg / +30%
   rate); intended as a long-term goal, gated by the cost curve. Golden runs
   (0 stars) are unaffected.
+
+### Portrait animation lifecycle
+TowerPortrait keeps its existing species/branch artwork but pauses its frame loop off-screen (IntersectionObserver) and in hidden documents. Live OS reduced-motion changes draw one complete still. Resuming preserves elapsed animation time rather than jumping forward by time spent hidden. Observers, media/visibility listeners and frames are cleaned up on unmount.
+
+Star ceremony accessibility: the labeled modal focuses Continue on mount, contains forward/reverse Tab, dismisses with Escape without leaking the key, and restores the previous connected control on unmount. Enter/Space retain native button behavior. Upgrades remain applied upstream.

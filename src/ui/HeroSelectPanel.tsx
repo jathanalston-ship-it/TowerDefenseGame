@@ -32,6 +32,8 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
   // the live combat state comes from the snapshot `hero` view instead.
   const detail = useMemo(() => heroDetail(meta.get(), hero.kind), [hero.kind]);
   const ability = def.ability;
+  const abilityCooldown = hero.cooldowns.find((cd) => cd.id === 'ability')?.total ?? ability.cooldown;
+  const abilityCooldownText = `${Math.round(abilityCooldown * 10) / 10}s`;
 
   // Equipment from the run's LOCKED loadout — meta reflects it (gear can't change mid-run).
   const loadout = meta.loadoutOf(hero.kind);
@@ -77,7 +79,7 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
         <div className="hp-stat"><span className="hp-stat-k">Damage</span><span className="hp-stat-v">{hero.damage > 0 ? hero.damage : '—'}</span></div>
         <div className="hp-stat"><span className="hp-stat-k">Atk Spd</span><span className="hp-stat-v">{hero.attackSpeed > 0 ? `${hero.attackSpeed.toFixed(2)}/s` : '—'}</span></div>
         <div className="hp-stat"><span className="hp-stat-k">Move</span><span className="hp-stat-v">{hero.moveSpeed}</span></div>
-        <div className="hp-stat"><span className="hp-stat-k">Ability CD</span><span className="hp-stat-v">{ability.cooldown}s</span></div>
+        <div className="hp-stat"><span className="hp-stat-k">Ability CD</span><span className="hp-stat-v">{abilityCooldownText}</span></div>
       </div>
 
       <div className="hp-target">Target <b>{hero.target ?? '—'}</b></div>
@@ -85,13 +87,13 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
       {/* Cooldown gauges (live) */}
       <div className="hp-cds">
         {hero.cooldowns.map((cd) => {
-          const ready = cd.remaining <= 0.001;
-          const frac = cd.total > 0 ? Math.max(0, Math.min(1, 1 - cd.remaining / cd.total)) : 1;
+          const ready = !hero.down && cd.remaining <= 0.001;
+          const frac = hero.down ? 0 : cd.total > 0 ? Math.max(0, Math.min(1, 1 - cd.remaining / cd.total)) : 1;
           return (
             <div key={cd.id} className={`hp-cd ${ready ? 'ready' : ''}`}>
               <div className="hp-cd-track"><div className="hp-cd-fill" style={{ width: `${frac * 100}%` }} /></div>
               <span className="hp-cd-l">{cd.label}</span>
-              <span className="hp-cd-v">{ready ? 'Ready' : `${cd.remaining.toFixed(1)}s`}</span>
+              <span className="hp-cd-v">{hero.down ? 'Unavailable' : ready ? 'Ready' : `${cd.remaining.toFixed(1)}s`}</span>
             </div>
           );
         })}
@@ -140,7 +142,7 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
       <div className="hp-ability">
         <div className="hp-ability-head">
           <span className="hp-ability-name" style={{ color }}>{ability.name}</span>
-          <span className="hp-ability-cd">{ability.cooldown}s CD</span>
+          <span className="hp-ability-cd">{abilityCooldownText} CD</span>
         </div>
         <p className="hp-ability-desc">{ability.blurb}</p>
       </div>

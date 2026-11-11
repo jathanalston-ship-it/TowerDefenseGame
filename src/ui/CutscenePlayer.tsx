@@ -13,7 +13,7 @@ import { music } from '../audio/music';
 import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
-import { motionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -21,11 +21,25 @@ const CODA_MS = 6200; // how long the coda holds before auto-continue
 
 export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () => void }): JSX.Element {
   // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): one still
-  // per scene, no camera drift / punches / flashes. Resolved once per showing.
-  const [feel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
+  // per scene, no camera drift / punches / flashes. Preferences remain live during the film.
+  const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
+  const previousMotion = useRef(feel.motion);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const update = (): void => setFeel(resolveMotion(prefs, systemReducedMotion()));
+    const off = onMotionPrefs(next => { prefs = next; update(); });
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    mq?.addEventListener('change', update);
+    update();
+    return () => { off(); mq?.removeEventListener('change', update); };
+  }, []);
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
+  const [manual, setManual] = useState(false);
+  const [hidden, setHidden] = useState(() => document.hidden);
+  const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filmRef = useRef({
@@ -36,6 +50,34 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const codaRef = useRef(false);
   codaRef.current = coda;
   const scene = def.scenes[idx];
+
+  useEffect(() => {
+    const update = (): void => {
+      const now = performance.now();
+      if (document.hidden) {
+        if (hiddenAt.current === null) hiddenAt.current = now;
+      } else if (hiddenAt.current !== null) {
+        const elapsed = now - hiddenAt.current;
+        filmRef.current.startedAt += elapsed;
+        filmRef.current.prevStartedAt += elapsed;
+        hiddenAt.current = null;
+      }
+      setHidden(document.hidden);
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+
+  // Keep keyboard navigation in the film, then return to the Archive's launch button.
+  useEffect(() => {
+    const previous = document.activeElement;
+    dialogRef.current?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => {
+    if (coda) dialogRef.current?.querySelector<HTMLButtonElement>('.cutscene-coda-continue')?.focus();
+  }, [coda]);
 
   const finish = (): void => {
     if (doneRef.current) return;
@@ -66,14 +108,33 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
 
   // Auto-advance each scene after its hold; the coda auto-continues after its own hold.
   useEffect(() => {
-    if (coda) {
-      const t = setTimeout(finish, CODA_MS);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(advance, scene.durMs);
-    return () => clearTimeout(t);
+    if (manual) return;
+    let remaining = coda ? CODA_MS : scene.durMs;
+    let started: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let fired = false;
+    const update = (): void => {
+      if (fired) return;
+      if (document.hidden) {
+        if (started !== null) remaining = Math.max(0, remaining - (performance.now() - started));
+        started = null;
+        clearTimeout(timer);
+      } else if (started === null) {
+        started = performance.now();
+        timer = setTimeout(() => {
+          started = null;
+          remaining = 0;
+          if (document.hidden) return;
+          fired = true;
+          if (coda) finish(); else advance();
+        }, remaining);
+      }
+    };
+    document.addEventListener('visibilitychange', update);
+    update();
+    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- advance/finish are stable closures over refs
-  }, [idx, coda, scene.durMs]);
+  }, [idx, coda, scene.durMs, manual]);
 
   // Scene change → film clocks + the cut whoosh.
   useEffect(() => {
@@ -90,6 +151,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
 
   // The projector — full-screen canvas, beats fired as the clock crosses them.
   useEffect(() => {
+    if (hidden) return undefined;
     const cv = canvasRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return undefined;
@@ -99,8 +161,15 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       cv.height = Math.round(cv.clientHeight * dpr);
     };
     size();
-    window.addEventListener('resize', size);
     let raf = 0;
+    // Reduced playback is silent. Do not replay its elapsed beats when motion is restored.
+    if (previousMotion.current === 0 && feel.motion > 0) {
+      const f = filmRef.current;
+      const beats = def.scenes[f.scene].beats;
+      const elapsed = (performance.now() - f.startedAt) / 1000;
+      while (f.beatsFired < beats.length && beats[f.beatsFired].at <= elapsed) f.beatsFired++;
+    }
+    previousMotion.current = feel.motion;
     // One frame spec for the whole showing, mutated per frame (no per-frame allocation).
     const prevSpec = { painter: def.scenes[0].painter, t: 0 };
     const spec: CutsceneFrameSpec = {
@@ -108,6 +177,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       scene: null, prevScene: null, megaId: cutsceneMegaId(def), motion: feel.motion, flashes: feel.flashes,
     };
     const frame = (): void => {
+      if (document.hidden) return;
       const f = filmRef.current;
       const now = performance.now();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -118,46 +188,59 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       spec.scene = cur;
       if (reducedMotion) {
         spec.t = cutsceneStillT(cur);
-        drawCutsceneFrame(ctx, w, h, spec);
-        return; // one still per scene — repainted when the scene remounts the effect
-      }
-      const t = (now - f.startedAt) / 1000;
-      if (!codaRef.current) {
-        while (f.beatsFired < cur.beats.length && t >= cur.beats[f.beatsFired].at) {
-          audio.cue(cur.beats[f.beatsFired].cue);
-          f.beatsFired++;
+      } else {
+        const t = (now - f.startedAt) / 1000;
+        if (!codaRef.current) {
+          while (f.beatsFired < cur.beats.length && t >= cur.beats[f.beatsFired].at) {
+            audio.cue(cur.beats[f.beatsFired].cue);
+            f.beatsFired++;
+          }
         }
+        const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
+        spec.t = t;
+        spec.prevScene = prevScene;
+        if (prevScene) {
+          prevSpec.painter = prevScene.painter;
+          prevSpec.t = (now - f.prevStartedAt) / 1000;
+        }
+        spec.prev = prevScene ? prevSpec : null;
+        spec.fade = prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
       }
-      const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
-      spec.t = t;
-      spec.prevScene = prevScene;
-      if (prevScene) {
-        prevSpec.painter = prevScene.painter;
-        prevSpec.t = (now - f.prevStartedAt) / 1000;
-      }
-      spec.prev = prevScene ? prevSpec : null;
-      spec.fade = prevScene ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
       drawCutsceneFrame(ctx, w, h, spec);
       if (codaRef.current) {
         // the coda dims the film under its card — the memory settling into the archive
         ctx.fillStyle = 'rgba(3,5,9,0.55)';
         ctx.fillRect(0, 0, w, h);
       }
-      raf = requestAnimationFrame(frame);
+      if (!reducedMotion) raf = requestAnimationFrame(frame);
     };
+    const resize = (): void => {
+      size();
+      // Changing canvas dimensions clears it; reduced motion has no continuous loop.
+      if (reducedMotion) { cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+    };
+    window.addEventListener('resize', resize);
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', size);
+      window.removeEventListener('resize', resize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the loop reads clocks from refs; reduced mode repaints per scene
-  }, [reducedMotion ? idx : true]);
+  }, [hidden, feel.motion, feel.flashes, reducedMotion ? idx : null, reducedMotion ? coda : false]);
 
   // PORTALED to <body>: the player launches from deep screens (the Archive) where filling
   // transform animations on ancestors would otherwise capture position:fixed and cage the
   // film inside the hub column.
   return createPortal(
-    <div className="intro cutscene" role="dialog" aria-label={`Cutscene — ${def.title}`} onClick={advance}>
+    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={advance}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
+        if (e.key !== 'Tab') return;
+        const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }}>
       <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
@@ -192,9 +275,15 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
           ))}
         </span>
         {!coda && (
+          <div className="cutscene-controls" onClick={(e) => e.stopPropagation()}>
+          <button className="intro-skip" aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
+            {manual ? 'Auto-play' : 'Read at my pace'}
+          </button>
+          <button className="intro-skip" onClick={advance}>Next scene ▸</button>
           <button className="intro-skip" onClick={(e) => { e.stopPropagation(); toCoda(); }}>
             Skip
           </button>
+          </div>
         )}
       </div>
     </div>,

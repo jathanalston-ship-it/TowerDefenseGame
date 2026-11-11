@@ -177,3 +177,11 @@ Client-only idle games cannot fully trust the device clock; this is the bounded-
 - The collect is ONE atomic persist: wallets + ledger + anchor + timeline move together.
 - Container-class lines ≤ 2 per collect; rolls deterministic from the seed.
 - Idle < 25% of the weakest active lane at every band (`idleHarvest.test.ts`).
+
+Harvest recommendation navigation (2026-11-10): the receipt CTA is named View next upgrade. In HarvestScreen, it closes the receipt then focuses and nearest-scrolls the corresponding named node card using the receipt recommendation id. HarvestArrival retains its existing onVisitHarvest callback. This action never calls buyIdleNode; collection, recommendation choice and upgrade prices remain unchanged.
+
+Harvest receipt accessibility (2026-11-10): HarvestCeremony uses the shared Popup portal so transformed panels cannot displace it. The viewport-bounded card scrolls, receives initial focus, traps Tab across its actions and dismisses with shared Escape/Back. Closing restores the production heading or the arrival banner’s prior outside control when still connected. Explicit upgrade navigation skips restoration. Its backdrop uses fade-in rather than the arrival banner’s translated entrance. Collection and rewards are unchanged.
+
+Production growth focus (2026-11-10): NodeCard keeps its card and Grow button mounted; only the decorative ring and header restart per successful purchase. If Grow held focus before buying, focus remains on the enabled button or falls back to the named node group when the next level is gated/unaffordable. Pointer actions without focus do not steal it. Existing purchase costs, gates, sound and reduced-motion suppression are preserved.
+
+Production upgrade guidance (2026-11-10): NodeCard receives the same idleView Chitin balance as the section header. Unaffordable, ungated nodes display max(0,cost-chitin) as a Chitin shortfall. Grow accessible names/tooltips specify node, next level and exact price. Stable useId descriptions associate the blurb and, when unavailable, shortfall/gate with the focusable group; its name includes current level. Browser accessibility snapshots verify post-purchase level1/81-Chitin shortfall and level9/CampaignStage25 gate, with unchanged debit/focus/animation.

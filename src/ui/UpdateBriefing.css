@@ -36,6 +36,8 @@
 
 .ub-go { min-width: 150px; }
 
+.ub-link, .ub-never { min-height: 44px; }
+
 .ub-link:hover { border-color: var(--success); }
 
 @media (prefers-reduced-motion: reduce) { .ub-tile { animation: none; } }

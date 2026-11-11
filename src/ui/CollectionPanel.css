@@ -14,6 +14,7 @@
 .cx-mast-power { font-size: 12px; color: var(--viral); font-weight: 600; white-space: nowrap; }
 
 .cx-tabs { margin-top: 2px; }
+.cx-page { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
 .cx-wing-sub { font-size: 12px; color: var(--muted); }
 
@@ -61,7 +62,7 @@
   align-items: center;
   margin-bottom: 8px;
   padding: 5px 12px;
-  min-height: 28px;
+  min-height: 44px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -95,7 +96,7 @@
 
 .mem-card.is-locked .mem-kind { color: var(--muted); }
 
-.mem-title { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
+.mem-title { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text); }
 
 .mem-sub { font-size: 11px; color: var(--muted); }
 
@@ -103,6 +104,18 @@
 
 .mem-card.is-locked .mem-boost { color: var(--muted); }
 
-.mem-play { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 999px; color: #0a0d12; background: var(--mc, var(--gold)); border: none; }
+.mem-play { position: absolute; top: 8px; right: 8px; min-height: 44px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 999px; color: #0a0d12; background: var(--mc, var(--gold)); border: none; }
+
+.mem-search { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+.mem-search input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; }
+.mem-filters, .mem-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mem-filters button, .mem-empty button { min-height: 44px; }
+.mem-filters button[aria-pressed="true"] { border-color: var(--viral); color: var(--viral); }
+.mem-empty { font-size: 12px; color: var(--muted); }
+
+.cx-celebration-card { display: flex; flex-direction: column; max-height: calc(var(--app-h) - 24px); }
+.cx-celebration-results { min-height: 0; overflow-y: auto; overflow-wrap: anywhere; }
+.cx-celebration-card > h2, .cx-celebration-card > button { flex-shrink: 0; }
+.cx-celebration.is-still, .cx-celebration.is-still * { animation: none !important; }
 
 .mem-lock { position: absolute; top: 10px; right: 12px; font-size: 14px; opacity: 0.7; }

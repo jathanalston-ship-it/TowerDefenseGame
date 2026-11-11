@@ -92,6 +92,38 @@
   box-shadow: none;
 }
 
+/* HUD explanations open into the screen, with edge cells anchored inward. */
+.hud-cell > .tt-bubble {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.hud-cell > .tt-bubble::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--line-strong);
+}
+
+.hud .hud-vital > .tt-bubble,
+html[data-layout='portrait'] .hud-biomass > .tt-bubble {
+  left: 0;
+  transform: none;
+}
+
+.hud .hud-hero > .tt-bubble {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.hud-vital > .tt-bubble::after,
+html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
+.hud-hero > .tt-bubble::after { left: auto; right: 18px; transform: none; }
+
+.hud-cell.tt:is(:hover, :focus-within, .tt-open) { z-index: 3; }
+.hud:has(.hud-cell.tt:is(:hover, :focus-within, .tt-open)) { z-index: 49; } /* over run controls (48), below pause (50) */
+
 .hud-k::before {
   content: '';
   flex: none;
@@ -1158,7 +1190,7 @@
 }
 
 /* ── Class Bonds in Run Build (docs/CLASS-BONDS.md): one chip per fielded class, class-hued via --cc;
-   lit when its bond is awake, three tier pips, the exact effect on hover. ── */
+   lit when its bond is awake, three tier pips, and expandable exact effects. ── */
 .bond-chips { display: flex; flex-direction: column; gap: 4px; }
 .bond-chip {
   display: flex; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px;
@@ -1357,6 +1389,29 @@
   }
 }
 
+/* The Hive switch on the draft — its own centred row under the subtitle (never wedged into the
+   header flow or onto the cards), styled as the battlefield's ◈ HIVE INTELLIGENCE pill. */
+.draft-hive { display: flex; justify-content: center; margin-top: 10px; }
+
+.draft-hive-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 5px 16px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, #8fd0ff 55%, var(--line-strong));
+  background: rgba(8, 12, 20, 0.82); color: #cfe9ff;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer;
+  transition: box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+}
+
+.draft-hive-btn:hover { border-color: #8fd0ff; box-shadow: 0 0 14px color-mix(in srgb, #8fd0ff 30%, transparent); }
+
+.draft-hive-core { width: 8px; height: 8px; border-radius: 50%; background: #8fd0ff; box-shadow: 0 0 8px #8fd0ff; }
+
+.draft-hive-stop {
+  min-height: 28px; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04); color: var(--text); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer;
+}
+
+.draft-hive-stop:hover { border-color: var(--danger); color: var(--danger); }
+
 /* Auto Gene Selection countdown (DraftModal header). */
 .draft-auto {
   display: flex;
@@ -1513,6 +1568,7 @@
 .wb-actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; flex: none; border-left: 1px solid rgba(255,255,255,0.07); padding-left: 14px; }
 
 .wb-autos { display: flex; gap: 6px; }
+.wb-auto-help { flex: none; min-width: 44px; min-height: 44px; }
 
 /* Hive Intelligence docked beside Auto Wave / Auto Gene while the console is up (it used to sit on
    the board's top edge over the spawn lane at the run's start — owner playtest 2026-11-11). */
@@ -1525,6 +1581,7 @@
 .auto-btn.hive-dock:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .auto-btn b { font-weight: 900; letter-spacing: 0.04em; color: inherit; margin-left: 5px; }
+.auto-btn.is-managed:disabled { opacity: 1; cursor: default; }
 
 .wb-led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.45; margin-right: 5px; display: inline-block; }
 
@@ -1585,13 +1642,13 @@
   backdrop-filter: blur(6px);
 }
 
+/* Root motion resolution also covers the flight portaled outside .game. */
 @media (prefers-reduced-motion: reduce) {
-  .loot-fly,
-.loot-burst i,
-.loot-chest.is-impact,
-.hud-loot.is-celebrating,
-.loot-bar.is-hot .loot-bar-fill,
-.loot-bar-fill::after { animation: none !important; }
+  :root:not([data-motion="full"]) :is(
+    .loot-fly, .loot-burst i, .loot-chest.is-impact,
+    .hud-loot.is-celebrating, .loot-bar.is-hot .loot-bar-fill
+  ),
+  :root:not([data-motion="full"]) .loot-bar-fill::after { animation: none !important; }
 }
 
 /* ── Branch-tier purchase celebration — a screen flash + a popping "MUTATION" banner. The
@@ -1819,7 +1876,7 @@
 
 /* ── HERO COMBAT CONSOLE (docs/HERO-EVOLUTION.md §console) — three-region command surface.
    Reuses the evo-menu shell; wider, with the roster tabs + vitals | showcase | upgrades. ── */
-.evo-menu.hcc { width: min(980px, 96%); max-height: calc(var(--app-h) - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
+.evo-menu.hcc { z-index: 60; width: min(980px, 96%); max-height: calc(var(--app-h) - 110px - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
 
 .hcc-held { margin-left: 10px; padding: 2px 9px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); background: color-mix(in srgb, var(--warn) 9%, transparent); }
 
@@ -2611,7 +2668,9 @@
 
 .ho-evo { font-size: 10px; font-weight: 800; color: var(--kinetic); }
 
-.ho-ability { position: relative; width: 44px; height: 44px; flex: none; }
+.ho-ability { position: relative; width: 44px; height: 44px; flex: none; padding: 0; border: 0; border-radius: 50%; background: transparent; }
+.ho-ab-info { position: absolute; left: -2px; bottom: -2px; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); font-size: 10px; font-weight: 800; }
+.ho-ability-detail { margin: 10px 0 0; overflow-wrap: anywhere; }
 
 .ho-ab-wheel {
   position: absolute;
@@ -3094,6 +3153,9 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
   justify-content: flex-start; /* centered via auto margins below — a tall draft scrolls from its TOP */
 }
 
+/* Pause owns input above an already-open run drawer (veil 649, panel 650). */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .pause-overlay { z-index: 660; }
+
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :first-child { margin-top: auto; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :last-child { margin-bottom: auto; }
@@ -3151,9 +3213,9 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .build-bar .start-btn { width: 100%; justify-content: center; min-height: 44px; }
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; flex-wrap: nowrap; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-autos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto 44px; gap: 6px; flex-wrap: nowrap; } /* Auto Wave · Auto Gene · ◈ Hive dock · ? */
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; font-size: 11px; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .auto-btn { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 4px; gap: 2px; flex-wrap: wrap; font-size: 11px; letter-spacing: 0.02em; white-space: normal; }
 
 /* The tower rail: the deck's glass, carried by the rail itself (the toolbar box dissolves). */
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .tower-rail {
@@ -3359,6 +3421,15 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 
 .game[data-motion="reduced"] .wave-breach::before { display: none; }
 
+/* Keep the purchase result readable when motion is stilled. An instant completed rise
+   would land on opacity:0; static burst labels must not pile up at the same position. */
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) .hcc-float { animation: none; opacity: 1; }
+:is(:root[data-motion="reduced"], .game[data-motion="reduced"]) .hcc-float:not(:last-child) { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hcc-float { animation: none; opacity: 1; }
+  .hcc-float:not(:last-child) { display: none; }
+}
+
 .game[data-motion="reduced"] .mutation-banner { animation: mut-banner-reduced 2.4s ease both; }
 
 @keyframes mut-banner-reduced { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
@@ -3443,6 +3514,19 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   .run-ctl .early-call-btn { padding: 0 9px; }
 }
 
+/* Keep the optional combat action reachable when the primary controls fill a small phone. */
+@media (max-width: 380px) {
+  html[data-layout='portrait'] .canvas-wrap:has(.early-call-btn) {
+    padding-top: calc(var(--strip) + var(--ctl-h) + 4px);
+  }
+  html[data-layout='portrait'] .run-ctl .early-call-btn {
+    position: absolute;
+    top: calc(var(--ctl-h) + 4px);
+    left: 0;
+  }
+  html[data-layout='portrait'] .run-ctl .early-call-btn .early-call-label { display: inline; }
+}
+
 /* The Hive adapts / the Infinite squeeze — the wave briefing's live enemy-HP multiplier (GR1). */
 .wb-adapt {
   font-size: 10px; font-weight: 900; letter-spacing: 0.12em; padding: 1px 8px; border-radius: 999px;
@@ -3469,7 +3553,7 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 
 .field-note .tut-callout { pointer-events: auto; cursor: pointer; border-color: color-mix(in srgb, var(--gold) 45%, var(--line-strong)); }
 
-.field-note-dismiss { margin-top: 8px; font-size: 11px; color: var(--muted); }
+.field-note-dismiss { margin-top: 8px; min-height: 44px; font-size: 12px; color: var(--text); }
 
 @media (max-height: 760px) {
   html[data-layout='portrait'] .hud .hud-loot { min-height: 0; padding: 0 2px; gap: 0; }
@@ -3479,3 +3563,43 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
   html[data-layout='portrait'] .hud .hud-loot .loot-bar-wrap { flex: 1; }
   html[data-layout='portrait'] .hud .hud-loot .loot-bar { height: 6px; }
 }
+
+/* Continuous Hive state remains legible in the compact phone control. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn[aria-pressed='true']::after { content: '◈ HIVE ON'; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn[aria-pressed='false']:not(:disabled)::after { content: '◈ HIVE OFF'; }
+
+/* Wave intel stays outside the horizontally scrolling chip row. */
+.build-controls { max-height: calc(100% - var(--strip, 0px)); }
+.build-bar { flex-shrink: 0; }
+.wb-info { background: none; border: 0; padding: 4px; min-height: 32px; cursor: pointer; }
+.wb-chip { min-height: 32px; color: var(--text); cursor: pointer; }
+.wb-detail { width: min(560px, 100%); min-height: 0; max-height: min(40vh, 260px); overflow: auto; padding: 8px 12px; pointer-events: auto; }
+.wb-detail-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--panel); }
+.wb-detail-head button { min-width: 44px; min-height: 44px; }
+.wb-detail p { margin: 4px 0; font-size: 13px; line-height: 1.5; color: var(--text); }
+/* Reading replaces the compact intel row, leaving launch controls available. */
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls.has-detail .wb-brief { display: none; }
+
+.run-conditions > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
+.run-conditions > summary::before { content: '▸'; margin-right: 8px; }
+.run-conditions[open] > summary::before { content: '▾'; }
+.run-conditions dl { margin: 8px 0 0; font-size: 12px; line-height: 1.5; }
+.run-conditions dt { color: var(--text); font-weight: 800; margin-top: 12px; }
+.run-conditions dd { color: var(--muted); margin: 3px 0 0; overflow-wrap: anywhere; }
+
+/* Bond effects expand within the scrolling drawer instead of floating outside it. */
+.bond-entry > summary { min-height: 44px; list-style: none; cursor: pointer; }
+.bond-entry > summary::-webkit-details-marker { display: none; }
+.bond-entry > summary::after { content: '▸'; }
+.bond-entry[open] > summary::after { content: '▾'; }
+.bond-detail { margin: 0; padding: 8px; font-size: 12px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }
+
+/* Drafted gene descriptions remain inside the scrollable Run Build panel. */
+.gene-entry { flex: 1 1 100%; min-width: 0; }
+.gene-entry > summary { display: flex; align-items: center; gap: 4px; min-height: 44px; white-space: normal; overflow: visible; list-style: none; cursor: pointer; }
+.gene-entry > summary::-webkit-details-marker { display: none; }
+.gene-entry > summary::after { content: '▸'; flex: none; margin-left: auto; }
+.gene-entry[open] > summary::after { content: '▾'; }
+.gene-name { min-width: 0; overflow-wrap: anywhere; }
+.gene-entry .chip-dot, .gene-entry .stack { flex: none; }
+.gene-detail { margin: 0; padding: 8px; font-size: 12px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }

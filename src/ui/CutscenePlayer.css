@@ -3,6 +3,11 @@
    more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
 
 .cutscene-coda { cursor: default; }
+.cutscene-controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.cutscene .intro-foot { gap: 12px; flex-wrap: wrap; }
+.cutscene .intro-skip { min-height: 44px; }
+.cutscene.is-manual .intro-text { animation: none; opacity: 1; transform: none; }
+.cutscene.is-suspended, .cutscene.is-suspended *, .cutscene.is-suspended *::before, .cutscene.is-suspended *::after { animation-play-state: paused !important; }
 
 .cutscene-coda-title { margin: 6px 0 2px; font-size: 26px; font-weight: 800; letter-spacing: 0.14em; text-shadow: 0 0 26px currentColor; animation: cs-coda-in 0.6s var(--ease-out) both; }
 

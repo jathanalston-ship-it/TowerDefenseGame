@@ -155,3 +155,5 @@ reveals) — an ungated stop would ride into the sealed-feature briefing, a dead
 owns the reveal, the chain waits (pinned in readyChain.test). Note: `.is-ready` is a
 game-wide CSS modifier other components already use (cache card, harvest collect…) — the
 chain's selectors stay compound-scoped (`.hub-door.is-ready` etc.), never bare.
+
+Selecting the current screen or current hub landing closes the narrow navigation drawer while preserving the early-return behavior for history, telemetry and navigation. Repeated selections add no Back steps.

@@ -6,10 +6,15 @@
 
 /* ── Global standings block (Daily / Boss Rush; docs/DEPLOYMENT.md §leaderboards) ── */
 .lbblock .lb-note { font-size: 12px; color: var(--muted); }
+.lb-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.lb-heading .panel-title { margin: 0; }
+.lb-heading button { min-height: 32px; font-size: 12px; }
 
 .lb-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
 
 .lb-table td { padding: 3px 6px; font-size: 12px; border-bottom: 1px solid var(--line); }
+.lb-table th { padding: 3px 6px; color: var(--muted); font-size: 11px; text-align: left; }
+.lb-table th:last-child { text-align: right; }
 
 .lb-rank { color: var(--muted); width: 42px; }
 

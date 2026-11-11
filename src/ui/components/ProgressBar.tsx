@@ -28,15 +28,18 @@ export function ProgressBar({
   className = '',
   label,
 }: ProgressBarProps): JSX.Element {
-  const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  const validMax = Number.isFinite(max) && max > 0;
+  const limit = validMax ? max : 1;
+  const current = validMax && Number.isFinite(value) ? Math.max(0, Math.min(value, limit)) : 0;
+  const pct = current / limit;
   return (
     <div
       className={`bar ${className}`}
       style={{ height, ...(track ? { background: track } : {}) }}
       role="progressbar"
-      aria-valuenow={Math.round(value)}
+      aria-valuenow={current}
       aria-valuemin={0}
-      aria-valuemax={Math.round(max)}
+      aria-valuemax={limit}
       aria-label={label}
     >
       <div className="bar-fill" style={{ width: `${pct * 100}%`, background: color }} />

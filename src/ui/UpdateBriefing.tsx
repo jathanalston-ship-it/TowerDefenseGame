@@ -6,7 +6,7 @@
 // (day-one players aren't greeted with history). "Never show again" is a permanent,
 // reversible opt-out.
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { navBus } from '../state/navBus';
@@ -51,14 +51,22 @@ export function UpdateBriefing(): JSX.Element | null {
   meta.use();
   const { latest, unseen, optOut } = meta.patchNotesView(RELEASES);
   const fresh = meta.get().totalRuns === 0 && meta.get().patchNotes.seen === '';
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const visible = !!latest && !optOut && !fresh && unseen.length > 0 && meta.whatsNew().length === 0;
 
   // A brand-new account baselines silently — the briefing is for RETURNING players.
   useEffect(() => {
     if (fresh && latest) meta.markPatchNotesSeen(RELEASES);
   }, [fresh, latest]);
 
-  if (!latest || optOut || fresh || unseen.length === 0) return null;
-  if (meta.whatsNew().length > 0) return null; // mechanic intros take the stage first
+  useEffect(() => {
+    if (!visible) return;
+    const previous = document.activeElement;
+    dialogRef.current?.querySelector<HTMLButtonElement>('.ub-go')?.focus({ preventScroll: true });
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true }); };
+  }, [visible]);
+
+  if (!visible) return null; // mechanic intros take the stage first
 
   const { tiles, more } = digest(unseen);
   const head = unseen[0];
@@ -70,7 +78,15 @@ export function UpdateBriefing(): JSX.Element | null {
   const act = (nav: string): void => { done(); navBus.go(nav); };
 
   return (
-    <div className="whatsnew ub" role="dialog" aria-label="Update briefing" onClick={done}>
+    <div ref={dialogRef} className="whatsnew ub" role="dialog" aria-modal="true" aria-label="Update briefing" onClick={done}
+      onKeyDown={e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(); return; }
+        if (e.key !== 'Tab') return;
+        const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]'));
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }}>
       <div className="evo-rays" aria-hidden />
       <div className="wn-card ub-card" onClick={(e) => e.stopPropagation()}>
         <div className="wn-badge">⇪ UPDATE BRIEFING · {head.id}</div>

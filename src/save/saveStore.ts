@@ -2217,11 +2217,13 @@ export class SaveStore {
     }
   }
 
-  private set(key: string, value: string): void {
+  private set(key: string, value: string): boolean {
     try {
       this.storage.setItem(key, value);
+      return true;
     } catch {
       /* storage full/unavailable — fail soft */
+      return false;
     }
   }
 
@@ -2241,21 +2243,38 @@ export class SaveStore {
   }
 
   /** Snapshot the current main save into the rolling backup ring. */
-  backup(): BackupMeta | null {
+  backup(protectedId?: string): BackupMeta | null {
     const raw = this.get(SAVE_KEY);
-    if (!raw) return null;
+    if (!raw || !parseBlob(raw)) return null;
+    return this.writeBackup(raw, protectedId);
+  }
+
+  /** Explicit import: preserve live progress (which may have a pending disk flush) first. */
+  importSave(data: SaveData, current: SaveData): boolean {
+    if (!this.writeBackup(blobString(current))) return false;
+    return this.set(SAVE_KEY, blobString(data));
+  }
+
+  private writeBackup(raw: string, protectedId?: string): BackupMeta | null {
     const meta: BackupMeta = {
       id: `${Date.now().toString(36)}-${(this.bakSeq++).toString(36)}`,
       at: new Date().toISOString(),
     };
-    this.set(BAK_PREFIX + meta.id, raw);
-    const list = [meta, ...this.listBackups()].slice(0, MAX_BACKUPS);
-    // prune dropped backups
+    if (!this.set(BAK_PREFIX + meta.id, raw)) return null;
+    const previous = this.listBackups();
+    const list = [meta, ...previous].slice(0, MAX_BACKUPS);
+    // A restore must not evict its own source before the main-save write succeeds.
+    const protectedBackup = previous.find((entry) => entry.id === protectedId);
+    if (protectedBackup && !list.some((entry) => entry.id === protectedId)) list[list.length - 1] = protectedBackup;
+    // Publish the index before pruning: a failed write must not destroy older snapshots.
+    if (!this.set(BAK_INDEX, JSON.stringify(list))) {
+      this.remove(BAK_PREFIX + meta.id);
+      return null;
+    }
     const kept = new Set(list.map((b) => b.id));
-    for (const old of this.listBackups()) {
+    for (const old of previous) {
       if (!kept.has(old.id)) this.remove(BAK_PREFIX + old.id);
     }
-    this.set(BAK_INDEX, JSON.stringify(list));
     return meta;
   }
 
@@ -2270,10 +2289,13 @@ export class SaveStore {
     }
   }
 
-  restoreBackup(id: string): SaveData | null {
+  restoreBackup(id: string, liveCurrent?: SaveData): SaveData | null {
     const data = parseBlob(this.get(BAK_PREFIX + id));
     if (!data) return null;
-    this.save(data);
+    // Keep the current valid save recoverable. A corrupt/absent main save may still be repaired.
+    const current = liveCurrent ? blobString(liveCurrent) : this.get(SAVE_KEY);
+    if (current && parseBlob(current) && !this.writeBackup(current, id)) return null;
+    if (!this.set(SAVE_KEY, blobString(data))) return null;
     return data;
   }
 

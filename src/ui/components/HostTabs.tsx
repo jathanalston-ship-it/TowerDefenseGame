@@ -9,7 +9,7 @@
 // Each folded tab keeps its own unlock-registry row, so it reveals on its own beat; the next
 // unrevealed tab shows as a locked teaser (the nav teaser rule, scoped to the host).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { meta } from '../../state/meta';
 import { notifications } from '../../state/notifications';
 import { featureRevealed, featureView, nextReveals } from '../../state/unlocks';
@@ -45,8 +45,12 @@ function useHostTab(host: NavKey): [NavKey, (k: NavKey) => void] {
  *  (or unknown) tab falls back to the host's own view, so a stale deep link never dead-ends. */
 export function HostedScreen({ host, views }: { host: NavKey; views: Partial<Record<NavKey, () => JSX.Element>> }): JSX.Element {
   const save = meta.use();
+  const id = useId();
   const [want, setTab] = useHostTab(host);
   const active = want !== host && featureRevealed(save, want) && views[want] ? want : host;
+  const teasers = new Set(nextReveals(save, 2).map((v) => v.def.id));
+  const keys = [host, ...foldedInto(host)].filter((k) => k === host || featureRevealed(save, k) || teasers.has(k));
+  const hasTabs = keys.length > 1;
   // Visiting a folded tab acknowledges its badge + feeds the exposure ledger, exactly like a nav
   // visit did when it was its own screen (the host itself is stamped by Hub.go).
   useEffect(() => {
@@ -57,21 +61,21 @@ export function HostedScreen({ host, views }: { host: NavKey; views: Partial<Rec
   const View = views[active] ?? views[host];
   return (
     <>
-      <HostTabs host={host} active={active} onPick={(k) => { if (k !== active) { audio.cue('ui'); setTab(k); } }} />
-      {View && <View />}
+      <HostTabs id={id} keys={keys} host={host} active={active} onPick={(k) => { if (k !== active) { audio.cue('ui'); setTab(k); } }} />
+      <div className="host-panel" id={`${id}-panel`} role={hasTabs ? 'tabpanel' : undefined} aria-labelledby={hasTabs ? `${id}-${active}` : undefined} tabIndex={hasTabs ? 0 : undefined}>
+        {View && <View />}
+      </div>
     </>
   );
 }
 
 /** The tab strip (shared `.wing-tabs` sub-nav styling). Renders nothing until a folded tab has
  *  revealed or is the next teaser — a host with one page shows no strip. */
-function HostTabs({ host, active, onPick }: { host: NavKey; active: NavKey; onPick: (k: NavKey) => void }): JSX.Element | null {
+function HostTabs({ id, keys, host, active, onPick }: { id: string; keys: NavKey[]; host: NavKey; active: NavKey; onPick: (k: NavKey) => void }): JSX.Element | null {
   const save = meta.use();
   notifications.use(); // re-render when a tab's badge is acknowledged
   const badges = notifications.badges(save);
   const reasons = notifications.reasons(save);
-  const teasers = new Set(nextReveals(save, 2).map((v) => v.def.id));
-  const keys = [host, ...foldedInto(host)].filter((k) => k === host || featureRevealed(save, k) || teasers.has(k));
   if (keys.length <= 1) return null;
   return (
     <div className="wing-tabs host-tabs" role="tablist" aria-label={`${featureView(save, host).def.name} pages`}>
@@ -84,11 +88,25 @@ function HostTabs({ host, active, onPick }: { host: NavKey; active: NavKey; onPi
             key={k}
             type="button"
             role="tab"
+            id={`${id}-${k}`}
+            aria-controls={`${id}-panel`}
+            tabIndex={k === active ? 0 : -1}
             data-tab={k}
             aria-selected={k === active}
             aria-disabled={locked || undefined}
             className={`wing-tab${k === active ? ' on' : ''}${locked ? ' is-locked' : ''}`}
             onClick={() => { if (!locked) onPick(k); }}
+            onKeyDown={(e) => {
+              if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+              e.preventDefault();
+              const tabs = Array.from(e.currentTarget.parentElement!.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+              const current = tabs.indexOf(e.currentTarget);
+              const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+                : (current + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1) + tabs.length) % tabs.length;
+              tabs[next].focus({ preventScroll: true });
+              tabs[next].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+              tabs[next].click(); // locked teasers remain focusable, but the click guard keeps them closed
+            }}
             title={locked ? v.label : (reasons[k] ?? []).join(' · ') || v.def.blurb}
           >
             <span className="wing-tab-glyph" aria-hidden>{locked ? '🔒' : v.def.glyph}</span>

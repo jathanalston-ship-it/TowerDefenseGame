@@ -3,31 +3,33 @@
 // 2-piece / 4-piece bonuses previewed with their member items. Reuses the shared ItemArt generator,
 // so a new item appears here automatically. Menu-only, read-only ⇒ golden-safe.
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { defaultListState, organizeList, type ListOrgSpec } from '../state/listOrg';
 import { gearDiscovered, meta } from '../state/meta';
 import {
   ALL_ITEMS, EQUIP_SLOTS, SETS, SLOT_LABELS, RARITY_ORDER, rarityColorOf, rarityLabelOf,
 } from '../core/equipment';
-import type { CardEffect } from '../core/cards';
+import { describeEffects } from '../core/effectLanguage';
 import type { EquipDef, Rarity } from '../core/equipment';
 import { ItemArt } from './components/ItemArt';
 import { MobileSection } from './components/MobileSection';
 import { useLayoutProfile } from './layoutProfile';
 import { RarityFx, rfxClass } from './components/RarityFx';
+import { ListControls } from './components/ListControls';
 
-/** A compact plain-language phrase for a set-bonus effect (no shared helper exists — inline).
- *  Set bonuses only ever use the field-bearing ops (mul/add/flag); others get a generic label. */
-function fmtEffect(e: CardEffect): string {
-  if (!('field' in e)) return e.op === 'grant' ? 'special boon' : String(e.op);
-  const name = e.field.replace(/Mult$|Frac$|Bonus$/, '').replace(/([A-Z])/g, ' $1').trim().toLowerCase();
-  if (e.op === 'mul') return `+${Math.round((e.value - 1) * 100)}% ${name}`;
-  if (e.op === 'add') return `+${e.value} ${name}`;
-  return name;
-}
+const CODEX_LIST: ListOrgSpec<EquipDef> = {
+  searchText: (def) => `${def.name} ${def.desc} ${SLOT_LABELS[def.slot]} ${def.setId ? SETS[def.setId]?.name ?? '' : ''}`,
+  sorts: [{ id: 'authored', label: 'Codex order', by: () => 0 }],
+};
 
 export function EquipmentCollection(): JSX.Element {
   const save = meta.use();
   const portrait = useLayoutProfile().profile === 'portrait';
+  const [query, setQuery] = useState('');
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const searching = query.trim().length > 0;
+  const results = useMemo(() => organizeList(ALL_ITEMS, CODEX_LIST, { ...defaultListState(CODEX_LIST), query }), [query]);
+  const visibleSets = Object.values(SETS).filter((set) => !searching || results.rows.some((def) => def.setId === set.id));
   // Best owned rarity per def (undiscovered ⇒ absent).
   const owned = useMemo(() => {
     const best: Record<string, Rarity> = {};
@@ -76,11 +78,23 @@ export function EquipmentCollection(): JSX.Element {
         </div>
       </div>
 
+      <div ref={controlsRef} style={{ marginTop: 16 }}>
+        <ListControls search={{ value: query, onChange: setQuery, placeholder: 'Item, set, slot or description…', label: 'Search Equipment Codex' }}
+          right={query.length > 0 && <button type="button" onClick={() => {
+            setQuery('');
+            controlsRef.current?.querySelector('input')?.focus();
+          }}>Clear search</button>} />
+        <div role="status" style={{ fontSize: 12, opacity: 0.8 }}>
+          {searching ? `${results.shown} of ${results.total} items match.` : ''}
+        </div>
+        {searching && results.shown === 0 && <p>No relics match this search. Try an item name, set, slot or description.</p>}
+      </div>
+
       {/* ── Set bonuses ── */}
-      {(() => {
+      {visibleSets.length > 0 && (() => {
         const grid = (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 10 }}>
-            {Object.values(SETS).map((set) => {
+            {visibleSets.map((set) => {
               const members = ALL_ITEMS.filter((d) => d.setId === set.id);
               const ownedCount = members.filter((d) => found.has(d.id)).length;
               return (
@@ -90,17 +104,17 @@ export function EquipmentCollection(): JSX.Element {
                     <span style={{ opacity: 0.6, fontSize: 11 }}>{ownedCount}/{members.length} discovered</span>
                   </div>
                   <div style={{ fontSize: 11.5, opacity: 0.85, marginTop: 3 }}>
-                    <b>(2)</b> {set.bonus2.map(fmtEffect).join(', ')}
+                    <b>(2)</b> {describeEffects(set.bonus2).map((line) => line.exact).join(', ')}
                   </div>
                   <div style={{ fontSize: 11.5, opacity: 0.85 }}>
-                    <b>(4)</b> {set.bonus4.map(fmtEffect).join(', ')}
+                    <b>(4)</b> {describeEffects(set.bonus4).map((line) => line.exact).join(', ')}
                   </div>
                 </div>
               );
             })}
           </div>
         );
-        if (portrait) {
+        if (portrait && !searching) {
           return (
             <MobileSection title="Set bonuses" hint="Wear 2 or 4 pieces of a set for extra effects." count={`${Object.keys(SETS).length} sets`}>
               {grid}
@@ -118,14 +132,15 @@ export function EquipmentCollection(): JSX.Element {
       {/* ── All items, grouped by slot (portrait: each slot folds — the codex was a 17-screen
             scroll; folded, it reads as an index with live discovery counts) ── */}
       {EQUIP_SLOTS.map((slot) => {
-        const items = ALL_ITEMS.filter((d) => d.slot === slot);
+        const items = results.rows.filter((d) => d.slot === slot);
+        if (items.length === 0) return null;
         const foundN = items.filter((d) => found.has(d.id)).length;
         const grid = (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
             {items.map(card)}
           </div>
         );
-        if (portrait) {
+        if (portrait && !searching) {
           return (
             <MobileSection key={slot} title={`${SLOT_LABELS[slot]}s`} hint="Tap to browse this slot's relics." count={`${foundN}/${items.length}`}>
               {grid}

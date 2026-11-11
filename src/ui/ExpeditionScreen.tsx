@@ -5,7 +5,8 @@
 // class affinity, mastery pips, projected multipliers per forager). Reads meta.expeditionsView();
 // expedition time is hours, not frames — the screen ticks twice a minute.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import { RISK_TIERS } from '../core/expeditions';
@@ -26,20 +27,23 @@ const OUTCOME_LABEL: Record<ExpeditionOutcome, string> = {
 };
 
 /** The claim ceremony card — the returning hero's haul, styled by outcome. */
-function SpoilsCard({ s, onClose }: { s: Spoils; onClose: () => void }): JSX.Element {
+function SpoilsCard({ s, onClose, cardRef }: { s: Spoils; onClose: () => void; cardRef: RefObject<HTMLDivElement> }): JSX.Element {
+  const id = useId();
   const def = HERO_DEFS[s.hero];
   return (
-    <div className={`exb-spoils is-${s.outcome}`} role="status">
+    <div ref={cardRef} tabIndex={-1} className={`exb-spoils is-${s.outcome}`} role="status" aria-labelledby={`${id}-hero ${id}-outcome`} aria-describedby={`${id}-haul`}>
       <div className="exb-spoils-head">
-        <b style={{ color: def.color }}>{def.name} returns</b>
-        <span className="exb-spoils-outcome">{OUTCOME_LABEL[s.outcome]}</span>
-        <button className="exb-spoils-x" onClick={onClose} aria-label="Dismiss">✕</button>
+        <b id={`${id}-hero`} style={{ color: def.color }}>{def.name} returns</b>
+        <span id={`${id}-outcome`} className="exb-spoils-outcome">{OUTCOME_LABEL[s.outcome]}</span>
+        <button className="exb-spoils-x" onClick={onClose} aria-label={`Dismiss ${def.name}'s expedition spoils`}>✕</button>
       </div>
-      <div className="exb-spoils-haul">
+      <div className="exb-spoils-haul" id={`${id}-haul`}>
         <span className="exb-haul-chip">◆ {s.reward.cores} Cores</span>
         <span className="exb-haul-chip">⌬ {s.reward.essence} Essence</span>
         {(s.reward.chitin ?? 0) > 0 && <span className="exb-haul-chip">⬣ {s.reward.chitin} Chitin</span>}
-        <span className="exb-haul-chip">⊕ {s.reward.mats.mutagen} · ◳ {s.reward.mats.scrap} · ✷ {s.reward.mats.catalyst}</span>
+        <span className="exb-haul-chip">⊕ {s.reward.mats.mutagen} Mutagen</span>
+        <span className="exb-haul-chip">◳ {s.reward.mats.scrap} Scrap</span>
+        <span className="exb-haul-chip">✷ {s.reward.mats.catalyst} Catalyst</span>
         {s.find && <span className="exb-haul-chip is-find">✦ {s.find.name}!</span>}
       </div>
     </div>
@@ -48,32 +52,47 @@ function SpoilsCard({ s, onClose }: { s: Spoils; onClose: () => void }): JSX.Ele
 
 export function ExpeditionScreen(): JSX.Element {
   meta.use(); // reactive: sends/claims move the board live
+  const id = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const pendingHero = useRef<HeroKind | null>(null);
   const [, tick] = useState(0);
   const [spoils, setSpoils] = useState<Spoils | null>(null);
-  const spoilsTimer = useRef<number | null>(null);
+  const spoilsRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const receiptFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (!receiptFocus.current) return;
+    receiptFocus.current = false;
+    const target = spoils ? spoilsRef.current : boardRef.current;
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [spoils]);
   useEffect(() => {
     const id = window.setInterval(() => tick((n) => n + 1), 30_000);
-    return () => {
-      window.clearInterval(id);
-      if (spoilsTimer.current !== null) window.clearTimeout(spoilsTimer.current);
-    };
+    return () => window.clearInterval(id);
   }, []);
 
   const view = meta.expeditionsView();
+  useLayoutEffect(() => {
+    if (!pendingHero.current) return;
+    const card = rootRef.current?.querySelector<HTMLElement>(`[data-away-hero="${pendingHero.current}"]`);
+    pendingHero.current = null;
+    card?.focus({ preventScroll: true });
+    card?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
   const slotsTotal = view.active.length + view.slotsFree;
   const readyNow = view.active.filter((e) => e.claimable).length;
 
-  const claim = (hero: HeroKind): void => {
+  const claim = (hero: HeroKind, wasFocused: boolean): void => {
     const r = meta.claimExpedition(hero);
     if (!r) return;
     audio.cue('chest');
+    receiptFocus.current = wasFocused;
     setSpoils({ hero, ...r });
-    if (spoilsTimer.current !== null) window.clearTimeout(spoilsTimer.current);
-    spoilsTimer.current = window.setTimeout(() => setSpoils(null), 9000);
   };
 
   return (
-    <div className="exb">
+    <div className="exb" ref={rootRef}>
       {/* ── MASTHEAD ── */}
       <div className="exb-mast">
         <div>
@@ -91,7 +110,10 @@ export function ExpeditionScreen(): JSX.Element {
         </div>
       </div>
 
-      {spoils && <SpoilsCard s={spoils} onClose={() => setSpoils(null)} />}
+      {spoils && <SpoilsCard s={spoils} cardRef={spoilsRef} onClose={() => {
+        receiptFocus.current = spoilsRef.current?.contains(document.activeElement) ?? false;
+        setSpoils(null);
+      }} />}
 
       {/* ── AWAY TEAM — live missions, claim on return ── */}
       <section className="exb-away" aria-label="Away team">
@@ -104,7 +126,7 @@ export function ExpeditionScreen(): JSX.Element {
             const def = view.defs.find((d) => d.id === e.defId);
             const hd = HERO_DEFS[e.hero];
             return (
-              <div className={`exb-mission${e.claimable ? ' is-ready' : ''}`} key={e.hero} style={{ ['--hc' as string]: hd.color }}>
+              <div data-away-hero={e.hero} tabIndex={-1} role="group" aria-label={`${hd.name} — ${def?.name ?? 'Expedition'}`} aria-describedby={`${id}-${e.hero}-status`} className={`exb-mission${e.claimable ? ' is-ready' : ''}`} key={e.hero} style={{ ['--hc' as string]: hd.color }}>
                 <div className="exb-mission-face" aria-hidden><HeroPortrait def={hd} size={52} /></div>
                 <div className="exb-mission-body">
                   <div className="exb-mission-top">
@@ -113,9 +135,9 @@ export function ExpeditionScreen(): JSX.Element {
                     {def && <span className={`exb-risk r${def.risk}`}>{RISK_TIERS[def.risk].name}</span>}
                   </div>
                   {e.claimable ? (
-                    <button className="primary exb-claim" onClick={() => claim(e.hero)}>⇠ Claim spoils</button>
+                    <button id={`${id}-${e.hero}-status`} aria-label={`Claim ${hd.name}'s spoils from ${def?.name ?? 'the expedition'}`} className="primary exb-claim" onClick={(event) => claim(e.hero, document.activeElement === event.currentTarget)}>⇠ Claim spoils</button>
                   ) : (
-                    <div className="exb-eta">
+                    <div className="exb-eta" id={`${id}-${e.hero}-status`}>
                       <span className="exb-prog" aria-hidden><i style={{ width: `${Math.round(e.progress * 100)}%` }} /></span>
                       <span className="exb-eta-t">returns in <b>{fmtEta(e.remainingMs)}</b></span>
                     </div>
@@ -129,7 +151,7 @@ export function ExpeditionScreen(): JSX.Element {
 
       {/* ── MISSION BOARD — the offer wall ── */}
       <section className="exb-board" data-guide="exb-board" aria-label="Mission board">
-        <div className="exb-h">Mission Board</div>
+        <div className="exb-h" ref={boardRef} tabIndex={-1} role="heading" aria-level={2}>Mission Board</div>
         {view.slotsFree === 0 && (
           <div className="exb-empty">All away-slots filled — claim a returning team to send the next.</div>
         )}
@@ -165,9 +187,16 @@ export function ExpeditionScreen(): JSX.Element {
                       <button
                         key={p.hero}
                         className={`exb-send-btn${p.affinity ? ' is-affine' : ''}`}
+                        aria-label={`Send ${hd.name} on ${d.name}, ${d.hours} hours, ${RISK_TIERS[d.risk].name}, ×${p.mult.toFixed(2)} rewards`}
                         style={{ ['--hc' as string]: hd.color }}
                         title={`${hd.name}${p.stars > 0 ? ` ◈${p.stars}` : ''}${p.affinity ? ` — ${d.affinity} affinity` : ''} · ×${p.mult.toFixed(2)} rewards`}
-                        onClick={() => { if (meta.startExpedition(d.id, p.hero)) audio.cue('ui'); }}
+                        onClick={(e) => {
+                          const wasFocused = document.activeElement === e.currentTarget;
+                          if (meta.startExpedition(d.id, p.hero)) {
+                            if (wasFocused) pendingHero.current = p.hero;
+                            audio.cue('ui');
+                          }
+                        }}
                       >
                         <span className="exb-send-face" aria-hidden><HeroPortrait def={hd} size={30} /></span>
                         <span className="exb-send-name">{hd.name}{p.affinity ? ' ◈' : ''}</span>

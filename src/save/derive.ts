@@ -125,6 +125,7 @@ export function automationFor(
 ): { allowed: boolean; reason: string | null } {
   const ladder: ThreatMode | null = run.mode === 'campaign' || run.mode === 'endless' || run.mode === 'bossRush' ? run.mode : null;
   return automationGate({
+    campaignCleared: highestCampaignStage(save),
     mode: run.mode,
     tutorial: run.tutorial,
     contentCleared: run.mode === 'campaign' && run.stage !== undefined && campaignStageCleared(save, run.stage, run.difficulty ?? 'standard'),

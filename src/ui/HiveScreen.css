@@ -68,6 +68,9 @@
 
 .hive-ceremony-perk { font-size: 12px; color: var(--caustic); }
 
+.hive-ceremony-veil { padding: 20px; }
+.hive-ceremony { width: min(400px, 100%); max-height: calc(var(--app-h) - 40px); overflow-y: auto; }
+
 /* ── Expedition Command (ExpeditionScreen.tsx, docs/EXPEDITIONS.md §screen) ── */
 .exb { display: flex; flex-direction: column; gap: 14px; width: min(var(--screen-max), 100%); }
 

@@ -54,7 +54,17 @@ export async function encodeReplayCode(json: string): Promise<string> {
   return RAW + toB64url(bytes);
 }
 
-/** Share code → validated ReplayRecord, or null for anything malformed/oversized. */
+/** Accept a pasted code or share link locally; URLs are parsed, never fetched. */
+export async function decodeReplayInput(input: string): Promise<ReplayRecord | null> {
+  let code = input.trim();
+  if (/^https?:\/\//i.test(code)) {
+    try { code = new URL(code).searchParams.get('replay') ?? ''; }
+    catch { return null; }
+  }
+  return decodeReplayCode(code);
+}
+
+/** Decode the wire code itself; pasted URLs are handled by decodeReplayInput. */
 export async function decodeReplayCode(code: string): Promise<ReplayRecord | null> {
   const c = code.trim();
   const gz = c.startsWith(GZ);

@@ -1,5 +1,9 @@
 # CARDS.md — Roguelite Card Drafting (canonical spec)
 
+Keyboard draft controls respect focus: Enter on a card or another button activates that control;
+Enter elsewhere keeps the recommended-pick shortcut. Text fields and modified key combinations
+do not trigger draft shortcuts. Paused drafts reject manual picks as well as suspending auto-picks.
+
 The in-run roguelite layer. Companion to `DESIGN.md §6.3`, `TOWERS.md`,
 `HEROES.md`, `ECONOMY.md`. **Cards are temporary (reset every run) and are the
 primary source of run-to-run build diversity.** The *pool* you draw from is
@@ -734,3 +738,12 @@ chips still render their own hand/technical text. They should migrate to
 `describeEffects`/`EFFECT_CATEGORIES` — each is a rendering swap, no data change. New
 systems MUST speak through this module from day one (DIL edge `system:gene-cards →
 system:hub-shell` records the rule).
+
+## Drafted Gene Card reading
+
+Run Build groups repeated picks as before. Each card is a native 44px disclosure whose
+name wraps instead of truncating; tap, Enter or Space reveals the exact saved description
+and affected subject inside the scrollable drawer. Repeated picks label that description
+"Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
+live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
+its normal handling. Draft choices, stacking math and effects are unchanged.

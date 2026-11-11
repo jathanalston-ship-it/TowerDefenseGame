@@ -2159,6 +2159,8 @@ export const HERO_AUTOCAST = { cost: 220 } as const;
  *  heuristics (deployment strength, QoL) and the context layer. Golden-safe: nothing reads
  *  these outside a player-triggered pulse. */
 export const HIVE_MIND = {
+  unlockStage: 5,
+  pulseSeconds: 2, // bounded automatic purchase cadence (simulation seconds)
   reserveFrac: 0.1, // a pulse never spends below this fraction of current Biomass…
   reserveMin: 0, // …or below this absolute floor (0 = fraction only)
   maxActionsPerPulse: 12, // hard cap per button press (multi-buy, never a runaway loop)

@@ -80,10 +80,6 @@
   border-color: rgba(255, 210, 77, 0.4);
 }
 
-.achv-badge.locked {
-  opacity: 0.62;
-}
-
 .achv-badge.got .achv-badge-icon {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--gold) 20%, var(--panel-deep)), var(--panel-3));
   border-color: var(--gold);
@@ -111,6 +107,9 @@
   color: var(--gold);
 }
 
+.achv-state { font-size: 10px; font-weight: 700; color: var(--muted); }
+.achv-badge.got .achv-state { color: var(--gold); }
+
 .achv-badge-desc {
   color: var(--muted);
   font-size: 11px;
@@ -137,7 +136,7 @@
 
 .achv-reward {
   flex: none;
-  align-self: center;
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -322,6 +321,9 @@
 }
 
 .pf-stat:hover { border-color: var(--line-strong); transform: translateY(-1px); }
+.pf-stat-toggle { display: flex; flex-direction: column; gap: 4px; width: 100%; min-height: 44px; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; text-align: left; }
+.pf-stat-details { color: var(--muted); font-size: 11px; }
+.pf-stat-hint { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .pf-stat-k { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
@@ -332,7 +334,11 @@
 /* ── Power breakdown ── */
 .pf-power { display: flex; flex-direction: column; gap: 6px; }
 
-.pf-power-row { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 10px; }
+.pf-power-row { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none; }
+.pf-power-row::-webkit-details-marker { display: none; }
+.pf-power-arrow { display: inline-block; }
+.pf-power-detail[open] .pf-power-arrow { transform: rotate(90deg); }
+.pf-power-hint { margin: 0 0 8px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 .pf-power-k { font-size: 12px; font-weight: 700; color: var(--text); }
 
@@ -445,7 +451,8 @@
 
 .pf-trophy.on b { color: var(--gold); }
 
-.pf-trophy.is-locked { opacity: 0.45; }
+.pf-trophy:disabled { opacity: 1; }
+.pf-trophy-state { color: var(--muted); font-size: 11px; line-height: 1.4; }
 
 .pf-trophy.is-venge { background: color-mix(in srgb, var(--caustic) 7%, var(--panel-2)); border-color: color-mix(in srgb, var(--caustic) 35%, var(--line)); }
 

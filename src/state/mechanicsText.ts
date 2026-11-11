@@ -7,7 +7,7 @@
 
 import { LOGIN } from '../core/loginStreak';
 import { PRESTIGE } from '../core/prestige';
-import { DRAFT_FEATURES } from '../core/config';
+import { DRAFT_FEATURES, HIVE_MIND } from '../core/config';
 
 export interface MechanicText {
   what: string;
@@ -21,6 +21,13 @@ export interface MechanicText {
 }
 
 export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
+  'hive-autoplay': {
+    what: 'A run-local toggle that places organisms, buys upgrades, starts waves, directs the lead hero, casts abilities and picks recommended genes.',
+    why: 'Let the hive handle repetitive setup while you watch its choices or take over.',
+    where: 'Complete Campaign Stage ' + HIVE_MIND.unlockStage + ', then use HIVE INTELLIGENCE beside speed and Pause in Campaign or Infinite.',
+    next: 'Turn it off any time; choose a gene yourself to override its visible countdown.',
+    mistakes: 'It is a simple helper, not a guaranteed win. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain manual.',
+  },
   "mission-control": {
     what: 'The Command Center’s centerpiece: your next Campaign stage with its recommended Power, an objective ledger of the best side-moves (each with live progress, reward and an honest ETA in runs at your current income), and the AHEAD strip of wings you’ll unlock next. When you are genuinely under-powered, the main button becomes “Farm Infinite” — with the readiness each run gains — and fighting the stage anyway steps down to a smaller button.',
     why: 'You should never have to guess what to do. Every row says what, why, what it pays — and how many runs it really is away.',
@@ -287,7 +294,7 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     media: 'GIF: an organism growing on a tower',
     what: 'A Mulligan is a secondary organism grafted onto a tower kind, assembled from three genetic MODIFIERS discovered in Bio-Containers. Every modifier belongs to a biological CLASS (Kinetic, Caustic, Viral, Neural, Vital, Resonant — the same classes towers use). Once all three slots are filled the organism awakens: its stat package folds into the tower, and it physically GROWS on the host.',
     why: 'It is the tower long-game — and the class chase: match ALL THREE modifier classes to the host tower\u2019s class for a COMPLETE CLASS ADAPTATION (a unique capability bonus + a visible crown on the organism); two matches grant a minor adaptation. Hybrids stay viable — adaptations reward specialists, they never punish mixers.',
-    where: 'The Mulligan Lab (Hub → Progression); modifiers + Gene Essence drop from Bio-Containers. The Lab\u2019s Advisor highlights recommended grafts per host.',
+    where: 'The Mulligan Lab (Hub → Progression); tower grafts level and ascend with Mulligan Tissue, earned from duplicate modifiers, premium Bio-Containers and Hive production. The Lab\u2019s Advisor highlights recommended grafts per host.',
     next: 'Chase the full class match on your favorite tower — the adaptation panel shows how close you are, and the ceremony fires the moment it synchronizes.',
     mistakes: 'An organism does NOTHING until all three slots are filled — a two-slot graft is dormant. And a completed HYBRID beats an incomplete match: never leave a site empty waiting for the perfect class piece.',
   },

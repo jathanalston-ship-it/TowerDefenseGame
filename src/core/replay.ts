@@ -21,7 +21,7 @@ import { SIM_DT } from './config';
  *  this list. Debug helpers are deliberately absent: a debug-assisted run DIVERGES on
  *  replay and is flagged, which is the point. */
 export const REPLAY_METHODS = [
-  'click', 'startWave', 'callWaveEarly', 'setAutoStart',
+  'setHiveActive', 'click', 'startWave', 'callWaveEarly', 'setAutoStart',
   'selectTower', 'selectPlacedTower', 'selectHero', 'selectConveyorItem', 'inspectAt',
   'cancelInteractions', 'armAbility', 'setRally',
   'toggleAutocast', 'buyAutocast',

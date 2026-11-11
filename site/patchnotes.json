@@ -1,111 +1,774 @@
 [
   {
     "date": "2026-11-11",
-    "title": "The Hive Calls the Wave",
+    "title": "Clearer Equipment Details",
     "categories": [
-      "Gameplay",
-      "UX",
-      "Performance",
-      "Bug Fixes",
-      "Balance",
-      "Website"
+      "UI"
     ],
     "items": [
       {
-        "cat": "Gameplay",
-        "text": "★ Hive Intelligence calls waves early: with Auto Wave on, it calls the next wave mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass"
+        "cat": "UI",
+        "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
       },
       {
-        "cat": "Gameplay",
-        "text": "The Hive never calls into or over a boss wave, never once your Core has been hit that wave, and never on a wounded Core; like Auto Gene it only acts on content you've already beaten"
+        "cat": "UI",
+        "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
       },
       {
-        "cat": "UX",
-        "text": "Auto Gene now drafts the recommended card after 3 seconds (was 10); any manual pick still wins"
-      },
-      {
-        "cat": "UX",
-        "text": "A board callout and the Hive Intelligence ticker report each call: the wave, the Biomass banked and the forecast margin"
-      },
-      {
-        "cat": "Performance",
-        "text": "★ Hub lag fixed: the Buy best-upgrade button no longer freezes the screen — a purchase does about 5× less work, and the screen responds first while the advice panels catch up"
-      },
-      {
-        "cat": "UX",
-        "text": "Fewer words, more icons: a new system arrives as a glyph, its name and one line (the full briefing is one tap away), update briefings are three icon tiles, and the home screen's Ready Chain and recommendations are icon buttons with counts"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "The Early Call help page no longer says Auto Wave never calls early, and correctly says a called-over wave's card arrives when its last enemy falls"
-      },
-      {
-        "cat": "Gameplay",
-        "text": "★ End Early in Infinite: pause and stop a run whenever you like to keep 60% of its Genome Cores, mastery and XP; depth records, contracts and containers you already filled stay in full"
-      },
-      {
-        "cat": "Balance",
-        "text": "★ Infinite now has a wall: past depth 4 + your highest cleared Campaign stage, enemy health doubles every depth. Gear buys a few depths past it and every Campaign stage pushes it one deeper, so a Stage 12 account tops out around depth 20 instead of riding past 60"
-      },
-      {
-        "cat": "Balance",
-        "text": "An Infinite run qualifies for rewards at half your best depth or half your wall, whichever is lower, so a record set before the wall never locks you out"
-      },
-      {
-        "cat": "Balance",
-        "text": "Infinite fills Bio-Containers at a fifth of its old pace, so a long farm no longer outpaces every other source of containers"
-      },
-      {
-        "cat": "UX",
-        "text": "Notifications only point at things you can do: no more badges for tower Stars past your Evolution Cap, for Antigen with no open rung, or “almost unlocked” tiles for systems you can't reach yet"
-      },
-      {
-        "cat": "Bug Fixes",
-        "text": "The hub's Best Move no longer offers an upgrade you can afford but can't take yet; if nothing else is buyable it greys out and names what's in the way instead of a Buy that does nothing"
-      },
-      {
-        "cat": "UX",
-        "text": "The post-run summary's Continue button stays in one place while rewards reveal instead of jumping with every new line"
-      },
-      {
-        "cat": "UX",
-        "text": "Hive Intelligence sits with Auto Wave and Auto Gene on the build console at the start of a wave, no longer on the edge of the battlefield"
-      },
-      {
-        "cat": "Website",
-        "text": "New dev blog posts: “The Hive calls the wave” and “Playtest fixes: a lighter hub, End Early and quieter notifications”; the Hive Intelligence page and FAQ describe the new calls"
+        "cat": "UI",
+        "text": "Item Details now describes affixes at their current tier instead of always showing tier-one strength. Enhancing gear updates the displayed bonus immediately, with decimal precision for smaller improvements. Applied equipment effects are unchanged."
       }
     ]
   },
   {
-    "date": "2026-11-06",
-    "title": "Meet the Constructs",
+    "date": "2026-11-10",
+    "title": "Smoother Growth and Navigation",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
+      },
+      {
+        "cat": "UI",
+        "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
+      },
+      {
+        "cat": "UI",
+        "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
+      },
+      {
+        "cat": "UI",
+        "text": "Hive organ growth reveals now keep keyboard focus inside the dialog and return it to the organ afterward, including fully grown organs. Reveals fit phones and short landscape screens and remain dismissible with Escape, Return or the backdrop."
+      },
+      {
+        "cat": "UI",
+        "text": "Page tabs in the Hive, Quest Board, Armory and Phenotype Lab now support arrow keys, Home and End. Tab moves from the selected page into its named content panel, while locked previews remain readable without opening unavailable pages."
+      },
+      {
+        "cat": "UI",
+        "text": "Sending a hero on an expedition now keeps keyboard focus with their Away Team card and return time. Send and claim controls name the hero and mission, making similar-looking actions easier to distinguish."
+      },
+      {
+        "cat": "UI",
+        "text": "Expedition spoils now stay available until dismissed or replaced by the next claim. Keyboard claims focus the reward receipt, dismissal returns to the Mission Board, and materials are labelled by name so you can review the full haul at your own pace."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Upgrade Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
+      },
+      {
+        "cat": "UI",
+        "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
+      },
+      {
+        "cat": "UI",
+        "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
+      },
+      {
+        "cat": "UI",
+        "text": "The harvest receipt’s View next upgrade button now takes you to the recommended production upgrade and focuses its card. It remains a navigation step, so you can review the upgrade before spending Chitin."
+      },
+      {
+        "cat": "UI",
+        "text": "Harvest receipts now stay on screen, including short landscape layouts, and support keyboard focus, Escape and returning to the production screen or prior hub control. Viewing the next upgrade keeps its destination focus."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Help and Previews",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
+      },
+      {
+        "cat": "UI",
+        "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
+      },
+      {
+        "cat": "UI",
+        "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
+      },
+      {
+        "cat": "UI",
+        "text": "The reforge reveal now stays inside the screen on phones and short landscape displays. Keyboard focus follows the wheel result, stays in the dialog, and returns to the reforge bay when you close it."
+      },
+      {
+        "cat": "UI",
+        "text": "The reforge wheel now honors Allow motion and follows live device motion preferences. Switching to reduced motion reveals the already-rolled graft immediately; restoring motion never restarts a finished reveal."
+      },
+      {
+        "cat": "UI",
+        "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
+      },
+      {
+        "cat": "UI",
+        "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
+      },
+      {
+        "cat": "UI",
+        "text": "Nucleus chamber-opening confirmations now keep keyboard focus: Not yet is focused when the prompt opens, cancel returns to the opening button, and a successful unlock focuses the new chamber’s first socket. The confirmation also names the chamber and any Ichor cost."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Reward Feedback",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
+      },
+      {
+        "cat": "UI",
+        "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
+      },
+      {
+        "cat": "UI",
+        "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
+      },
+      {
+        "cat": "UI",
+        "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
+      },
+      {
+        "cat": "UI",
+        "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
+      },
+      {
+        "cat": "UI",
+        "text": "The loot meter explanation now correctly says that completed Bio-Containers wait unopened in the Genetic Vault, where you collect their rewards. A full meter also shows zero points remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "When the focused Skip button disappears from the post-run reward reveal, keyboard focus now moves to Continue. This also works when the reveal finishes naturally and leaves focus alone if you are using another control."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Progress and Gear",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
+      },
+      {
+        "cat": "UI",
+        "text": "Opening Item Details now moves keyboard focus into the panel. Tab stays among its available controls, and closing it returns focus to the control you used to open it; salvage confirmation keeps its own keyboard behavior."
+      },
+      {
+        "cat": "UI",
+        "text": "Audio and motion switches now keep comfortable 44-pixel touch targets in Settings and the pause menu. The pause panel remains scrollable on short landscape screens, with Resume and Keep Playing reachable."
+      },
+      {
+        "cat": "UI",
+        "text": "Quest Board progress and claim controls now name both the mission and its quest, distinguishing repeated mission names. Reward icons expose their full descriptions, and progress reports when a reward is ready or claimed."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
+      },
+      {
+        "cat": "UI",
+        "text": "Quick-Salvage now tells you how many selected items are hidden by your current filters. Quick-grab tooltips clarify that they cover the full inventory; clearing filters preserves the selected batch and the existing confirmation steps."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Gear and Motion",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
+      },
+      {
+        "cat": "UI",
+        "text": "Infestation feed controls now expose their selected state and full region names to assistive tools. Sector hints distinguish a direct pin from a region’s next feed target."
+      },
+      {
+        "cat": "UI",
+        "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now includes labeled Left and Right buttons for rotating the hero gear preview with a keyboard or tap. Automatic motion pauses while those controls have focus, making equipment easier to inspect."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Know Your Controls",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
+      },
+      {
+        "cat": "UI",
+        "text": "The home screen organism now responds immediately when reduced-motion preferences change, including the in-game override. Its still image refreshes when your account or screen size changes, without restarting animation."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Read Your Build",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Class Bond chips in Run Build now expand with a tap or keyboard to show their current effect and next-tier requirement. Details stay inside the drawer and update as your deployed units change."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Daily Class Bond descriptions now show the base-strength bonuses that the shared run actually uses, instead of your account-upgraded bonuses."
+      },
+      {
+        "cat": "UI",
+        "text": "Drafted Gene Cards in Run Build now expand by tap or keyboard. Long names and descriptions stay readable, and repeated cards label their description per copy while keeping the stack count visible."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Pressing Space while reading a focused HUD resource explanation no longer starts a wave. The battlefield wave shortcut and Hero Console activation still work as before."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Know What Is Coming",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
+      },
+      {
+        "cat": "UI",
+        "text": "Run Build now includes expandable Run conditions: review your doctrine, sworn vows, active Threat modifiers, biome and current event on phone or desktop."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Progress You Can Trust",
+    "categories": [
+      "Bug Fixes",
+      "UX"
+    ],
+    "items": [
+      {
+        "cat": "Bug Fixes",
+        "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
+      },
+      {
+        "cat": "UX",
+        "text": "Restoring a backup now asks for confirmation and keeps a recovery snapshot of readable current progress. Failed storage writes no longer claim success, and the selected backup stays available for retry even when the backup list is full."
+      },
+      {
+        "cat": "UX",
+        "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Backup restoration now respects browser-tab ownership and keeps the latest live progress in its recovery snapshot, including changes waiting to be saved. A successful restore also clears the old pending save so it cannot run afterward."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Memories Within Reach",
+    "categories": [
+      "UX"
+    ],
+    "items": [
+      {
+        "cat": "UX",
+        "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
+      },
+      {
+        "cat": "UX",
+        "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
+      },
+      {
+        "cat": "UX",
+        "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
+      },
+      {
+        "cat": "UX",
+        "text": "Undiscovered collection entries now use a clear, readable label instead of dim question marks. Tooltips keep unrevealed names hidden, while discovered entries retain their names, status and mastery counts."
+      },
+      {
+        "cat": "UX",
+        "text": "The optional debug music console now gives its boss-name field and sliders larger touch targets, including on tablets."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Films That Follow You",
+    "categories": [
+      "Visuals",
+      "UX"
+    ],
+    "items": [
+      {
+        "cat": "Visuals",
+        "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
+      },
+      {
+        "cat": "Visuals",
+        "text": "The opening cinematic now follows motion and flash preferences live, from its start screen through the film. Restoring animation skips elapsed sound cues, and requesting reduced motion during the final dive exits cleanly without getting stuck."
+      },
+      {
+        "cat": "UX",
+        "text": "Story cutscenes now preserve scene and ending-card reading time while their tab is hidden. Captions and scene animation pause, and returning continues the same visual timeline without a backlog of sound cues."
+      },
+      {
+        "cat": "UX",
+        "text": "The opening cinematic now pauses its start-screen animation, scene reading time, captions, and final dive while its tab is hidden. Returning resumes from the same point, with no skipped scenes or overdue sound burst."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Briefings",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+      },
+      {
+        "cat": "UI",
+        "text": "New-system introductions now keep keyboard focus inside each card and move it to the next queued introduction. Escape acknowledges the current card or batch, scrolling lists are keyboard-accessible, and closing the queue restores the original control."
+      },
+      {
+        "cat": "UI",
+        "text": "Selecting a Field Manual topic now brings its article into focus, including on narrow screens. Press Enter from search to read the selected result, and use Back to topics to return to its index entry without losing your search."
+      },
+      {
+        "cat": "UI",
+        "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
+      },
+      {
+        "cat": "UI",
+        "text": "Finishing a field guide with the keyboard now focuses Stay here and makes the completion result available from its controls. Escape closes the completion card, buttons fit narrow screens with larger touch targets, and a separate ceremony opened by your action keeps its focus."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Progress Explained",
+    "categories": [
+      "UI",
+      "Audio"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+      },
+      {
+        "cat": "UI",
+        "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
+      },
+      {
+        "cat": "UI",
+        "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
+      },
+      {
+        "cat": "UI",
+        "text": "Replay sharing now shows a selectable link or code when clipboard access is denied or unavailable. Preparing/copy feedback is localized, duplicate requests are disabled while pending, and results from an older replay cannot overwrite the current control."
+      },
+      {
+        "cat": "UI",
+        "text": "Replay Theater now keeps keyboard focus inside the viewer, restores the opener on exit, and focuses the outcome action when playback finishes. Pause/speed/progress expose their state, and Skip to outcome works even while paused."
+      },
+      {
+        "cat": "Audio",
+        "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
+      },
+      {
+        "cat": "UI",
+        "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
+      },
+      {
+        "cat": "UI",
+        "text": "Update briefing links and the Never show again control now have larger touch targets, making release information easier to use on tablets."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Rewards You Can Read",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+      },
+      {
+        "cat": "UI",
+        "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
+      },
+      {
+        "cat": "UI",
+        "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
+      },
+      {
+        "cat": "UI",
+        "text": "Update-ready prompts wait until you return to the hub, keeping refresh controls out of active runs, tutorials, and Arena matches. Updates downloaded before the prompt mounts are still detected, and dismissing the notice restores keyboard focus."
+      },
+      {
+        "cat": "UI",
+        "text": "Achievement cards show Earned, In progress, or Undiscovered in text, with brighter unfinished goals and clearly named Genome Core rewards. Ladder cards also preview their next reward; secret milestones remain concealed until earned."
+      },
+      {
+        "cat": "UI",
+        "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
+      },
+      {
+        "cat": "UI",
+        "text": "Find achievement milestones faster with name/description search and All, Not earned, and Earned filters. A live result count and clear empty state help you narrow the list; hidden milestone names stay unsearchable until earned."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-10",
+    "title": "Clearer Run Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
+      },
+      {
+        "cat": "UI",
+        "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
+      },
+      {
+        "cat": "UI",
+        "text": "Selected heroes now show their effective ability and skill cooldowns after upgrades. Downed heroes display unavailable cooldowns instead of suggesting their abilities are ready."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero attack and pulse gauges now follow the interval actually used in combat, including haste and siege heroes switching between normal attacks and mega-boss raids. The attack-speed readout matches that cadence."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero recovery countdowns now account for faster-revival symbiotes, keeping the battlefield label, HUD and hero panels consistent with the actual time remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "Buying a cooldown upgrade during recharge no longer makes the ability gauge jump backward. The active gauge follows its current cast; the shorter cooldown is shown when it is ready for the next cast."
+      },
+      {
+        "cat": "UI",
+        "text": "Tap or keyboard-activate the Hero Ops ability wheel to read its status and description inside the panel. The explanation stays readable instead of being clipped at the panel edge; Escape closes it without interrupting play."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Clearer Battlefield Choices",
+    "categories": [
+      "UI",
+      "Audio"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+      },
+      {
+        "cat": "Audio",
+        "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
+      },
+      {
+        "cat": "UI",
+        "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
+      },
+      {
+        "cat": "UI",
+        "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
+      },
+      {
+        "cat": "UI",
+        "text": "Tower confirmations keep up with Hive Intelligence: sell refunds update as the tower improves, and an outdated upgrade confirmation cannot purchase an unintended, more expensive tier."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Sound That Responds Smoothly",
+    "categories": [
+      "Audio",
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "Audio",
+        "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+      },
+      {
+        "cat": "Audio",
+        "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
+      },
+      {
+        "cat": "Audio",
+        "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
+      },
+      {
+        "cat": "Audio",
+        "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
+      },
+      {
+        "cat": "UI",
+        "text": "Screen readers can now identify armed tower and conveyor placements and whether hero auto-cast is on. Conveyor deploy buttons name the organism and its cost; auto-cast keeps its purchase behavior until unlocked."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Feedback That Stays Readable",
+    "categories": [
+      "Visuals",
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "Visuals",
+        "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
+      },
+      {
+        "cat": "UI",
+        "text": "Tower star celebrations now support keyboard dismissal and restore focus. Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
+      },
+      {
+        "cat": "UI",
+        "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice. Heartbeat motion responds to live motion settings, and flash and shake effects respect their settings."
+      },
+      {
+        "cat": "UI",
+        "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame. Notifications stay available while you hover, focus a control or read an expanded summary; incoming rewards keep your active card in view."
+      },
+      {
+        "cat": "UI",
+        "text": "Choosing the screen or hub you are already viewing now closes the phone navigation drawer, without adding an extra Back step."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Progress You Can Follow",
+    "categories": [
+      "UI",
+      "Audio"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Progress bars now expose accurate fractional values to screen readers instead of rounding partial unlocks to complete. Conveyor growth bars identify the organism and report progress and time remaining."
+      },
+      {
+        "cat": "UI",
+        "text": "Gene drafting respects keyboard focus: Enter activates the selected card, Stop Hive Intelligence, or reroll without accidentally taking the recommended gene. Paused drafts ignore card picks, and typing in a text field no longer triggers draft shortcuts."
+      },
+      {
+        "cat": "UI",
+        "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field. Pause-menu focus stays inside its controls, returns when closed, and starts on Keep Playing when confirming abandonment. On phones, the pause menu stays above open run drawers so Resume remains reachable."
+      },
+      {
+        "cat": "UI",
+        "text": "Evolution purchases now work with Enter and Space as well as clicking or holding. Hero upgrade buttons name the upgrade and Biomass cost, keep keyboard focus after buying, and show the correct level after buying several upgrades. The hero console stays above game-speed controls so its Close button remains clickable."
+      },
+      {
+        "cat": "UI",
+        "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
+      },
+      {
+        "cat": "Audio",
+        "text": "Hero upgrades give immediate purchase feedback while the console is paused, without replaying those sounds when you resume. Conveyor strain purchases also avoid duplicate sound feedback."
+      },
+      {
+        "cat": "UI",
+        "text": "Field notes stay visible while you hover over or focus them, giving you time to read. A keyboard-accessible Dismiss button replaces the tap-only hint; notes still clear automatically during normal play and when a gene draft opens."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Clearer Rewards and Answers",
+    "categories": [
+      "UI",
+      "Audio",
+      "Visuals"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Inspecting a reward category no longer advances the reveal sequence. Post-run choices now support arrow keys, Home and End, with one Tab stop for the group."
+      },
+      {
+        "cat": "Audio",
+        "text": "Reward sounds wait while a milestone cinematic covers the results, then resume once without repeating cues already heard."
+      },
+      {
+        "cat": "UI",
+        "text": "Field Manual search includes advice, locations and common mistakes, accepts punctuation differences, and finds words across sections. New searches select their best match; related topics open correctly and receive keyboard focus."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Tower portraits rest when scrolled out of view or when the tab is hidden. Device reduced-motion changes immediately switch them to a complete still; returning to the portrait resumes its animation."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Wallet totals now roll smoothly from the number currently shown when rewards or spending overlap, instead of jumping to an unfinished animation’s target. Reduced-motion updates clear the gain highlight correctly."
+      },
+      {
+        "cat": "UI",
+        "text": "Currency explanations now receive keyboard focus when opened. Escape returns to the chip, Tab moves naturally onward, and screen readers can identify the chip’s popup."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Reward toasts and vault totals now honor device reduced motion directly, including changes made during a count-up. Re-enabling motion leaves completed totals intact."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Hero portraits now use the same class symbols as the rest of the game, including Resonant’s proper diamond-within-diamond mark."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Memories at Your Pace",
+    "categories": [
+      "UI",
+      "Bug Fixes"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Opening and story films now offer Read at my pace: reveal all scene text and choose when to advance. Keyboard players can use Next scene, Skip, and Escape, with focus returning to the replay control after the film."
+      },
+      {
+        "cat": "Bug Fixes",
+        "text": "Reduced-motion cinematic artwork now redraws when you resize the window or rotate your phone. Repeated clicks no longer interrupt the opening film’s descent transition."
+      },
+      {
+        "cat": "UI",
+        "text": "Device reduced-motion changes now update hub effects and motion controls immediately. Sound and motion switches have clearer screen-reader names."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero ability controls show recharge seconds and recovery time, with a ring that respects your upgraded cooldown. Auto Wave and Auto Gene clearly show HIVE while Hive Intelligence manages them."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "title": "Let the Hive Take Over",
     "categories": [
       "Gameplay",
+      "Heroes",
       "UX",
-      "Bug Fixes",
       "Website"
     ],
     "items": [
       {
         "cat": "Gameplay",
-        "text": "★ Market Constructs arrive: eight of the game's own AI players now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings"
-      },
-      {
-        "cat": "UX",
-        "text": "Every Construct listing, bid and trade carries a ⚙ Construct mark (hover for its name), and Help has a new Constructs page"
+        "text": "★ Complete Campaign Stage 5 to unlock continuous Hive Intelligence in Campaign and Infinite, including new campaign stages."
       },
       {
         "cat": "Gameplay",
-        "text": "Constructs never trade with each other, never buy the market's baseline stock and never appear on a leaderboard or the Arena ladder"
+        "text": "Toggle the hive on to place towers, buy upgrades, merge organisms, start waves and choose recommended genes automatically."
       },
       {
-        "cat": "Bug Fixes",
-        "text": "Synced accounts can list on the Auction House again: the server had been reading every account as a brand-new one"
+        "cat": "Heroes",
+        "text": "Hive Intelligence directs your lead hero toward threats and uses their ability automatically, without buying the separate Auto-Cast upgrade."
+      },
+      {
+        "cat": "UX",
+        "text": "Take control at any time with the ON/OFF toggle or draft Stop button. Pause suspends automation; each new run starts with Hive Intelligence off."
       },
       {
         "cat": "Website",
-        "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
+        "text": "New guide and dev blog explain the stage-5 unlock, automatic actions and manual takeover."
       }
     ]
   },
@@ -141,6 +804,10 @@
       {
         "cat": "Website",
         "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
+      },
+      {
+        "cat": "Website",
+        "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
       }
     ]
   },

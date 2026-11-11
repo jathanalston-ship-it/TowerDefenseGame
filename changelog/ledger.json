@@ -1,115 +1,7 @@
 {
-  "lastSha": "30bca6f1aad553fb33913cd5eaa61402f506fd4b",
+  "lastSha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
   "commitsSinceDraft": 0,
   "content": {
-    "tower": [
-      "needle",
-      "mortar",
-      "reactor",
-      "parasite",
-      "obelisk",
-      "maw",
-      "chrysalis",
-      "effigy",
-      "coil",
-      "siphon",
-      "sower",
-      "spire",
-      "polyp",
-      "spitfang",
-      "rift",
-      "glaive",
-      "roost",
-      "lung",
-      "bell",
-      "lancet",
-      "basilisk",
-      "ossuary",
-      "warren",
-      "tick",
-      "quill"
-    ],
-    "hero": [
-      "ravager",
-      "shepherd",
-      "overseer",
-      "vitriol",
-      "revenant",
-      "knell",
-      "wyrm",
-      "riptide",
-      "carrion",
-      "fovea",
-      "chimera",
-      "myceliarch"
-    ],
-    "enemy": [
-      "runner",
-      "mite",
-      "husk",
-      "flea",
-      "mold",
-      "skulker",
-      "larva",
-      "rusher",
-      "darter",
-      "lasher",
-      "brute",
-      "tank",
-      "golem",
-      "colossus",
-      "bulwark",
-      "warden",
-      "knitter",
-      "revenant",
-      "burrower",
-      "molerat",
-      "flyer",
-      "wisp",
-      "gargoyle",
-      "cystwraith",
-      "broodmother",
-      "hivecaller",
-      "mender",
-      "cantor",
-      "bomber",
-      "popper",
-      "sapper",
-      "cataclyst",
-      "siegeworm",
-      "spitter",
-      "stratovore",
-      "broodweaver",
-      "zealot",
-      "carrier",
-      "entrencher",
-      "oracle",
-      "glutling",
-      "apex",
-      "dreadnought",
-      "tyrant",
-      "scuttler",
-      "blightmoth",
-      "borer",
-      "shellback",
-      "wispmother",
-      "veilmoth"
-    ],
-    "boss": [
-      "progenitor",
-      "first_antibody",
-      "brood_cyst",
-      "the_mender",
-      "chitin_colossus",
-      "mitotic_horror",
-      "purge_engine",
-      "sunken_chorus",
-      "vault_of_teeth",
-      "hollow_matriarch",
-      "null_tyrant",
-      "worldbreaker",
-      "unmaker"
-    ],
     "megaBoss": [
       "voraxis",
       "meridia",
@@ -118,6 +10,88 @@
       "moloch_ama",
       "sarcophage",
       "myriad"
+    ],
+    "system": [
+      "hive-mind",
+      "engine",
+      "content-infra",
+      "power",
+      "campaign",
+      "infinite",
+      "pil",
+      "accounts",
+      "boss-rush",
+      "daily",
+      "mulligans",
+      "premium",
+      "field-research",
+      "net-backend",
+      "online-foundation",
+      "arena",
+      "towers",
+      "mastery",
+      "heroes",
+      "hero-cinematics",
+      "equipment",
+      "crafting",
+      "loot",
+      "gene-cards",
+      "class-bonds",
+      "nucleus",
+      "hero-symbiotes",
+      "idle-harvest",
+      "metabolism",
+      "shards-economy",
+      "collection",
+      "evolution-hq",
+      "hive-construction",
+      "daily-login",
+      "prestige",
+      "currencies",
+      "splice-market",
+      "achievements",
+      "stats",
+      "liveops",
+      "directives",
+      "i18n",
+      "contracts",
+      "infestation",
+      "chronicle",
+      "expeditions",
+      "nemesis",
+      "cosmetics",
+      "battle-pass",
+      "quests",
+      "profile",
+      "onboarding",
+      "account-level",
+      "genome-rank",
+      "progression-gating",
+      "hub-shell",
+      "run-ui",
+      "notifications",
+      "prediction",
+      "meta-store",
+      "bosses",
+      "mega-bosses",
+      "cutscenes",
+      "security",
+      "biomes",
+      "map-layouts",
+      "doctrines",
+      "threat",
+      "difficulty",
+      "website",
+      "rendering",
+      "living-battlefield",
+      "audio",
+      "assimilation",
+      "devtools",
+      "ui-kit",
+      "analytics",
+      "reward-architecture",
+      "dev-registry",
+      "market-constructs"
     ],
     "biome": [
       "verdant",
@@ -640,87 +614,113 @@
       "ladder_anatomy_29",
       "ladder_anatomy_30"
     ],
-    "system": [
-      "hive-mind",
-      "engine",
-      "content-infra",
-      "power",
-      "campaign",
-      "infinite",
-      "pil",
-      "accounts",
-      "boss-rush",
-      "daily",
-      "mulligans",
-      "premium",
-      "field-research",
-      "net-backend",
-      "online-foundation",
-      "arena",
-      "towers",
-      "mastery",
-      "heroes",
-      "hero-cinematics",
-      "equipment",
-      "crafting",
-      "loot",
-      "gene-cards",
-      "class-bonds",
-      "market-constructs",
-      "nucleus",
-      "hero-symbiotes",
-      "idle-harvest",
-      "metabolism",
-      "shards-economy",
-      "collection",
-      "evolution-hq",
-      "hive-construction",
-      "daily-login",
-      "prestige",
-      "currencies",
-      "splice-market",
-      "achievements",
-      "stats",
-      "liveops",
-      "directives",
-      "i18n",
-      "contracts",
-      "infestation",
-      "chronicle",
-      "expeditions",
-      "nemesis",
-      "cosmetics",
-      "battle-pass",
-      "quests",
-      "profile",
-      "onboarding",
-      "account-level",
-      "genome-rank",
-      "progression-gating",
-      "hub-shell",
-      "run-ui",
-      "notifications",
-      "prediction",
-      "meta-store",
-      "bosses",
-      "mega-bosses",
-      "cutscenes",
-      "security",
-      "biomes",
-      "map-layouts",
-      "doctrines",
-      "threat",
-      "difficulty",
-      "website",
-      "rendering",
-      "living-battlefield",
-      "audio",
-      "assimilation",
-      "devtools",
-      "ui-kit",
-      "analytics",
-      "reward-architecture",
-      "dev-registry"
+    "boss": [
+      "progenitor",
+      "first_antibody",
+      "brood_cyst",
+      "the_mender",
+      "chitin_colossus",
+      "mitotic_horror",
+      "purge_engine",
+      "sunken_chorus",
+      "vault_of_teeth",
+      "hollow_matriarch",
+      "null_tyrant",
+      "worldbreaker",
+      "unmaker"
+    ],
+    "hero": [
+      "ravager",
+      "shepherd",
+      "overseer",
+      "vitriol",
+      "revenant",
+      "knell",
+      "wyrm",
+      "riptide",
+      "carrion",
+      "fovea",
+      "chimera",
+      "myceliarch"
+    ],
+    "tower": [
+      "needle",
+      "mortar",
+      "reactor",
+      "parasite",
+      "obelisk",
+      "maw",
+      "chrysalis",
+      "effigy",
+      "coil",
+      "siphon",
+      "sower",
+      "spire",
+      "polyp",
+      "spitfang",
+      "rift",
+      "glaive",
+      "roost",
+      "lung",
+      "bell",
+      "lancet",
+      "basilisk",
+      "ossuary",
+      "warren",
+      "tick",
+      "quill"
+    ],
+    "enemy": [
+      "runner",
+      "mite",
+      "husk",
+      "flea",
+      "mold",
+      "skulker",
+      "larva",
+      "rusher",
+      "darter",
+      "lasher",
+      "brute",
+      "tank",
+      "golem",
+      "colossus",
+      "bulwark",
+      "warden",
+      "knitter",
+      "revenant",
+      "burrower",
+      "molerat",
+      "flyer",
+      "wisp",
+      "gargoyle",
+      "cystwraith",
+      "broodmother",
+      "hivecaller",
+      "mender",
+      "cantor",
+      "bomber",
+      "popper",
+      "sapper",
+      "cataclyst",
+      "siegeworm",
+      "spitter",
+      "stratovore",
+      "broodweaver",
+      "zealot",
+      "carrier",
+      "entrencher",
+      "oracle",
+      "glutling",
+      "apex",
+      "dreadnought",
+      "tyrant",
+      "scuttler",
+      "blightmoth",
+      "borer",
+      "shellback",
+      "wispmother",
+      "veilmoth"
     ]
   },
   "releases": [
@@ -4135,47 +4135,754 @@
         {
           "cat": "Website",
           "text": "New dev blog post: “Class Bonds: build around a class, and make it stronger”; the Tower Guide covers bonds"
+        },
+        {
+          "cat": "Website",
+          "text": "Release notes 'Class Bonds' curated; site + PIL regenerated"
         }
       ]
     },
     {
-      "id": "v2026.11.06.3",
-      "date": "2026-11-06",
-      "title": "Meet the Constructs",
+      "id": "v2026.11.09",
+      "date": "2026-11-09",
+      "title": "Let the Hive Take Over",
       "sealed": true,
       "entries": [
         {
           "cat": "Gameplay",
-          "text": "Market Constructs arrive: eight of the game's own AI players now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
-          "major": true
-        },
-        {
-          "cat": "UX",
-          "text": "Every Construct listing, bid and trade carries a ⚙ Construct mark (hover for its name), and Help has a new Constructs page"
+          "major": true,
+          "text": "Complete Campaign Stage 5 to unlock continuous Hive Intelligence in Campaign and Infinite, including new campaign stages."
         },
         {
           "cat": "Gameplay",
-          "text": "Constructs never trade with each other, never buy the market's baseline stock and never appear on a leaderboard or the Arena ladder"
+          "text": "Toggle the hive on to place towers, buy upgrades, merge organisms, start waves and choose recommended genes automatically."
         },
         {
-          "cat": "Bug Fixes",
-          "text": "Synced accounts can list on the Auction House again: the server had been reading every account as a brand-new one"
+          "cat": "Heroes",
+          "text": "Hive Intelligence directs your lead hero toward threats and uses their ability automatically, without buying the separate Auto-Cast upgrade."
+        },
+        {
+          "cat": "UX",
+          "text": "Take control at any time with the ON/OFF toggle or draft Stop button. Pause suspends automation; each new run starts with Hive Intelligence off."
         },
         {
           "cat": "Website",
-          "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
+          "text": "New guide and dev blog explain the stage-5 unlock, automatic actions and manual takeover."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.2",
+      "date": "2026-11-09",
+      "title": "Memories at Your Pace",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Opening and story films now offer Read at my pace: reveal all scene text and choose when to advance. Keyboard players can use Next scene, Skip, and Escape, with focus returning to the replay control after the film."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Reduced-motion cinematic artwork now redraws when you resize the window or rotate your phone. Repeated clicks no longer interrupt the opening film’s descent transition."
+        },
+        {
+          "cat": "UI",
+          "text": "Device reduced-motion changes now update hub effects and motion controls immediately. Sound and motion switches have clearer screen-reader names."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero ability controls show recharge seconds and recovery time, with a ring that respects your upgraded cooldown. Auto Wave and Auto Gene clearly show HIVE while Hive Intelligence manages them."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.3",
+      "date": "2026-11-09",
+      "title": "Clearer Rewards and Answers",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Inspecting a reward category no longer advances the reveal sequence. Post-run choices now support arrow keys, Home and End, with one Tab stop for the group."
+        },
+        {
+          "cat": "Audio",
+          "text": "Reward sounds wait while a milestone cinematic covers the results, then resume once without repeating cues already heard."
+        },
+        {
+          "cat": "UI",
+          "text": "Field Manual search includes advice, locations and common mistakes, accepts punctuation differences, and finds words across sections. New searches select their best match; related topics open correctly and receive keyboard focus."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Tower portraits rest when scrolled out of view or when the tab is hidden. Device reduced-motion changes immediately switch them to a complete still; returning to the portrait resumes its animation."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Wallet totals now roll smoothly from the number currently shown when rewards or spending overlap, instead of jumping to an unfinished animation’s target. Reduced-motion updates clear the gain highlight correctly."
+        },
+        {
+          "cat": "UI",
+          "text": "Currency explanations now receive keyboard focus when opened. Escape returns to the chip, Tab moves naturally onward, and screen readers can identify the chip’s popup."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Reward toasts and vault totals now honor device reduced motion directly, including changes made during a count-up. Re-enabling motion leaves completed totals intact."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Hero portraits now use the same class symbols as the rest of the game, including Resonant’s proper diamond-within-diamond mark."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.4",
+      "date": "2026-11-09",
+      "title": "Progress You Can Follow",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Progress bars now expose accurate fractional values to screen readers instead of rounding partial unlocks to complete. Conveyor growth bars identify the organism and report progress and time remaining."
+        },
+        {
+          "cat": "UI",
+          "text": "Gene drafting respects keyboard focus: Enter activates the selected card, Stop Hive Intelligence, or reroll without accidentally taking the recommended gene. Paused drafts ignore card picks, and typing in a text field no longer triggers draft shortcuts."
+        },
+        {
+          "cat": "UI",
+          "text": "Pause-menu settings and confirmation buttons now work correctly with Enter and Space. Resuming with Space no longer also starts a wave, and board shortcuts stay quiet while paused, inside the hero console, or typing in a text field. Pause-menu focus stays inside its controls, returns when closed, and starts on Keep Playing when confirming abandonment. On phones, the pause menu stays above open run drawers so Resume remains reachable."
+        },
+        {
+          "cat": "UI",
+          "text": "Evolution purchases now work with Enter and Space as well as clicking or holding. Hero upgrade buttons name the upgrade and Biomass cost, keep keyboard focus after buying, and show the correct level after buying several upgrades. The hero console stays above game-speed controls so its Close button remains clickable."
+        },
+        {
+          "cat": "UI",
+          "text": "Switching champions in the Hero Combat Console now shows recovery, shield, and actual ability countdown for the selected hero. Heroes without a basic attack no longer display an infinite attack rate. Use arrow keys, Home, and End to move between roster tabs."
+        },
+        {
+          "cat": "Audio",
+          "text": "Hero upgrades give immediate purchase feedback while the console is paused, without replaying those sounds when you resume. Conveyor strain purchases also avoid duplicate sound feedback."
+        },
+        {
+          "cat": "UI",
+          "text": "Field notes stay visible while you hover over or focus them, giving you time to read. A keyboard-accessible Dismiss button replaces the tap-only hint; notes still clear automatically during normal play and when a gene draft opens."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.5",
+      "date": "2026-11-09",
+      "title": "Feedback That Stays Readable",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Reduced motion keeps hero upgrade results visible instead of fading them away instantly. Rapid purchases show the latest gain clearly, and Power and Mastery notices stay still under both device and in-game motion settings."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Hero symbiote previews pause when off-screen or the page is hidden, and respond immediately to motion-preference changes. Tower previews now follow the in-game motion override too. Reduced-motion hero portraits retain their artwork without spinning decorations."
+        },
+        {
+          "cat": "UI",
+          "text": "Tower star celebrations now support keyboard dismissal and restore focus. Cosmetic unlock ceremonies now focus their main action, keep keyboard navigation inside the card, and carry focus forward through multiple unlocks. Escape skips the ceremony and returns you to the previous control; unlocked items remain in the Specimen Cabinet."
+        },
+        {
+          "cat": "UI",
+          "text": "Genetic Vault openings can be followed by keyboard from hatching through card flips, highlights and harvest. Focus stays with the active reveal, including replay highlights, and returns when you close it. The harvest focuses Collect or Return so hatching another container stays a deliberate choice. Heartbeat motion responds to live motion settings, and flash and shake effects respect their settings."
+        },
+        {
+          "cat": "UI",
+          "text": "Reward notifications and Vault Power totals expose the final amount to screen readers while the visible numbers count up. Merged rewards update that amount without announcing every animation frame. Notifications stay available while you hover, focus a control or read an expanded summary; incoming rewards keep your active card in view."
+        },
+        {
+          "cat": "UI",
+          "text": "Choosing the screen or hub you are already viewing now closes the phone navigation drawer, without adding an extra Back step."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.6",
+      "date": "2026-11-09",
+      "title": "Sound That Responds Smoothly",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "Audio",
+          "text": "Sound-effect volume and mute changes fade smoothly over a brief instant, avoiding abrupt cuts during playback. Rapid slider changes follow your latest setting, and adjusting the level while muted keeps the game quiet."
+        },
+        {
+          "cat": "Audio",
+          "text": "The music slider now takes priority over an earlier automatic fade. Turning music down to zero stays silent instead of having an old recovery fade bring the volume back up."
+        },
+        {
+          "cat": "Audio",
+          "text": "Turning music back on restores the current scene's soundtrack immediately, including its boss theme. Scene changes made while muted are remembered, without replaying old victory or defeat music."
+        },
+        {
+          "cat": "Audio",
+          "text": "Music off now smoothly silences the entire soundtrack, including musical reward flourishes already playing. Changes in battle pressure or volume cannot bring music back while it is muted."
+        },
+        {
+          "cat": "UI",
+          "text": "Screen readers can now identify armed tower and conveyor placements and whether hero auto-cast is on. Conveyor deploy buttons name the organism and its cost; auto-cast keeps its purchase behavior until unlocked."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.09.7",
+      "date": "2026-11-09",
+      "title": "Clearer Battlefield Choices",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Conveyor recycling now shows the correct zero refund for the free starting organism. Recycling or merging a card keeps keyboard focus on a remaining placement option, and merge/recycle buttons identify their organism and cost or refund."
+        },
+        {
+          "cat": "Audio",
+          "text": "Recycling a conveyor organism now plays one confirmation sound instead of two overlapping copies. Unsuccessful attempts remain silent."
+        },
+        {
+          "cat": "UI",
+          "text": "Tower sale and first-branch confirmations now open with Cancel focused, contain keyboard navigation, and close with Escape. Pausing cancels an unfinished confirmation, keeping the Pause controls visible and focused."
+        },
+        {
+          "cat": "UI",
+          "text": "After a tower upgrade, keyboard focus stays useful even when the path is complete or the next tier is unaffordable: it moves to the selected tier preview instead of disappearing from the controls."
+        },
+        {
+          "cat": "UI",
+          "text": "Tower confirmations keep up with Hive Intelligence: sell refunds update as the tower improves, and an outdated upgrade confirmation cannot purchase an unintended, more expensive tier."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.1",
+      "date": "2026-11-10",
+      "title": "Clearer Run Controls",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Screen readers now identify the selected game speed. Call early names the next wave, its overlap and Biomass reward; Splice explains its live Biomass cost and extra Gene Card choice."
+        },
+        {
+          "cat": "UI",
+          "text": "The Hero Ops ability wheel now follows your actual cooldown after upgrades and modifiers. Its tooltip and screen-reader description distinguish recovering, recharging, ready and armed abilities."
+        },
+        {
+          "cat": "UI",
+          "text": "Selected heroes now show their effective ability and skill cooldowns after upgrades. Downed heroes display unavailable cooldowns instead of suggesting their abilities are ready."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero attack and pulse gauges now follow the interval actually used in combat, including haste and siege heroes switching between normal attacks and mega-boss raids. The attack-speed readout matches that cadence."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero recovery countdowns now account for faster-revival symbiotes, keeping the battlefield label, HUD and hero panels consistent with the actual time remaining."
+        },
+        {
+          "cat": "UI",
+          "text": "Buying a cooldown upgrade during recharge no longer makes the ability gauge jump backward. The active gauge follows its current cast; the shorter cooldown is shown when it is ready for the next cast."
+        },
+        {
+          "cat": "UI",
+          "text": "Tap or keyboard-activate the Hero Ops ability wheel to read its status and description inside the panel. The explanation stays readable instead of being clipped at the panel edge; Escape closes it without interrupting play."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.2",
+      "date": "2026-11-10",
+      "title": "Rewards You Can Read",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Account level-up notices stay visible while hovered or keyboard-focused and include a keyboard-accessible dismiss button. Focus follows queued notices and returns afterward; a notice resumed after an unlock announcement no longer repeats its sound."
+        },
+        {
+          "cat": "UI",
+          "text": "Dismissing reward cards with the keyboard now moves focus to the next card, or back to the previous page control when the stack is cleared. Dismiss All and a disappearing stack footer follow the same rule without stealing unrelated focus."
+        },
+        {
+          "cat": "UI",
+          "text": "Bio-Container notices stay readable while hovered or keyboard-focused, with a dismiss button that follows queued rewards and returns focus afterward. Dismissing a notice with Space does not start a wave."
+        },
+        {
+          "cat": "UI",
+          "text": "Update-ready prompts wait until you return to the hub, keeping refresh controls out of active runs, tutorials, and Arena matches. Updates downloaded before the prompt mounts are still detected, and dismissing the notice restores keyboard focus."
+        },
+        {
+          "cat": "UI",
+          "text": "Achievement cards show Earned, In progress, or Undiscovered in text, with brighter unfinished goals and clearly named Genome Core rewards. Ladder cards also preview their next reward; secret milestones remain concealed until earned."
+        },
+        {
+          "cat": "UI",
+          "text": "The Trophy Rack labels mounted and owned organs, explains full-rack restrictions and locked trophy sources, and shows when the next slot unlocks. Mounted trophies expose their selected state to assistive technology, while unavailable trophy details remain readable."
+        },
+        {
+          "cat": "UI",
+          "text": "Find achievement milestones faster with name/description search and All, Not earned, and Earned filters. A live result count and clear empty state help you narrow the list; hidden milestone names stay unsearchable until earned."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.3",
+      "date": "2026-11-10",
+      "title": "Progress Explained",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Profile Power explanations expand with a tap, Enter, or Space and stay open while you read. The rows have larger interaction targets, and multiplier values show more precision so small positive bonuses are not rounded away."
+        },
+        {
+          "cat": "UI",
+          "text": "Career statistics with explanations now have keyboard- and touch-accessible Details controls. Explanations stay open inline while you read, including after reopening their section, and ordinary statistic cards stay compact."
+        },
+        {
+          "cat": "UI",
+          "text": "Global standings now offer Retry after an unavailable response and Refresh after loading, with announced status and labeled table columns. Changing boards clears old results while loading, and delayed responses cannot replace the current board."
+        },
+        {
+          "cat": "UI",
+          "text": "Replay sharing now shows a selectable link or code when clipboard access is denied or unavailable. Preparing/copy feedback is localized, duplicate requests are disabled while pending, and results from an older replay cannot overwrite the current control."
+        },
+        {
+          "cat": "UI",
+          "text": "Replay Theater now keeps keyboard focus inside the viewer, restores the opener on exit, and focuses the outcome action when playback finishes. Pause/speed/progress expose their state, and Skip to outcome works even while paused."
+        },
+        {
+          "cat": "Audio",
+          "text": "Skipping a replay to its outcome no longer compresses skipped combat sounds into a sudden burst. Normal playback, including faster playback speeds, keeps its combat audio."
+        },
+        {
+          "cat": "UI",
+          "text": "The Replay Theater paste field accepts copied replay links as well as raw codes, supports Enter to watch, and shows localized checking/error feedback. Editing the input or leaving the screen prevents an older decode from opening the wrong replay."
+        },
+        {
+          "cat": "UI",
+          "text": "Update briefing links and the Never show again control now have larger touch targets, making release information easier to use on tablets."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.4",
+      "date": "2026-11-10",
+      "title": "Clearer Briefings",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Update briefings now keep keyboard focus inside the dialog, return focus when dismissed, and support Escape. Release highlights and changes can be focused and scrolled with the keyboard, while new-player and mechanic-introduction priorities stay unchanged."
+        },
+        {
+          "cat": "UI",
+          "text": "New-system introductions now keep keyboard focus inside each card and move it to the next queued introduction. Escape acknowledges the current card or batch, scrolling lists are keyboard-accessible, and closing the queue restores the original control."
+        },
+        {
+          "cat": "UI",
+          "text": "Selecting a Field Manual topic now brings its article into focus, including on narrow screens. Press Enter from search to read the selected result, and use Back to topics to return to its index entry without losing your search."
+        },
+        {
+          "cat": "UI",
+          "text": "Tutorial and field-guide text now follows live motion preferences, including Allow motion. Reduced motion reveals the whole sentence immediately, restoring motion does not hide text already read, and assistive technology receives the complete sentence throughout the visual reveal."
+        },
+        {
+          "cat": "UI",
+          "text": "Finishing a field guide with the keyboard now focuses Stay here and makes the completion result available from its controls. Escape closes the completion card, buttons fit narrow screens with larger touch targets, and a separate ceremony opened by your action keeps its focus."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.5",
+      "date": "2026-11-10",
+      "title": "Films That Follow You",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "Visuals",
+          "text": "Story cutscenes now respond to motion and flash settings while playing. Reduced motion keeps a still image, restoring motion preserves the scene clock without replaying elapsed sound cues, and the ending card keeps its dimmed backdrop in either mode."
+        },
+        {
+          "cat": "Visuals",
+          "text": "The opening cinematic now follows motion and flash preferences live, from its start screen through the film. Restoring animation skips elapsed sound cues, and requesting reduced motion during the final dive exits cleanly without getting stuck."
+        },
+        {
+          "cat": "UX",
+          "text": "Story cutscenes now preserve scene and ending-card reading time while their tab is hidden. Captions and scene animation pause, and returning continues the same visual timeline without a backlog of sound cues."
+        },
+        {
+          "cat": "UX",
+          "text": "The opening cinematic now pauses its start-screen animation, scene reading time, captions, and final dive while its tab is hidden. Returning resumes from the same point, with no skipped scenes or overdue sound burst."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.6",
+      "date": "2026-11-10",
+      "title": "Memories Within Reach",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UX",
+          "text": "The Memory Archive now lets you search revealed titles, bonuses and unlock hints, and filter recovered or unrecovered memories. Locked story details stay hidden, replay buttons are easier to tap, and the archive explains that recovered bonuses already apply automatically."
+        },
+        {
+          "cat": "UX",
+          "text": "Collection rank-up celebrations now support keyboard focus, Escape dismissal and live reduced-motion preferences. Long promotion lists scroll within the popup, keeping Continue reachable on small screens and in landscape."
+        },
+        {
+          "cat": "UX",
+          "text": "Collection browsing now keeps keyboard focus with you: arrow keys, Home and End switch Codex sections, opening a category focuses its heading, and returning to all categories restores the tile you came from."
+        },
+        {
+          "cat": "UX",
+          "text": "Undiscovered collection entries now use a clear, readable label instead of dim question marks. Tooltips keep unrevealed names hidden, while discovered entries retain their names, status and mastery counts."
+        },
+        {
+          "cat": "UX",
+          "text": "The optional debug music console now gives its boss-name field and sliders larger touch targets, including on tablets."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.7",
+      "date": "2026-11-10",
+      "title": "Progress You Can Trust",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "Bug Fixes",
+          "text": "Manual backups now report when a snapshot could not be saved and offer Export JSON as a fallback. Failed backup writes preserve older snapshots, and corrupt current-save data is no longer copied into the backup list."
+        },
+        {
+          "cat": "UX",
+          "text": "Restoring a backup now asks for confirmation and keeps a recovery snapshot of readable current progress. Failed storage writes no longer claim success, and the selected backup stays available for retry even when the backup list is full."
+        },
+        {
+          "cat": "UX",
+          "text": "Choosing a save file now opens a review showing its name, currency, best wave and run count. Nothing is imported until you choose Replace progress; Cancel or Escape keeps your current progress, and invalid or unreadable files show a clear error."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Confirmed save imports now finish their storage writes before replacing the active session. If the recovery backup or imported save cannot be written, current progress stays intact; a competing browser tab also blocks the import until you reload."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Backup restoration now respects browser-tab ownership and keeps the latest live progress in its recovery snapshot, including changes waiting to be saved. A successful restore also clears the old pending save so it cannot run afterward."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.8",
+      "date": "2026-11-10",
+      "title": "Know What Is Coming",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Incoming-wave intel opens readable details on tap or keyboard, including on phones. Base Biomass and enemy stats are clearly labeled, and elite counts explain how many are included in the wave."
+        },
+        {
+          "cat": "UI",
+          "text": "Run Build now includes expandable Run conditions: review your doctrine, sworn vows, active Threat modifiers, biome and current event on phone or desktop."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.9",
+      "date": "2026-11-10",
+      "title": "Read Your Build",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Class Bond chips in Run Build now expand with a tap or keyboard to show their current effect and next-tier requirement. Details stay inside the drawer and update as your deployed units change."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Daily Class Bond descriptions now show the base-strength bonuses that the shared run actually uses, instead of your account-upgraded bonuses."
+        },
+        {
+          "cat": "UI",
+          "text": "Drafted Gene Cards in Run Build now expand by tap or keyboard. Long names and descriptions stay readable, and repeated cards label their description per copy while keeping the stack count visible."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "HUD explanations now open below their readouts, keeping Core, Power, Biomass, pressure and Hero details on screen. Edge readouts align their explanations inward on narrow screens."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Pressing Space while reading a focused HUD resource explanation no longer starts a wave. The battlefield wave shortcut and Hero Console activation still work as before."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.10",
+      "date": "2026-11-10",
+      "title": "Know Your Controls",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "A new help button beside Auto Wave and Auto Gene explains countdowns, waiting for your first tower, unlock requirements and Hive-managed controls. Read it by touch or keyboard without changing your automation settings."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Early Call no longer slips off the left edge on very narrow portrait phones. It gets its own row above the battlefield, keeping the action, bonus, speed controls and Pause reachable."
+        },
+        {
+          "cat": "UI",
+          "text": "The home screen organism now responds immediately when reduced-motion preferences change, including the in-game override. Its still image refreshes when your account or screen size changes, without restarting animation."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.11",
+      "date": "2026-11-10",
+      "title": "Clearer Gear and Motion",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "The infestation map now follows live reduced-motion settings and the in-game override. Its still image resizes correctly, sector pins remain interactive, and animation stops while the tab is hidden."
+        },
+        {
+          "cat": "UI",
+          "text": "Infestation feed controls now expose their selected state and full region names to assistive tools. Sector hints distinguish a direct pin from a region’s next feed target."
+        },
+        {
+          "cat": "UI",
+          "text": "Premium equipment card artwork now honors live reduced-motion settings and the in-game override. Animated cards pause outside the viewport or in hidden tabs, then resume when visible."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero gear previews now respect reduced motion while still letting you drag to inspect equipment. Previews pause offscreen or in hidden tabs, and automatic rotation keeps a consistent speed across display refresh rates."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now includes labeled Left and Right buttons for rotating the hero gear preview with a keyboard or tap. Automatic motion pauses while those controls have focus, making equipment easier to inspect."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Salvage confirmation now stays visible after scrolling Item Details on a phone. Cancel receives keyboard focus, Tab stays within the prompt, and Escape cancels the confirmation without closing the item."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now gives Favorite, item lock, and affix lock clear accessible names and selected states. Their tooltips describe the available action, and affix randomization names the affected affix."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.12",
+      "date": "2026-11-10",
+      "title": "Clearer Progress and Gear",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Disabled equipment upgrades now explain missing materials, locked affixes, item-level tier caps, or the rarity limit. These reasons remain readable and update as your gear or materials change."
+        },
+        {
+          "cat": "UI",
+          "text": "Opening Item Details now moves keyboard focus into the panel. Tab stays among its available controls, and closing it returns focus to the control you used to open it; salvage confirmation keeps its own keyboard behavior."
+        },
+        {
+          "cat": "UI",
+          "text": "Audio and motion switches now keep comfortable 44-pixel touch targets in Settings and the pause menu. The pause panel remains scrollable on short landscape screens, with Resume and Keep Playing reachable."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest Board progress and claim controls now name both the mission and its quest, distinguishing repeated mission names. Reward icons expose their full descriptions, and progress reports when a reward is ready or claimed."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Champion Contracts now refresh their weekly roster, completion marks, and rotation countdown while the card is open, and immediately when you return to the tab. Leaving the screen cleans up its refresh timer."
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "The Armory keeps your selected rarity filter visible even after its last item is removed. Clear filters restores all categories, rarities, and favorites while keeping your sort choice; filter buttons now expose their selected state."
+        },
+        {
+          "cat": "UI",
+          "text": "Quick-Salvage now tells you how many selected items are hidden by your current filters. Quick-grab tooltips clarify that they cover the full inventory; clearing filters preserves the selected batch and the existing confirmation steps."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.13",
+      "date": "2026-11-10",
+      "title": "Clearer Reward Feedback",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Quest claims preserve your keyboard position: individual claims keep focus on the completed mission, and Claim all returns it to the Quest Board heading so Tab continues through the board. Unsuccessful claims keep focus on their button."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest reward celebrations triggered with the keyboard now appear at the claim button instead of the screen corner. Mouse and touch celebrations still begin where you tap, and reduced motion continues to skip the burst."
+        },
+        {
+          "cat": "UI",
+          "text": "Quest celebrations now follow motion preferences immediately while the board is open. Reduced motion stops active bursts and prevents new ones; the explicit Allow motion setting enables them when you choose it."
+        },
+        {
+          "cat": "UI",
+          "text": "The HUD loot meter now exposes named progress with the current container rarity, percentage and loot-point total. Keyboard focus includes its existing explanation of points remaining and the next container."
+        },
+        {
+          "cat": "UI",
+          "text": "The loot meter now honors your explicit Allow motion choice, including the flying container and chest celebration. Turning the override off keeps the flight, chest motion and fill shimmer still under reduced motion."
+        },
+        {
+          "cat": "UI",
+          "text": "The loot meter explanation now correctly says that completed Bio-Containers wait unopened in the Genetic Vault, where you collect their rewards. A full meter also shows zero points remaining."
+        },
+        {
+          "cat": "UI",
+          "text": "When the focused Skip button disappears from the post-run reward reveal, keyboard focus now moves to Continue. This also works when the reveal finishes naturally and leaves focus alone if you are using another control."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.14",
+      "date": "2026-11-10",
+      "title": "Clearer Help and Previews",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Help search now reports matching topics and gives accurate guidance when no results are found. A Clear search button restores unlocked topics and returns keyboard focus to the search field."
+        },
+        {
+          "cat": "UI",
+          "text": "The Mulligan Lab graft preview now follows live motion preferences, pauses while offscreen or hidden, and resumes when visible. Reduced motion keeps a still preview that updates when your graft changes."
+        },
+        {
+          "cat": "UI",
+          "text": "The Nucleus mutation preview now follows live motion preferences and pauses while offscreen or hidden. Its still image remains visible and updates when chamber mutations change, with smooth resumption when motion is allowed."
+        },
+        {
+          "cat": "UI",
+          "text": "The reforge reveal now stays inside the screen on phones and short landscape displays. Keyboard focus follows the wheel result, stays in the dialog, and returns to the reforge bay when you close it."
+        },
+        {
+          "cat": "UI",
+          "text": "The reforge wheel now honors Allow motion and follows live device motion preferences. Switching to reduced motion reveals the already-rolled graft immediately; restoring motion never restarts a finished reveal."
+        },
+        {
+          "cat": "UI",
+          "text": "Post-run rewards and reward number animations now follow live motion preferences and honor Allow motion. Reducing motion finishes the presentation immediately while preserving keyboard focus and waiting for any covering cinematic before playing reward audio."
+        },
+        {
+          "cat": "UI",
+          "text": "Nucleus grafting now clearly marks the selected socket, including filled sockets being replaced. Graft and extract controls identify their organ and destination, category filters expose selection, and keyboard focus returns to the socket after a successful change."
+        },
+        {
+          "cat": "UI",
+          "text": "Nucleus chamber-opening confirmations now keep keyboard focus: Not yet is focused when the prompt opens, cancel returns to the opening button, and a successful unlock focuses the new chamber’s first socket. The confirmation also names the chamber and any Ichor cost."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.15",
+      "date": "2026-11-10",
+      "title": "Clearer Upgrade Controls",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Complete class adaptation reveals now stay visible on phones and short landscape screens. Continue is immediately reachable by keyboard, focus stays inside the reveal, and closing returns to the graft host without changing the completed adaptation."
+        },
+        {
+          "cat": "UI",
+          "text": "Graft-host tabs now support arrow keys, Home and End, with one Tab stop for the selected host and a clearly named details panel. Modifier class filters now announce which filter is selected."
+        },
+        {
+          "cat": "UI",
+          "text": "Graft level and ascension controls now show Mulligan Tissue, matching the currency they already spend. Help explains the correct wallet, and reforged organisms show binding and upgrade guidance instead of suggesting unavailable graft clearing."
+        },
+        {
+          "cat": "UI",
+          "text": "The harvest receipt’s View next upgrade button now takes you to the recommended production upgrade and focuses its card. It remains a navigation step, so you can review the upgrade before spending Chitin."
+        },
+        {
+          "cat": "UI",
+          "text": "Harvest receipts now stay on screen, including short landscape layouts, and support keyboard focus, Escape and returning to the production screen or prior hub control. Viewing the next upgrade keeps its destination focus."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.10.16",
+      "date": "2026-11-10",
+      "title": "Smoother Growth and Navigation",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Growing a production upgrade now keeps keyboard focus on its Grow button. If the next level is locked or unaffordable, focus stays on the upgrade card so you can read its new status. Growth effects still replay after each purchase."
+        },
+        {
+          "cat": "UI",
+          "text": "Production upgrades now show how much more Chitin you need. Keyboard and screen-reader controls identify the upgrade, next level and price, while focused cards describe their current level and unlock requirement."
+        },
+        {
+          "cat": "UI",
+          "text": "The living Hive diagram now pauses its animations while offscreen or in a hidden tab. It follows motion-setting changes immediately, including your explicit animation opt-in, while keeping production and storage information visible."
+        },
+        {
+          "cat": "UI",
+          "text": "Hive organ growth reveals now keep keyboard focus inside the dialog and return it to the organ afterward, including fully grown organs. Reveals fit phones and short landscape screens and remain dismissible with Escape, Return or the backdrop."
+        },
+        {
+          "cat": "UI",
+          "text": "Page tabs in the Hive, Quest Board, Armory and Phenotype Lab now support arrow keys, Home and End. Tab moves from the selected page into its named content panel, while locked previews remain readable without opening unavailable pages."
+        },
+        {
+          "cat": "UI",
+          "text": "Sending a hero on an expedition now keeps keyboard focus with their Away Team card and return time. Send and claim controls name the hero and mission, making similar-looking actions easier to distinguish."
+        },
+        {
+          "cat": "UI",
+          "text": "Expedition spoils now stay available until dismissed or replaced by the next claim. Keyboard claims focus the reward receipt, dismissal returns to the Mission Board, and materials are labelled by name so you can review the full haul at your own pace."
         }
       ]
     },
     {
       "id": "v2026.11.11",
       "date": "2026-11-11",
-      "title": "The Hive Calls the Wave",
-      "sealed": false,
+      "title": "Clearer Equipment Details",
+      "sealed": true,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Equipment Codex set bonuses now use the same effect descriptions as gene cards. Percentage bonuses such as critical chance and Reactor overcharge display as percentages, while extra Fracture stacks remain counts. Equipment effects are unchanged."
+        },
+        {
+          "cat": "UI",
+          "text": "The Equipment Codex now searches relic names, sets, slots and descriptions. Matching items appear directly on phones, result counts explain what is shown, and Clear search restores the collection without changing discovery progress."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now describes affixes at their current tier instead of always showing tier-one strength. Enhancing gear updates the displayed bonus immediately, with decimal precision for smaller improvements. Applied equipment effects are unchanged."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.11.2",
+      "date": "2026-11-11",
+      "title": "Lighter Hub, Infinite Wall and Market Constructs",
       "entries": [
         {
           "cat": "Gameplay",
-          "text": "Hive Intelligence calls waves early: with Auto Wave on, it calls the next wave mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
+          "text": "Hive Intelligence calls waves early: while it (or Auto Wave) is on, it calls the next wave mid-fight when it forecasts your board will hold the overlap with room to spare, and banks the Early Call Biomass",
           "major": true
         },
         {
@@ -4184,7 +4891,7 @@
         },
         {
           "cat": "UX",
-          "text": "Auto Gene now drafts the recommended card after 3 seconds (was 10); any manual pick still wins"
+          "text": "Auto Gene and Hive Intelligence now draft the recommended gene after 3 seconds (was 10); any pick you make yourself still wins"
         },
         {
           "cat": "UX",
@@ -4235,13 +4942,35 @@
         },
         {
           "cat": "UX",
-          "text": "Hive Intelligence sits with Auto Wave and Auto Gene on the build console at the start of a wave, no longer on the edge of the battlefield"
+          "text": "Hive Intelligence’s ON/OFF switch sits with Auto Wave and Auto Gene on the build console at the start of a wave, and its Enable/Stop buttons on gene drafts have their own row instead of crowding the cards"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Market Constructs arrive: eight of the game's own AI players now play around the clock and trade on the Auction House: they sell what they earn at the market price and buy fairly priced player listings",
+          "major": true
+        },
+        {
+          "cat": "UX",
+          "text": "Every Construct listing, bid and trade carries a ⚙ Construct mark (hover for its name), and Help has a new Constructs page"
+        },
+        {
+          "cat": "Gameplay",
+          "text": "Constructs never trade with each other, never buy the market's baseline stock and never appear on a leaderboard or the Arena ladder"
+        },
+        {
+          "cat": "Bug Fixes",
+          "text": "Synced accounts can list on the Auction House again: the server had been reading every account as a brand-new one"
         },
         {
           "cat": "Website",
           "text": "New dev blog posts: “The Hive calls the wave” and “Playtest fixes: a lighter hub, End Early and quieter notifications”; the Hive Intelligence page and FAQ describe the new calls"
+        },
+        {
+          "cat": "Website",
+          "text": "New dev blog post: “Meet the Constructs: AI players who grind, and trade with you”; the economy page explains them"
         }
-      ]
+      ],
+      "sealed": false
     }
   ],
   "history": [
@@ -9226,7 +9955,7 @@
       "date": "2026-11-06",
       "cat": "Website",
       "text": "Release notes 'Class Bonds' curated; site + PIL regenerated",
-      "internal": true,
+      "internal": false,
       "needsReview": false
     },
     {
@@ -9234,7 +9963,7 @@
       "date": "2026-11-06",
       "cat": "Gameplay",
       "text": "Release notes: use a valid changelog category (Progression is not one)",
-      "internal": true,
+      "internal": false,
       "needsReview": false
     },
     {
@@ -9244,6 +9973,1422 @@
       "text": "Validation,status: Class Bonds PASS over a0b332d..HEAD — 3140/3140, mobile gate clean, probe budgets ok",
       "internal": true,
       "needsReview": true
+    },
+    {
+      "sha": "6ace805f56102a8bc51c0a51bd860bc25ddaf039",
+      "date": "2026-11-09",
+      "cat": "Website",
+      "text": "Ship Hive Intelligence auto-play and curated website notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3cc51a8349c7c9aabb09bf1d6abe86f53ec92e1f",
+      "date": "2026-11-09",
+      "cat": "Gameplay",
+      "text": "Improve cinematic reading and gameplay feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "60dd21e173b9e830168f36fa08eb6dbba8611d4a",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify reward clarity and accessible UI feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "33676de6b2c44df38001a7aa322e2d63c2b064ba",
+      "date": "2026-11-09",
+      "cat": "Visuals",
+      "text": "Ship clearer rewards help and visual feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8a3c0cf5f8b77c4bc2caeff16340d603b5aeface",
+      "date": "2026-11-09",
+      "cat": "Bug Fixes",
+      "text": "Ui: isolate draft and pause keyboard controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b3308c32bf535f0f1f21ff14610d670fe1582b2d",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify pause focus and phone layering",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0bdad42eda8e1074fedcd2c9d950ed8d062c78e8",
+      "date": "2026-11-09",
+      "cat": "Gene Cards",
+      "text": "Verify accessible evolution purchases",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2686bc29802a1f0d5afcf91e4483cf6b2cb21a45",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Validation: record controls regression checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "781e81f4e14efba4cc14aaf23d67e9d6bbb23631",
+      "date": "2026-11-09",
+      "cat": "Heroes",
+      "text": "Verify selected hero console readouts",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "607300dff5ae69cb1d850067cd9ec697a7333911",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Verify single purchase cue delivery",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4e62318dbf284c173ba69e6893773802c7617d54",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify readable field note interactions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bfa87c50fe652ca8105961d2faa2372bf281f51e",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Release: ship clearer controls and progress feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b684a2b7a01993fceb849076c1eeb8d760b7df15",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record verified progress release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "aaaddf1b8f7848a68abc8b91df6d960f0ff5a3b7",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify readable reduced motion feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "85a42cf1785434a4722139649308f43ca1b92c41",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify responsive portrait animation lifecycle",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c678576aefecd6b9751eaed22979c7ef1b984b97",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Verify keyboard cosmetic ceremonies",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a165a71f111200f6bacafaebe86a4cf0fab28bb3",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify accessible star celebrations",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "880c803132c9666b9984e0cf71421c25f22106c0",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify keyboard vault reveal flow",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3720b7f2b1ac43016510bbe22186523a2cb8d7ec",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: honor live vault feedback preferences",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cf5360c02a720d06af7b718981606faa6a97c7f6",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record feedback release verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0452050647bfec8553f9615684a6b67c4f5c1348",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: verify stable reward announcements",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "066e02dfc505b54c984710bbb25c1109a9263e90",
+      "date": "2026-11-09",
+      "cat": "Gene Cards",
+      "text": "Preserve reward cards while reading",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0b1ea64708132d6fc16c7564857ffe44c3d4374d",
+      "date": "2026-11-09",
+      "cat": "Developer Tools",
+      "text": "Test: wait for closed navigation drawer in layout gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "08fcaff9044b4bbdbd9899ee335582e6155238c9",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: close drawer on current destination selection",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fa4f78bcff196db9dad2d4683b3c852907516c73",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Release: ship readable feedback and accessible ceremonies",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "205a8c49d45f285a26b78dc58da60f93afa08f9a",
+      "date": "2026-11-09",
+      "cat": "Framework",
+      "text": "Docs: record verified feedback deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "88943a63c43d3764b97c4418c994d7088f5321b8",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Smooth sound-effect volume transitions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "34627015d26f6424284792618ffa9b23d865eacd",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Preserve latest music volume setting",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cfc0a9bd5bd5af2435fa13881c2dda5296a7806d",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Restore scene music when re-enabled",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "955c9fc5b8d13f4ecf58f97505b68b2a6a329899",
+      "date": "2026-11-09",
+      "cat": "Music",
+      "text": "Silence scheduled music while muted",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a74be402687d9afff32fb009f8073466f4856913",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Audio: record controls and regression checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8b491cb640819bb4e47abf75270aa7dbb7a9ab81",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Audio: record completed mobile release gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c78aeab8a76aa4df80f6206c129e71e4a247d517",
+      "date": "2026-11-09",
+      "cat": "Heroes",
+      "text": "Expose hero auto-cast toggle state",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "663ef58bf2f5cf3b9bde4492b6eec665ee331a4e",
+      "date": "2026-11-09",
+      "cat": "Towers",
+      "text": "Expose armed tower placement controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4545bff2ed18e243009ba5ce8e283a454141c1c9",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Ship responsive audio and accessible controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cf49f45a0869ef9545a57640e66f07d39d6a9225",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Record verified audio deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e4269aba63e6e6d6627f0ec1c7b93a2c68df2ac4",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: clarify conveyor refunds and preserve focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5471e5d00974f316c210655fcc609c3892552f65",
+      "date": "2026-11-09",
+      "cat": "Audio",
+      "text": "Avoid duplicate conveyor recycle cue",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "738cd924630b3fa49ae6b19d040dd8956b5e9111",
+      "date": "2026-11-09",
+      "cat": "Towers",
+      "text": "Keep tower confirmations keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a50fc9bcda27402f35e9fb1b826f2c8aa2c774d2",
+      "date": "2026-11-09",
+      "cat": "UI",
+      "text": "Ui: retain focus after completed branch upgrades",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4ae0d15ecca52bda8a03a14b0ee34e1170f54050",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish clearer battlefield choices and Hive safeguards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c9a6a65bd54752effd1be5927b502282f772232f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified battlefield release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9428fa1863f89927fd43efe29ef5e03d37ff8df4",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify accessible run control states and costs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4d21ded52f983ea35f9b847cad773bfde401f7aa",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Show effective hero ability readiness",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "cec6e8b3f75171ed14b0fdd03e2aa85946a94638",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Align selected hero cooldown readouts with combat",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7f348090b77c007f85b3548b349db85b452ee0ce",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Report observed hero attack and pulse cadence",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b7eeefd9a9c934ef6bd2913f246975c9496e59e1",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: align recovery countdowns with revival modifiers",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7dea6a6121d480be75e2a8b9af9d7fff72bba947",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep active ability gauges stable through upgrades",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a6249d385614942cfe6d902b987330b4ecb1c2d9",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Publish clearer run controls and hero readouts",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2bae012e75a8ea96037028bd020b8a30ee3d06e3",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified run controls deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7741797b8b276db42cee786e7c935141fe83b30a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: give account level notices time to be read",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c62fb01ebf9f955430242bc2a3366a77a1e4f694",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve keyboard focus while dismissing rewards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6c7d2ea9f115bbbc97889fde4542280c895c3145",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep container notifications readable and keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "12be6e85dfe2d662eaa5f08c08403c213dcda63d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: defer update prompts until the hub",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a89e5371ef87da7c5830617a4075c725a8ae1bd3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Clarify achievement status and rewards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "41aa41606df42d60da90251e7638b9d1fd257114",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain trophy rack states and unlocks",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0adabebb0a4d54cfd871f7da2a6c7b4b94deab03",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make achievement milestones searchable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e176563d06bd43881dabd1a579bea51d21f0521e",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Ship readable rewards and progression controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "660656c8e498a22b2f2bb19a611fa9d51d2f6491",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record readable rewards production verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b1d86201c8fa2281fc6ba9b3b4cf35f6a12ae5d0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make profile power explanations expandable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "184460c6ffa489497344fd000a0e5094e4ca3bd0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make career explanations readable on demand",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f5db1eb2b79bce563ee7879b782f789675aaea89",
+      "date": "2026-11-10",
+      "cat": "Backend",
+      "text": "Improve leaderboard recovery and loading feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9ec9fbb1c8b8fb588a55c8e19773282a8517c91b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: recover replay sharing when clipboard access fails",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0a21f153c1a45bcba76c097ceeacb9be37431fd8",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: improve replay keyboard controls and skip behavior",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3d6e652d750424bbfea5fbf34445ac45b41c5da3",
+      "date": "2026-11-10",
+      "cat": "Audio",
+      "text": "Audio: keep replay outcome skips quiet",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "55763a86c6c174109857f07e4569a0e08ca413eb",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: accept replay links and guard pending input",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8bca53e653f88178fe17a6f189133024a1e0760b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish Progress Explained with eight notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "35a8153e643d37174abc532f4a4db794afb54353",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Progress Explained deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "97b70426fca84ffd2813703e62c00099a373a37b",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: align next release window with verification time",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ea2eece36de4235202dd4cc7bedc07cba53974f3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make update briefings keyboard readable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a064a1d69276e54b0b4020f45f55ee2491ab0e86",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep unlock introductions keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b80b67190385b281228dd50a74b2028bbb6b633c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make Help topics easier to read and revisit",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1a3838c4d0e4083f5a1641dd1055bb1b59de3550",
+      "date": "2026-11-10",
+      "cat": "UX",
+      "text": "Honor live motion preferences in tutorial text",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "22c4fb2c1304ba8e2e6a454be85e0a7249a9b77c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Restore useful focus after field guides",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d1642e26c1bc1459e536c94c1beb6cdd97e4d1c6",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Clearer Briefings with five notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "af1232f0e1310236311c09b5f8489f5598049365",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Clearer Briefings deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "20ba0c4d33a9c42f9315435b81b2a2c834b81fd8",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Apply cutscene motion preferences live",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7f969db1e1942b59cdaaff752e7e4a5ee2451ea0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion settings through the opening film",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "068efbed318f822b40bb6dff7fd4372d06fab145",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Preserve cutscene reading time in hidden tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8941c2ca3553b394141ccef286dfd0e5d69e52f5",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve opening-film progress while hidden",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "82998411c90caf74ec77d5c847e6bc1645b708a0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Films That Follow You",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "683ca4b39b37d852a8b87090d12483cd4ed8181e",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified cinematic release deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2d318f3a38df5d97a71c9a28a808e1f3749fe0e3",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make recovered memories easier to find and replay",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f832f0871e29531214478252e6305832ca53006a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make collection celebrations accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0d31f13445298a45c5938171f73dff8e6fbad6fd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve focus while browsing collection categories",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2d2fbedda27ffa27224a29686e16f67d6b4c365f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify undiscovered collection entries",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ef23cd94645fb615829db50782b1c3f4d5a38693",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: prepare collection update and record regression gates",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e081e6e52b5657f0b7051288076a7a2d17496769",
+      "date": "2026-11-10",
+      "cat": "Music",
+      "text": "Enlarge music console touch targets",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7f18a4f7fe74450f26650da823b789ce5bb4468d",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Memories Within Reach",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "76fbbb680a86e774470a01d20504af4c8b2f2ee3",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified collection release deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5563bacbddb3e3893c4abe18b0aa37997c3c0a7a",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: preserve backups and report write failures",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c1df2d921afd37fddc7c105e64f713d0bfdd8a4f",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: confirm restores and preserve recovery snapshots",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "030b6d89ae147e0421ac79d6dda28d8f698769ad",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Review save files before importing progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a04cc8767add42bb361853edaf6108b7fb1d1b5c",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: commit imports before replacing session progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2266190579c7b5925160a5f28ca4292192b18eeb",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Save: preserve live progress and tab ownership on restore",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bfb1de802afba14854d505dddac66bb3731fc387",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: prepare Progress You Can Trust with five notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b441f62cf0512d7da5c8d0692d53d3927fead962",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Progress You Can Trust",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a8e6b4da3caf43018ce3346a38edca395e3394cb",
+      "date": "2026-11-10",
+      "cat": "Gameplay",
+      "text": "Record verified save-management deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "346b9d3fd4f274f8887ad893729f6974bafc7e5b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make incoming wave intel readable and explicit",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "21102f9e37656a800130d0f9338f46c1516fce60",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Constrain wave details to the battlefield",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f9d6f03225aa37b9ec0652a1417fe585636e5009",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Give compact wave details room to read",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "491024e540fb18e2eeba92b89aab3c5fd3a76624",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain active run conditions in the drawer",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a28e86d0799111a14d9c9fa4faa01e5262057c91",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: prepare Know What Is Coming with two notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8950ec0d44d7f3959d988c4e6460b42f0a468ca0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Know What Is Coming",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6754688b03e7de845a15aca06e561d0e94cad3ec",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified intel deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "57569d2c07c2d290b455a654b77a1bd6af612e6c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: make bond explanations accessible and run accurate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb5c069c318fd4a1979c94346b23d882cc34b21b",
+      "date": "2026-11-10",
+      "cat": "Gene Cards",
+      "text": "Make drafted gene descriptions readable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "52267c383b18fe9eb600e29aaae7ea35c4d8eb4d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Keep HUD explanations on screen",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d1b0132a6589d2f1e3a5874d6a60a377fda47b37",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Prevent wave starts while reading HUD help",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d35b3fde4c1aa571840f4f61afa667db75a997da",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: seal Read Your Build notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1ec6dec9a155fffe5e88543a4a694010ea352a1f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: record final build and drawer diagnostic",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "48b2f2a81ac463b53708ffcc2aab5b11f7f7cfdc",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Read Your Build",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1637569b94fedb14a202eaa31bf4d0a8e9aac8e6",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified Read Your Build deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3e8169510e0005447a5aed09e642c4ad3bb5796b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain automation controls on touch and keyboard",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c078929bb5d3733197153b9f6c1856071ae5f9e0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record automation build and active mobile gate",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ed1c8e8f1a6da280a5305894e9c111d24cebd4a0",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record mobile pass and narrow control review",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "81c4804926e846e25b72a0ce52da3c04f4a5b024",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep early call reachable on narrow phones",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "27819687d429ebbc3a6467d99b191873a9cd1953",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences on world status",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f084b8cb56f5e59a1943d2a4eba3c454a4fd2a24",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: prepare Know Your Controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2400521c2dbf87dda58e5e9f5d161fb4800e6cd2",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Know Your Controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e6ad531515d92ec832ddd2277359464c51ac74fc",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified controls deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e74e507f2ec3472ceb2fb61e5bdb5d5c478aec80",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Respect live motion settings on infestation map",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8a96f378fbd54ca0936d823e352674ddedde4d5b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Expose infestation feed selection state",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "75c147ed5eaa817599f61ab56f5adaea648b240d",
+      "date": "2026-11-10",
+      "cat": "Gene Cards",
+      "text": "Honor motion preferences in equipment card art",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "551a76f07faf54609c805623b4679f1b23e9be9d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve gear inspection with reduced motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "92b6941bd830f53ffd3412aa6c07d35befc02eab",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard gear preview rotation controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f605db7e53ff6be32536c18bce2bd3ef925e179e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep salvage confirmation visible and keyboard contained",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "23c040a915f0b6a8e7d053f02c554a91dd6df0d9",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: prepare Clearer Gear and Motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fdd8131f40aaed078f0c7e3932e8192accf95127",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish Clearer Gear and Motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5bc81994075eb4755fdaabf5c85d84a7ed073136",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified gear and motion deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2401a8fd3e3fd4c1a6ef357cbfb02f1ae8defac7",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Explain disabled equipment upgrades",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5e78a28d952c3731936fc837aae5cd3e89ad0813",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: contain and restore item details keyboard focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9b2af4c1a293c4fd153bd7ed762d672df515fdd4",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Keep pause settings comfortable on touchscreens",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a43c562add09f658bdc14a47b191dc8bfd3e668a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify quest progress rewards and claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2a0cf6b1af2204b6677983579aa6ba583bf16ad2",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Refresh the visible weekly contract board",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "316bca10cb32f1f4085dffc675cea992fec2de1a",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep armory filters recoverable after inventory changes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "309a9818d0f261232fc06293dce99ab473f2e0dd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: show salvage selections hidden by filters",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "73b564bbe72b1d9edf7741283b09679ee6d40c30",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer progress and gear",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "12982a9d0cef31d5bf35a9b10887cbe14f301d8f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified clearer progress deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fd2a2d79eee8a163538a8c58e9f5596d9d3df30d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve keyboard position after quest claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b8575c5d9ab1b4a8cf6522ba6643bf8f24abed23",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: retain board focus after batch quest claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c66a8a13e2333e2e640686502cb7589ff7b5eebd",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: anchor keyboard quest celebrations to claims",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bd295e7da91a53d999aa7028da6490dcc4dfc13e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences for quest bursts",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fa2fc27aa38e453c0c0c50e380c350f0f17348ef",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Expose accessible live loot meter progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "58ae45f5ad7707d74d2a5233210f884f659ef1c0",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Honor motion override for loot celebrations",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4e5b2c81beab8155bd5d6b9c46aa220d045f3c3d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Explain unopened loot rewards accurately",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7d75368646dd760a8c1c3b4610d4a41feb5a4d58",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: retain keyboard focus after reward reveal skip",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "da7800db61388e86c9a7a987b6bb823a6bd48e20",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer reward feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fc8fed3ae09de72b60cc77bd64066ad2838d63d5",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified reward feedback deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59e01366cbc12020b6d60d2904a57c29cee04b3c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify empty help searches and recovery",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "829c2c44d7669e8cfc5be33110b0e7c8c7c753cc",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: pause graft previews and follow live motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "71100c63cf8f2a507df1533751745d54ba6234a9",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: pause nucleus previews and follow live motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7c39ffd7be0708e46752d267e79b64e65bdefb78",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep reforge reveals visible and keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0998a782c7fa4fc8cf1586aaa0abcb361f765d7b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: follow live motion preferences in reforge reveals",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2307a64e9b462c1c1dc0c49fd52ad0de32bd38b6",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: synchronize reward reveals with live motion preferences",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "251bfdf5966477e508c36cd2fc810a7e80d3de6e",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: clarify nucleus socket selection and preserve focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "98802f15b0593309c864a45376d845173e96fb8c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve focus through nucleus chamber opening",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9060e09a7e98ae12c569b0dca8e137eed2012a00",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Release: publish clearer help and previews",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "98be43b606aae680cafe901467890537ff16888e",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified help and previews deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7d4c867e66920956dd446c743bf32181ed004e73",
+      "date": "2026-11-10",
+      "cat": "Developer Tools",
+      "text": "Dev: make regression validation launch reliably on Windows",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e43f8089d0bde2877776cb08da02f73ad7491293",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: keep adaptation reveals visible and keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "6b23be63aac43bc8ba3a51a8ac15efdd43077c0b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard navigation to graft host tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "59d3baad355c606b68fcaaf8d63cf1aea5ac603f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Show the correct graft upgrade currency and binding guidance",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "85fb4883d2cb155bd5d42573535ff5d61e2fe1b3",
+      "date": "2026-11-10",
+      "cat": "Gene Cards",
+      "text": "Navigate harvest recommendations to their upgrade cards",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e15b1827f86bdb6c8c722d7e049091a12260d98d",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish clearer upgrade controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f2fea73ad605a9f89696e22bf2c4bea4222a2e6a",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified upgrade controls release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "faffe6ff96f1bf71ded77962b701a1a01726ca69",
+      "date": "2026-11-10",
+      "cat": "Developer Tools",
+      "text": "Dev: isolate test and production validation environments",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1869407950ca8cbcb25a4e7054e9cd41ae116245",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve harvest upgrade focus and growth feedback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "50e7885bfee2d7a41bba43f17386a07ec4e70001",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Explain harvest upgrade costs and requirements",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "60da498151354361c77fe57a0c4f3ed2b16b774f",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Pause hidden hive diagram animations",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3373670aff71483d1928ef138a6cfa0cea4b5411",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: preserve focus through hive organ reveals",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "528569aef1f0afa921ab00fc51964d851ad81f3c",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: add keyboard navigation to hosted page tabs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2ce05c110bfb35e9c37dba1bbf7c7dbf957a1833",
+      "date": "2026-11-10",
+      "cat": "Heroes",
+      "text": "Keep focus with dispatched expedition teams",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bd8624a1cd353b8ad34fff389afd6324b409e331",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Release: publish smoother growth and navigation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "119c194eefb9e80e0a53720c32f1356ac6aac30f",
+      "date": "2026-11-10",
+      "cat": "Framework",
+      "text": "Docs: record verified growth and navigation deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "52e75f66b340acc4a6acd6c54856a073a959ec9b",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Clarify equipment codex bonus units",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "de9bc185c3f095271f9245fdc52b89fb1ba41cea",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Make the equipment codex searchable",
+      "internal": true,
+      "needsReview": false
     },
     {
       "sha": "72f0432dcb56ec3ff33db203494cc6ee9152e80e",

@@ -6,8 +6,9 @@
 // library. All reads flow through mulliganLabView; all writes through the meta pipeline. Menu-only —
 // never touches the sim.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { meta } from '../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 import { TOWER_DEFS } from '../core/config';
 import type { TowerKind } from '../core/types';
 import { mulliganLabView, recommendModifiers } from '../state/mulliganLabModel';
@@ -26,6 +27,7 @@ import { drawMulliganOrganism } from '../render/mulliganOrganism';
 import { NucleusChambers } from './NucleusChambers';
 import { TowerPortrait } from './TowerPortrait';
 import { MobileSection } from './components/MobileSection';
+import { Popup } from './components/Popup';
 import { ProgressBar } from './components/ProgressBar';
 import { PowerPreview } from './components/PowerScore';
 import { audio } from '../audio/sound';
@@ -43,6 +45,7 @@ const SORT_LABEL: Record<ModSort, string> = {
  *  DPR-crisp; draws a single static frame under prefers-reduced-motion (the organism is information,
  *  not ambience — it must still be visible); rAF self-pauses while the tab is hidden. */
 function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
+  const organism = meta.use().mulligans?.[kind];
   const ref = useRef<HTMLCanvasElement>(null);
   const SIZE = 220;
   useEffect(() => {
@@ -56,23 +59,50 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
     const draw = (now: number): void => {
       ctx.clearRect(0, 0, SIZE, SIZE);
       const cx = SIZE / 2, cy = SIZE / 2, r = 46;
-      const st = meta.get().mulligans?.[kind];
+      const st = organism;
       const resolved = resolveMulligan(st, TOWER_DEFS[kind].combatClass);
       // The organism wraps the host: organs behind the body AND reaching over it (battlefield layering).
       if (st) drawMulliganOrganism(ctx, cx, cy, r, resolved, st.visualSeed, st.animSeed, now, 0);
       drawTowerForm(ctx, kind, cx, cy, r, TOWER_DEFS[kind].color, now, 0, 1);
       if (st) drawMulliganOrganism(ctx, cx, cy, r, resolved, st.visualSeed, st.animSeed, now, 0);
     };
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { draw(0); return; }
     let raf = 0;
-    const t0 = performance.now();
+    let visible = true;
+    let elapsed = 0;
+    let previous: number | null = null;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     const loop = (nowMs: number): void => {
-      draw((nowMs - t0) / 1000);
+      if (previous !== null) elapsed += (nowMs - previous) / 1000;
+      previous = nowMs;
+      draw(elapsed);
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [kind]);
+    const sync = (): void => {
+      cancelAnimationFrame(raf);
+      previous = null;
+      if (!visible || document.hidden) return;
+      if (resolveMotion(prefs, media?.matches ?? false).motion === 0) draw(0);
+      else raf = requestAnimationFrame(loop);
+    };
+    draw(0);
+    const observer = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer?.observe(cv);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; sync(); });
+    media?.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      offPrefs();
+      media?.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, [kind, organism]);
   return <canvas ref={ref} className="mgl-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />;
 }
 
@@ -83,6 +113,18 @@ function OrganismPreview({ kind }: { kind: TowerKind }): JSX.Element {
 function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClose: () => void }): JSX.Element {
   const ref = useRef<HTMLCanvasElement>(null);
   const [landed, setLanded] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const acceptRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.focus();
+    return () => {
+      if (!opener?.isConnected) return;
+      const target = opener.matches(':disabled') ? opener.closest<HTMLElement>('.mgl-rf-slot') : opener;
+      target?.focus();
+    };
+  }, []);
+  useEffect(() => { if (landed) acceptRef.current?.focus(); }, [landed]);
   const SIZE = 300;
   const target = REFORGE_MODS.findIndex((m) => m.id === mod.id);
   useEffect(() => {
@@ -94,48 +136,69 @@ function ReforgeWheelOverlay({ mod, onClose }: { mod: MulliganReforgeMod; onClos
     cv.height = SIZE * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const finalAngle = angleForSegment(target) - 4 * Math.PI * 2; // four full revolutions in
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      drawReforgeWheel(ctx, SIZE, angleForSegment(target), 0.9, target);
-      setLanded(true);
-      return;
-    }
     const t0 = performance.now();
     const DUR = 2600;
     let raf = 0;
+    let done = false;
+    let prefs = motionPrefs();
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const syncMotion = (): void => {
+      if (done || resolveMotion(prefs, media?.matches ?? false).motion !== 0) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      drawReforgeWheel(ctx, SIZE, angleForSegment(target), 0.9, target);
+      setLanded(true);
+    };
     const loop = (now: number): void => {
       const p = Math.min(1, (now - t0) / DUR);
       const ease = 1 - Math.pow(1 - p, 3); // cubic ease-out — a heavy organ spinning down
       const angle = finalAngle * (1 - ease) + angleForSegment(target) * ease
         + (1 - ease) * 0; // finalAngle already encodes the revolutions
       drawReforgeWheel(ctx, SIZE, angle, now / 1000, p >= 1 ? target : -1);
-      if (p >= 1) { setLanded(true); audio.cue('graftCrack'); return; }
+      if (p >= 1) { done = true; setLanded(true); audio.cue('graftCrack'); return; }
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; syncMotion(); });
+    media?.addEventListener('change', syncMotion);
+    syncMotion();
+    if (!done) raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      offPrefs();
+      media?.removeEventListener('change', syncMotion);
+    };
   }, [target]);
   const tier = REFORGE_RARITY[mod.rarity];
   return (
-    <div className="rfw-overlay" role="dialog" aria-label="Mulligan reforge" onClick={landed ? onClose : undefined}>
-      <div className="rfw-card" onClick={(e) => e.stopPropagation()}>
-        <div className="rfw-badge">⊛ REFORGE — THE WHEEL DECIDES</div>
-        <canvas ref={ref} className="rfw-canvas" style={{ width: SIZE, height: SIZE }} aria-hidden />
-        {landed && (
-          <div className="rfw-result" style={{ ['--rc' as string]: tier.color }}>
-            <span className="rfw-rarity">{tier.label}</span>
-            <span className="rfw-name">{mod.name}</span>
-            <span className="rfw-desc">{mod.desc}</span>
-            <span className="rfw-bound">⚠ This organism is now BOUND to its host — permanently.</span>
-            <button className="primary rfw-go" onClick={onClose}>Accept the graft ▸</button>
-          </div>
-        )}
-        {!landed && <div className="rfw-spinning">the iris turns…</div>}
+    <Popup>
+      <div ref={dialogRef} className="rfw-overlay" role="dialog" aria-modal="true" aria-label="Mulligan reforge" tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            (acceptRef.current ?? dialogRef.current)?.focus();
+          }
+        }} onClick={landed ? onClose : undefined}>
+        <div className="rfw-card" onClick={(e) => e.stopPropagation()}>
+          <div className="rfw-badge">⊛ REFORGE — THE WHEEL DECIDES</div>
+          <canvas ref={ref} className="rfw-canvas" style={{ width: '100%', maxWidth: SIZE, height: 'auto' }} aria-hidden />
+          {landed && (
+            <div className="rfw-result" style={{ ['--rc' as string]: tier.color }}>
+              <span className="rfw-rarity">{tier.label}</span>
+              <span className="rfw-name">{mod.name}</span>
+              <span className="rfw-desc">{mod.desc}</span>
+              <span className="rfw-bound">⚠ This organism is now BOUND to its host — permanently.</span>
+              <button ref={acceptRef} className="primary rfw-go" onClick={onClose}>Accept the graft ▸</button>
+            </div>
+          )}
+          {!landed && <div className="rfw-spinning">the iris turns…</div>}
+        </div>
       </div>
-    </div>
+    </Popup>
   );
 }
 
 export function MulliganLab(): JSX.Element {
+  const labId = useId();
   const save = meta.use();
   const view = mulliganLabView(save);
   const [selected, setSelected] = useState<TowerKind>(view.towers[0].kind);
@@ -145,6 +208,14 @@ export function MulliganLab(): JSX.Element {
   const [wheel, setWheel] = useState<MulliganReforgeMod | null>(null); // §reforge — the spinning ceremony
   // §adaptations — the COMPLETE CLASS ADAPTATION ceremony (set on the equip that completes it).
   const [adaptCeremony, setAdaptCeremony] = useState<{ cls: CombatClass; title: string; desc: string } | null>(null);
+  const adaptationContinue = useRef<HTMLButtonElement>(null);
+  const graftHost = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!adaptCeremony) return;
+    const host = graftHost.current;
+    adaptationContinue.current?.focus();
+    return () => { if (host?.isConnected) host.focus(); };
+  }, [adaptCeremony]);
   const tv = view.towers.find((t) => t.kind === selected) ?? view.towers[0];
 
   // §gate — the pillar is sealed until three DISTINCT Mega Bosses have fallen (accounts
@@ -289,11 +360,26 @@ export function MulliganLab(): JSX.Element {
 
       <div className="mgl-body">
         {/* ── Host rail: one row per tower, organism status at a glance (scales to a 100-tower roster) ── */}
-        <div className="mgl-rail" data-guide="mulligan-rail" role="tablist" aria-label="Graft hosts">
+        <div className="mgl-rail" data-guide="mulligan-rail" role="tablist" aria-label="Graft hosts"
+          onKeyDown={(e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+            const tabs = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+            const current = tabs.findIndex((tab) => tab === document.activeElement);
+            if (current < 0) return;
+            e.preventDefault();
+            const index = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+              : (current + (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1) + tabs.length) % tabs.length;
+            tabs[index].focus({ preventScroll: true });
+            tabs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            tabs[index].click();
+          }}>
           {view.towers.map((t) => (
             <button
               key={t.kind}
               role="tab"
+              id={`${labId}-host-${t.kind}`}
+              aria-controls={`${labId}-panel`}
+              tabIndex={t.kind === selected ? 0 : -1}
               aria-selected={t.kind === selected}
               className={`mgl-item${t.kind === selected ? ' on' : ''}`}
               style={{ ['--tw' as string]: t.color }}
@@ -317,7 +403,7 @@ export function MulliganLab(): JSX.Element {
         </div>
 
         {/* ── Showcase: one host's organism ── */}
-        <div className="mgl-showcase" style={{ ['--tw' as string]: tv.color }}>
+        <div className="mgl-showcase" role="tabpanel" id={`${labId}-panel`} aria-labelledby={`${labId}-host-${tv.kind}`} tabIndex={0} style={{ ['--tw' as string]: tv.color }}>
           <div className="mgl-hero">
             <div className={`mgl-chamber${tv.active ? ' is-awake' : ''}`} role="img" aria-label={`${tv.name} graft chamber${tv.active ? ' — organism awake' : ' — dormant'}`}>
               <span className={`mgl-chamber-tag${tv.active ? ' is-awake' : ''}`}>
@@ -327,7 +413,7 @@ export function MulliganLab(): JSX.Element {
             </div>
             <div className="mgl-id">
               <span className="mgl-eyebrow">Graft Host</span>
-              <span className="mgl-name" style={{ color: tv.color }}>{tv.name}</span>
+              <span ref={graftHost} tabIndex={-1} role="heading" aria-level={3} className="mgl-name" style={{ color: tv.color }}>{tv.name}</span>
               <span className="mgl-identity">
                 {tv.active
                   ? <>Awake — <b className="mgl-axis">{tv.dominant}</b> organism</>
@@ -369,7 +455,7 @@ export function MulliganLab(): JSX.Element {
           <div className="mgl-block">
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Graft Sites</span>
-              <span className="mgl-block-hint">level with <CurrencyIcon id="geneEssence" size={12} title="Gene Essence" /> Gene Essence · ascend a maxed graft to the next rarity</span>
+              <span className="mgl-block-hint">level with <CurrencyIcon id="mulliganTissue" size={12} title="Mulligan Tissue" /> Mulligan Tissue · ascend a maxed graft to the next rarity</span>
             </div>
             <div className="mgl-slots">
               {tv.slots.map((s) => s.filled ? (
@@ -391,15 +477,15 @@ export function MulliganLab(): JSX.Element {
                   <div className="mgl-slot-actions">
                     {!s.maxed && (
                       <button className="mgl-btn" disabled={!s.canAfford} onClick={() => upgrade(s.index)}
-                        title={`${s.upgradeCost!.toLocaleString()} Gene Essence`}>
-                        Level up · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.upgradeCost!.toLocaleString()}
+                        title={`${s.upgradeCost!.toLocaleString()} Mulligan Tissue`} aria-label={`Level up · ${s.upgradeCost!.toLocaleString()} Mulligan Tissue — ${s.name}`}>
+                        Level up · <CurrencyIcon id="mulliganTissue" size={12} title="" /> {s.upgradeCost!.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && s.nextRarity && s.ascendCost != null && (
                       <button className="mgl-btn is-ascend" disabled={!s.ascendable} onClick={() => ascend(s.index)}
                         style={{ ['--mg' as string]: MULLIGAN_RARITY[s.nextRarity].color }}
-                        title={`${s.ascendCost.toLocaleString()} Gene Essence`}>
-                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · <CurrencyIcon id="geneEssence" size={12} title="" /> {s.ascendCost.toLocaleString()}
+                        title={`${s.ascendCost.toLocaleString()} Mulligan Tissue`} aria-label={`Ascend → ${MULLIGAN_RARITY[s.nextRarity].label} · ${s.ascendCost.toLocaleString()} Mulligan Tissue — ${s.name}`}>
+                        Ascend → {MULLIGAN_RARITY[s.nextRarity].label} · <CurrencyIcon id="mulliganTissue" size={12} title="" /> {s.ascendCost.toLocaleString()}
                       </button>
                     )}
                     {s.maxed && !s.nextRarity && <span className="mgl-apex">APEX — fully ascended</span>}
@@ -440,7 +526,7 @@ export function MulliganLab(): JSX.Element {
               )}
               <div className="mgl-rf-slots">
                 {tv.reforge.slots.map((r) => (
-                  <div key={r.index} className={`mgl-rf-slot${r.mod ? ' is-rolled' : ''}`} style={r.mod ? { ['--rc' as string]: r.mod.color } : undefined}>
+                  <div key={r.index} tabIndex={-1} className={`mgl-rf-slot${r.mod ? ' is-rolled' : ''}`} style={r.mod ? { ['--rc' as string]: r.mod.color } : undefined}>
                     <span className="mgl-rf-idx">{r.index + 1}</span>
                     {r.mod
                       ? <span className="mgl-rf-mod"><b>{r.mod.name}</b><i>{r.mod.rarity}</i><em>{r.mod.desc}</em></span>
@@ -460,9 +546,9 @@ export function MulliganLab(): JSX.Element {
             <div className="mgl-block-h">
               <span className="mgl-eyebrow">Sequenced Modifiers</span>
               <div className="mgl-cats" role="group" aria-label="Filter by class">
-                <button className={`mgl-chip${cls === 'all' ? ' on' : ''}`} onClick={() => setCls('all')}>All</button>
+                <button aria-pressed={cls === 'all'} className={`mgl-chip${cls === 'all' ? ' on' : ''}`} onClick={() => setCls('all')}>All</button>
                 {COMBAT_CLASS_ORDER.map((c) => (
-                  <button key={c} className={`mgl-chip mgl-chip-cls${cls === c ? ' on' : ''}`} style={{ ['--cc' as string]: COMBAT_CLASSES[c].color }}
+                  <button key={c} aria-pressed={cls === c} className={`mgl-chip mgl-chip-cls${cls === c ? ' on' : ''}`} style={{ ['--cc' as string]: COMBAT_CLASSES[c].color }}
                     onClick={() => setCls(c)} title={COMBAT_CLASSES[c].role}>
                     {COMBAT_CLASSES[c].glyph} {c}
                   </button>
@@ -478,11 +564,11 @@ export function MulliganLab(): JSX.Element {
             {armedSite != null && view.owned.length > 0 && (
               <div className="mgl-arm-note" role="status">Grafting into site <b>{SITE[armedSite]}</b> — choose a modifier.</div>
             )}
-            {armedSite == null && <div className="mgl-arm-note is-full">All graft sites full — clear a site to re-graft.</div>}
+            {armedSite == null && <div className="mgl-arm-note is-full">{tv.locked ? 'Reforged organism — grafts are permanently bound. Levels and ascensions remain available up to their caps.' : 'All graft sites full — clear a site to re-graft.'}</div>}
             {view.owned.length === 0 ? (
               <p className="mgl-empty">
-                Nothing sequenced yet. Bio-Containers bleed <CurrencyIcon id="geneEssence" size={12} title="" /> Gene Essence;
-                epic-or-better containers sequence a new modifier.
+                Nothing sequenced yet. Epic-or-better Bio-Containers can sequence a modifier.
+                Use <CurrencyIcon id="mulliganTissue" size={12} title="" /> Mulligan Tissue to level and ascend grafts.
               </p>
             ) : (
               <div className="mgl-mods">
@@ -520,18 +606,21 @@ export function MulliganLab(): JSX.Element {
       </div>
       {wheel && <ReforgeWheelOverlay mod={wheel} onClose={() => setWheel(null)} />}
       {adaptCeremony && (
-        <div className="evo-unlock mgl-adapt-cine" role="dialog" aria-label="Complete class adaptation" onClick={() => setAdaptCeremony(null)}>
-          <div className="evo-rays" aria-hidden />
-          <div className="evo-card mgl-adapt-card" onClick={(e) => e.stopPropagation()} style={{ ['--cc' as string]: COMBAT_CLASSES[adaptCeremony.cls].color }}>
-            <div className="evo-eyebrow">⟡ COMPLETE CLASS ADAPTATION ⟡</div>
-            <div className="mgl-adapt-cine-glyph" aria-hidden>{COMBAT_CLASSES[adaptCeremony.cls].glyph}</div>
-            <h2 className="evo-title">{adaptCeremony.cls.toUpperCase()} SYNCHRONIZED</h2>
-            <div className="mgl-adapt-cine-name">{adaptCeremony.title}</div>
-            <p className="evo-blurb">{adaptCeremony.desc}</p>
-            <p className="mgl-adapt-cine-foot">The organism has evolved — its crown is visible on the battlefield.</p>
-            <button className="primary evo-continue" onClick={() => setAdaptCeremony(null)}>Continue</button>
+        <Popup>
+          <div className="evo-unlock mgl-adapt-cine" role="dialog" aria-modal="true" aria-label="Complete class adaptation"
+            onKeyDown={(e) => { if (e.key === 'Tab') { e.preventDefault(); adaptationContinue.current?.focus(); } }} onClick={() => setAdaptCeremony(null)}>
+            <div className="mgl-adapt-rays" aria-hidden><div className="evo-rays" /></div>
+            <div className="evo-card mgl-adapt-card" onClick={(e) => e.stopPropagation()} style={{ ['--cc' as string]: COMBAT_CLASSES[adaptCeremony.cls].color }}>
+              <div className="evo-eyebrow">⟡ COMPLETE CLASS ADAPTATION ⟡</div>
+              <div className="mgl-adapt-cine-glyph" aria-hidden>{COMBAT_CLASSES[adaptCeremony.cls].glyph}</div>
+              <h2 className="evo-title">{adaptCeremony.cls.toUpperCase()} SYNCHRONIZED</h2>
+              <div className="mgl-adapt-cine-name">{adaptCeremony.title}</div>
+              <p className="evo-blurb">{adaptCeremony.desc}</p>
+              <p className="mgl-adapt-cine-foot">The organism has evolved — its crown is visible on the battlefield.</p>
+              <button ref={adaptationContinue} className="primary evo-continue" onClick={() => setAdaptCeremony(null)}>Continue</button>
+            </div>
           </div>
-        </div>
+        </Popup>
       )}
     </div>
   );

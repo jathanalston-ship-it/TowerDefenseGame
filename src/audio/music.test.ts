@@ -5,15 +5,90 @@
 // selection (scene/rotation/progression weighting), stable per-boss theme assignment, and the
 // stinger library. See docs/MUSIC.md.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   TRACKS, TRACK_LIBRARY, LAYER_IDS, MOTIFS, STINGERS, BOSS_THEME_OVERRIDES,
-  tracksOf, pickTrack, bossTrackFor, barNotes, chordAt,
+  tracksOf, pickTrack, bossTrackFor, barNotes, chordAt, music,
 } from './music';
 import type { MusicCategory, MotifId, StingerId, TrackDef } from './music';
 
 const CATEGORIES: MusicCategory[] = ['menu', 'combat', 'boss', 'mega', 'victory', 'defeat', 'events', 'cinema'];
 const menu = TRACKS.menu;
+
+describe('music preference scene restoration', () => {
+  afterEach(() => {
+    music.stop();
+    music.setPinned(false);
+    music.setEnabled(true);
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('requests the latest muted scene and retains its boss binding on enable', () => {
+    music.setEnabled(false);
+    music.play('menu');
+    music.play('boss', { boss: 'The Devourer' });
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).toHaveBeenCalledWith('boss', { boss: 'The Devourer', force: true });
+    play.mockClear();
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it.each(['victory', 'defeat'] as const)('does not replay a stale %s on enable', (category) => {
+    music.setEnabled(false);
+    music.play('combat');
+    music.play(category);
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it('respects an explicit stop while muted', () => {
+    music.setEnabled(false);
+    music.play('menu');
+    music.stop();
+    const play = vi.spyOn(music, 'play');
+    music.setEnabled(true);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it('mutes the shared output and keeps adaptive updates silent until re-enabled', async () => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    const param = () => ({ value: 0, cancelAndHoldAtTime: vi.fn(), cancelScheduledValues: vi.fn(),
+      setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), setValueCurveAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn() });
+    const gains: ReturnType<typeof param>[] = [];
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('AudioContext', function () {
+      return { currentTime: 0, state: 'running', destination: {},
+        createGain: () => { const gain = param(); gains.push(gain); return { gain, connect: vi.fn(), disconnect: vi.fn() }; },
+        createBiquadFilter: () => ({ frequency: param(), Q: param(), connect: vi.fn() }),
+        createDynamicsCompressor: () => ({ threshold: param(), knee: param(), ratio: param(),
+          attack: param(), release: param(), connect: vi.fn() }),
+      };
+    });
+    const { music: player } = await import('./music');
+    player.play('menu');
+    const master = gains[0];
+    const designedLevel = master.value;
+    player.duck(0.5, 1);
+    player.setEnabled(false);
+    expect(master.cancelAndHoldAtTime).toHaveBeenCalledWith(0);
+    expect(master.linearRampToValueAtTime).toHaveBeenLastCalledWith(0, 0.1);
+    master.linearRampToValueAtTime.mockClear();
+    player.setDuress(0.8);
+    expect(master.linearRampToValueAtTime).not.toHaveBeenCalled();
+    player.setVolume(0.6);
+    expect(master.linearRampToValueAtTime).toHaveBeenLastCalledWith(0, 0.1);
+    player.setEnabled(true);
+    expect(master.linearRampToValueAtTime).toHaveBeenLastCalledWith(designedLevel * 0.6 * (1 + 0.22 * 0.8), 0.1);
+    player.stop();
+  });
+});
 
 /** Mirror the renderer's bar→loop-bar mapping (for harmony checks). */
 const loopBarOf = (t: TrackDef, bar: number): number =>

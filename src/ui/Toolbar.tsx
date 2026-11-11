@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import type { Game } from '../core/game';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
@@ -30,8 +31,25 @@ export function Toolbar({
   hud: HudSnapshot;
   refresh: () => void;
 }): JSX.Element {
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const consumedFocus = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    const removed = consumedFocus.current;
+    consumedFocus.current = null;
+    if (!removed || removed.isConnected || document.activeElement !== document.body) return;
+    // A consumed card must not strand keyboard focus or move it onto another recycle action.
+    const toolbar = toolbarRef.current;
+    const next = toolbar?.querySelector<HTMLElement>('.cv-deploy:not(:disabled)')
+      ?? toolbar?.querySelector<HTMLElement>('.tcard:not(:disabled)')
+      ?? toolbar?.querySelector<HTMLElement>('.conveyor');
+    next?.focus();
+  });
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
   const heroDef = HERO_DEFS[hud.hero.kind];
+  const abilityStatus = hud.hero.down
+    ? `Hero recovering — ${Math.ceil(hud.hero.respawn)}s`
+    : hud.armedAbility ? 'Armed — click the battlefield to cast.'
+      : hud.hero.abilityReady ? heroDef.ability.blurb : `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`;
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
   // The tutorial rails the SAME conveyor model as every real run (docs/TUTORIAL.md §accuracy) —
   // teaching a full classic rail the player never sees again was the #1 playtest confusion.
@@ -39,7 +57,7 @@ export function Toolbar({
   const railKinds = [hud.conveyor.favorite]; // the always-available favorite; everything else arrives on the belt
 
   return (
-    <div className="toolbar">
+    <div className="toolbar" ref={toolbarRef}>
       <div className="tower-rail" data-tut="tower-rail">
         {railKinds.map((kind, i) => {
           const def = TOWER_DEFS[kind];
@@ -55,6 +73,7 @@ export function Toolbar({
               key={kind}
               data-tut={i === 0 ? 'tower-card-first' : undefined}
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}${afford && playable ? ' is-ready' : ''}`}
+              aria-pressed={sel}
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
                 audio.resume();
@@ -109,11 +128,12 @@ export function Toolbar({
         })}
 
         {conveyorMode && (
-          <div className="conveyor" data-tut="conveyor" aria-label="Biomorph Conveyor">
+          <div className="conveyor" data-tut="conveyor" role="group" tabIndex={-1} aria-label="Biomorph Conveyor">
             {hud.conveyor.items.map((c, idx) => {
               const def = TOWER_DEFS[c.kind];
               const ready = c.growFrac >= 1;
               const armed = game.selectedConveyorId === c.id;
+              const refund = c.free ? 0 : hud.conveyor.recycleValue;
               const target = mergeTargetOf(game, c.kind);
               const mergeCost = target ? hud.conveyor.strainCostFrom[Math.max(0, Math.min(3, target.strain - 1))] : 0;
               return (
@@ -129,7 +149,9 @@ export function Toolbar({
                     {idx < 3 && <span className="hotkey" title={`Press ${idx + 2} to arm this pod`}>{idx + 2}</span>}
                   </div>
                   {!ready && (
-                    <div className="cv-grow" role="progressbar" aria-label={`Growing — ${Math.ceil(c.readyIn)}s`}>
+                    <div className="cv-grow" role="progressbar" aria-label={`${def.name} growth`}
+                      aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(Math.max(0, Math.min(1, c.growFrac)) * 100)}
+                      aria-valuetext={`${Math.ceil(c.readyIn)} seconds until ready`}>
                       <span className="cv-grow-fill" />
                       <span className="cv-timer">{Math.ceil(c.readyIn)}s</span>
                     </div>
@@ -138,6 +160,8 @@ export function Toolbar({
                     <div className="cv-actions">
                       <button
                         className={`cv-btn cv-deploy${armed ? ' is-on' : ''}${c.free ? ' is-free' : ''}`}
+                        aria-pressed={armed}
+                        aria-label={`${def.name} — ${c.free ? 'Deploy free' : `Deploy for ${hud.conveyor.deployCost} Biomass`}`}
                         disabled={!playable || (!c.free && hud.biomass < hud.conveyor.deployCost)}
                         title={c.free
                           ? `Deploy — FREE (the run-start gift)${c.strain > 1 ? ` (arrives at Strain ${ROMAN[c.strain - 1]})` : ''}`
@@ -153,11 +177,13 @@ export function Toolbar({
                       </button>
                       <button
                         className="cv-btn cv-strainb"
+                        aria-label={`Merge ${def.name}${target ? ` for ${mergeCost} Biomass` : ' — no eligible tower'}`}
                         disabled={!playable || target === null || hud.biomass < mergeCost}
                         title={target === null ? `No ${def.name} on the field below Strain V` : `Strain — consume to evolve your strongest ${def.name} to Strain ${ROMAN[Math.min(4, target.strain)]} (${mergeCost} Biomass)`}
-                        onClick={() => {
+                        onClick={(event) => {
+                          if (document.activeElement === event.currentTarget) consumedFocus.current = event.currentTarget;
                           audio.resume();
-                          if (game.strainFromConveyor(c.id) === 'ok') audio.cue('splice');
+                          game.strainFromConveyor(c.id); // the sim queues the successful purchase cue
                           refresh();
                         }}
                       >
@@ -165,15 +191,17 @@ export function Toolbar({
                       </button>
                       <button
                         className="cv-btn cv-discard"
+                        aria-label={`Recycle ${def.name} for ${refund} Biomass`}
                         disabled={!playable}
-                        title={`Discard — recycle for ${hud.conveyor.recycleValue} Biomass`}
-                        onClick={() => {
+                        title={`Discard — recycle for ${refund} Biomass${c.free ? ' (free starting organism)' : ''}`}
+                        onClick={(event) => {
+                          if (document.activeElement === event.currentTarget) consumedFocus.current = event.currentTarget;
                           audio.resume();
-                          if (game.discardConveyor(c.id)) audio.cue('dissolve');
+                          game.discardConveyor(c.id); // the sim queues one cue on success
                           refresh();
                         }}
                       >
-                        ♻ {hud.conveyor.recycleValue}
+                        ♻ {refund}
                       </button>
                     </div>
                   )}
@@ -191,9 +219,11 @@ export function Toolbar({
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
+          aria-label={`${heroDef.ability.name} — ${abilityStatus}`}
+          aria-pressed={hud.armedAbility}
           // Cooldown ring (--cd 0→1): the recharge is visible at a glance; the ring closes and
           // yields to the ready-glow the moment the ability comes back.
-          style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, heroDef.ability.cooldown))) }}
+          style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, hud.hero.abilityCdMax))) }}
           onClick={() => {
             audio.resume();
             const wasArmed = game.armedAbility;
@@ -203,18 +233,15 @@ export function Toolbar({
           }}
         >
           <BoltIcon /> {heroDef.ability.name}
-          <span className="hotkey">Q</span>
+          <span className="hotkey" title={abilityStatus}>{hud.hero.down ? `↻ ${Math.ceil(hud.hero.respawn)}s` : hud.hero.abilityReady ? 'Q' : `${Math.ceil(hud.hero.abilityCd)}s`}</span>
           <span className="tt-bubble">
-            {hud.armedAbility
-              ? 'Armed — click the battlefield to cast.'
-              : hud.hero.abilityReady
-                ? heroDef.ability.blurb
-                : 'Recharging…'}
+            {abilityStatus}
           </span>
         </button>
         <button
-          className={`autocast-btn tt${hud.autocast.on ? ' is-on' : ''}`}
-          disabled={!playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
+          className={`autocast-btn tt${(hud.hiveActive || hud.autocast.on) ? ' is-on' : ''}`}
+          aria-pressed={hud.hiveActive || hud.autocast.unlocked ? hud.hiveActive || hud.autocast.on : undefined}
+          disabled={hud.hiveActive || !playable || (!hud.autocast.unlocked && !hud.autocast.affordable)}
           onClick={() => {
             audio.resume();
             if (hud.autocast.unlocked) game.toggleAutocast();
@@ -222,9 +249,9 @@ export function Toolbar({
             refresh();
           }}
         >
-          {hud.autocast.unlocked ? (hud.autocast.on ? 'AUTO ON' : 'AUTO OFF') : `AUTO ⌁ ${hud.autocast.cost}`}
+          {hud.hiveActive ? 'HIVE AUTO' : hud.autocast.unlocked ? (hud.autocast.on ? 'AUTO ON' : 'AUTO OFF') : `AUTO ⌁ ${hud.autocast.cost}`}
           <span className="tt-bubble">
-            {hud.autocast.unlocked
+            {hud.hiveActive ? 'Hive Intelligence handles abilities. Turn it off to take control.' : hud.autocast.unlocked
               ? hud.autocast.on
                 ? 'Auto-cast ON — the hero fires its ability automatically. Click to turn off.'
                 : 'Auto-cast OFF. Click to turn on.'

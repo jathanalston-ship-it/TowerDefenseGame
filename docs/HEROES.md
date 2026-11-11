@@ -684,3 +684,5 @@ support (heals/shields/buffs/summons) stays instant. Pure data per ability
 the sim's `pendingImpacts` seam, and the test-enforced response budget are documented in
 **HERO-CINEMATICS.md**. A new hero picks existing vocabulary in its data row (the cinematics
 registry tests fail the build if a row is missing or names an unknown actor).
+
+Hero portrait glyphs read COMBAT_CLASSES directly (ui/components/HeroPortrait.tsx), including Resonant. Hero-specific colors and all combat behavior remain unchanged.

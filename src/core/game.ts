@@ -364,6 +364,7 @@ export interface RenderState {
   floats: FloatingText[];
   particles: Particle[];
   heroes: Hero[];
+  heroRecoverySeconds?: Partial<Record<HeroKind, number>>; // display time after revival modifiers
   minions: Minion[];
   phase: Phase;
   selectedTower: TowerKind | null;
@@ -600,6 +601,16 @@ export class Game {
   // Auto-start: when on, prep auto-advances to the next wave after a countdown. Off by default
   // (a player QoL toggle); the manual-start golden run never touches it.
   autoStart = false;
+  hiveActive = false;
+  private hivePulseIn = 0;
+  hiveReport: { serial: number; spent: number; actions: { label: string; detail: string; cost: number }[] } = { serial: 0, spent: 0, actions: [] };
+
+  /** Run-local toggle; standalone Auto Wave preference is preserved. */
+  setHiveActive(on: boolean): void {
+    this.hiveActive = on && this.automationAllowed && !this.tutorialMode && this.phase !== 'won' && this.phase !== 'lost';
+    this.hivePulseIn = 0;
+    this.prepCountdown = this.waveIndex === 0 ? AUTO_START_FIRST_DELAY : AUTO_START_DELAY;
+  }
   // Primary-hero AUTO-CAST (docs/HEROES.md): a one-time in-run Biomass unlock, then a free toggle.
   // Both default OFF ⇒ the primary hero stays player-triggered and the golden run never auto-casts.
   autocastUnlocked = false;
@@ -716,6 +727,10 @@ export class Game {
   private rng: Rng;
   private fxRng: Rng; // cosmetic-only stream (particles) — keeps gameplay rng pure
   private grid = new SpatialGrid<Enemy>(WIDTH, HEIGHT, PERF.spatialCell);
+  // Presentation-only cadence history: never read by combat or serialized with heroes.
+  private readonly heroAttackPeriods = new WeakMap<Hero, number>();
+  private readonly heroAbilityPeriods = new WeakMap<Hero, number>();
+  private readonly heroPulsePeriods = new WeakMap<Hero, number>();
   private enemyById = new Map<number, Enemy>(); // O(1) projectile target lookup
   private reactorCount = 0; // cached on tower placement (economy), not per tick
   private bossCount = 0; // # framework bosses on the field (gates the boss system)
@@ -1257,6 +1272,16 @@ export class Game {
     const kh = this.symbioteOf(h)?.killHaste;
     const rush = kh && this.time < h.rushUntil ? kh.mult : 1;
     return this.hmods(h).heroAttackSpeedMult * this.evo.attackSpeedMult * rush;
+  }
+  /** Remaining simulation seconds for recovery displays; never alters the internal recovery work. */
+  heroRecoverySeconds(hero: Hero): number {
+    return hero.down ? Math.max(0, hero.respawn) / (this.symbioteOf(hero)?.reviveSpeedMult ?? 1) : 0;
+  }
+  /** Keep a running cooldown gauge on its cast-time duration; upgrades affect the next cast. */
+  private heroAbilityCycleFor(hero: Hero): number {
+    return hero.abilityCd > 0
+      ? this.heroAbilityPeriods.get(hero) ?? this.heroAbilityCooldownFor(hero)
+      : this.heroAbilityCooldownFor(hero);
   }
   /** Effective ability cooldown (s): base × gear × biome × mastery × Evolution Overdrive. */
   private heroAbilityCooldownFor(h: Hero): number {
@@ -2233,7 +2258,7 @@ export class Game {
     this.autoStartReady = true;
     // Auto-start: the FIRST tower of the opening prep (before any wave) buys a longer setup
     // window, so an auto-start doesn't fire before the player finishes their opening build.
-    if (this.autoStart && this.waveIndex === 0 && this.towers.length === 1) {
+    if ((this.autoStart || this.hiveActive) && this.waveIndex === 0 && this.towers.length === 1) {
       this.prepCountdown = AUTO_START_FIRST_DELAY;
     }
     return this.towers[this.towers.length - 1];
@@ -2475,14 +2500,15 @@ export class Game {
     }
   }
 
-  /** HUD read of the bonds: every class with a fielded unit (count, tier, next threshold) — undefined
+  /** HUD read of the bonds: every class with a fielded unit (count, tier, next threshold, run level) — undefined
    *  when bonds are off. Sorted strongest first so the strip leads with what is working. */
-  private bondSnapshot(): { cls: CombatClass; count: number; tier: number; next: number | null }[] | undefined {
-    if (!this.bondLevels) return undefined;
+  private bondSnapshot(): HudSnapshot['bonds'] {
+    const levels = this.bondLevels;
+    if (!levels) return undefined;
     if (!this.bond) this.refreshBonds();
     const b = this.bond!;
     return COMBAT_CLASS_ORDER.filter((c) => b.counts[c] > 0)
-      .map((c) => ({ cls: c, count: b.counts[c], tier: b.tiers[c], next: bondNext(b.counts[c]) }))
+      .map((c) => ({ cls: c, count: b.counts[c], tier: b.tiers[c], next: bondNext(b.counts[c]), level: levels[c] ?? 0 }))
       .sort((x, y) => y.tier - x.tier || y.count - x.count);
   }
 
@@ -2974,7 +3000,7 @@ export class Game {
   }
 
   // ── HIVE INTELLIGENCE (docs/HIVE-MIND.md) — the in-run best-upgrade executive ────────────
-  //    Player-triggered ONLY (the HUD button): golden autoplay never calls these, so every
+  //    Opt-in continuous toggle (the HUD button): golden autoplay never calls these, so every
   //    golden seed is untouched by construction. All purchases ride the same public APIs a
   //    manual click uses — Power audit, ceremonies and stats all fire normally.
 
@@ -3020,7 +3046,10 @@ export class Game {
       this.floats.push({ x: WIDTH / 2, y: 330 + actions.length * 22, text: `◈ ${best.label}`, color: '#8fd0ff', life: 1.6 });
       if (this.phase === 'draft') break; // a SPLICE opened a draft — the pulse ends; the pick is the player's
     }
-    if (actions.length > 0) this.pushSfx('splice');
+    if (actions.length > 0) {
+      this.pushSfx('splice');
+      this.hiveReport = { serial: this.hiveReport.serial + 1, spent, actions };
+    }
     this.hiveReadyAt = -1; // the wallet moved — recompute the button glow immediately
     return { spent, actions };
   }
@@ -3106,6 +3135,7 @@ export class Game {
   }
 
   advance(dtReal: number): void {
+    if (this.phase === 'won' || this.phase === 'lost') this.hiveActive = false;
     if (this.paused) return;
     if (this.biomeFlash > 0) this.biomeFlash = Math.max(0, this.biomeFlash - dtReal * 0.7); // render-only transition ease (~1.4s)
     const scale = this.timeScale;
@@ -3122,6 +3152,14 @@ export class Game {
 
   private step(dt: number): void {
     this.stepCount++;
+    if (this.hiveActive && !this.tutorialMode && this.settleTimer <= 0 && (this.phase === 'prep' || this.phase === 'wave')) {
+      this.hivePulseIn -= dt;
+      if (this.hivePulseIn <= 0) {
+        this.hivePulse();
+        this.hiveRally();
+        this.hivePulseIn = HIVE_MIND.pulseSeconds;
+      }
+    }
     if (this.bondLevels) this.refreshBonds(); // CLASS BONDS: the board's set bonuses follow what is deployed
     // Danger camera (docs/CAMERA.md) — render-only, ticked in EVERY phase (combat, settle,
     // prep, won, lost) so the tension always enters deliberately and exhales smoothly.
@@ -3210,7 +3248,7 @@ export class Game {
       // HIVE CALL (docs/HIVE-MIND.md §hive-call): with Auto Wave on, on solved content, the hive calls
       // the next wave early when its forecast says the board holds with a wide margin. Off ⇒ never
       // runs (Auto Wave is off on the golden path ⇒ byte-identical).
-      if (this.phase === 'wave' && this.autoStart && this.automationAllowed && this.time >= this.hcSampleT) this.hiveCallSystem();
+      if (this.phase === 'wave' && (this.autoStart || this.hiveActive) && this.automationAllowed && this.time >= this.hcSampleT) this.hiveCallSystem();
     } else {
       // prep / draft: hero still roams; no spawns/economy/loss (overcharge is cached on
       // placement). Combat RESIDUE keeps winding down — projectiles coast out + fade, acid pools
@@ -3228,7 +3266,7 @@ export class Game {
       // taken their first setup action (autoStartReady). Off by default ⇒ the manual-start golden
       // run is byte-identical; consumes no rng. While armed-but-not-ready the countdown is frozen
       // (the HUD shows "Waiting for first placement…") so the run never auto-fires on an empty board.
-      if (this.autoStart && this.autoStartReady && this.phase === 'prep') {
+      if ((this.autoStart || this.hiveActive) && this.autoStartReady && this.phase === 'prep') {
         // REAL-TIME countdown: dividing by timeScale cancels the fast-forward step multiplier, so the
         // prep auto-start burns the same WALL time at 1×/2×/5×. timeScale is 1 on the golden path (and
         // no combat runs in prep) ⇒ byte-identical. See docs/GAME-SPEED / AUTO_START_DELAY.
@@ -4527,11 +4565,13 @@ export class Game {
         this.megaHitWeakPoint(wp, dmg, h.x, h.y, HERO_DEFS[h.kind].color);
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
+        this.heroAttackPeriods.set(h, h.attackCd);
       } else if (wp === null && dist2(h.x, h.y, bx, MEGA.bodyBandY) <= reach * reach) {
         const dmg = def.attackDamage * this.heroDamageMult(h) * this.megaChipMult();
         this.megaHitBody(dmg, h.x, h.y, bx, MEGA.bodyBandY, HERO_DEFS[h.kind].color);
         this.heroMasteryAccrual[h.kind].damage += dmg;
         h.attackCd = def.attackInterval / this.heroHaste(h);
+        this.heroAttackPeriods.set(h, h.attackCd);
       }
     }
     return true;
@@ -6438,6 +6478,19 @@ export class Game {
     }
   }
 
+  /** Keep the lead hero near the deepest live threat; native hero AI handles movement/combat. */
+  private hiveRally(): void {
+    if (this.phase !== 'wave' || this.heroes.length === 0 || this.primaryHero.down) return;
+    let target: Enemy | null = null;
+    let nearest = Infinity;
+    for (const enemy of this.enemies) {
+      if (!enemy.alive) continue;
+      const distance = this.nav.goalDistanceAt(enemy.x, enemy.y);
+      if (distance < nearest) { nearest = distance; target = enemy; }
+    }
+    if (target) this.setRally(target.x, target.y);
+  }
+
   private heroSystem(dt: number): void {
     if (this.gravebindHero !== null && this.raiseCd > 0) this.raiseCd -= dt; // Gravebind cadence (gated ⇒ golden-inert)
     for (const h of this.heroes) this.updateHero(h, dt);
@@ -6445,9 +6498,9 @@ export class Game {
     // cooldown; the primary (slot 1) stays PLAYER-triggered. The loop is empty for a single-hero run
     // ⇒ it never executes ⇒ byte-identical golden run.
     for (let i = 1; i < this.heroes.length; i++) this.autoCastHero(this.heroes[i]);
-    // Primary hero (slot 1): AUTO-CAST only when the player has bought AND enabled it — same
+    // Primary hero: purchased Auto-Cast OR the active Hive assistant uses the same
     // decision + code path as the autonomous roster. Off by default ⇒ byte-identical golden run.
-    if (this.autocastOn && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
+    if ((this.autocastOn || (this.hiveActive && this.phase === 'wave' && this.settleTimer <= 0)) && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
   }
 
   /** Autonomous ability cast for a non-primary hero: fire the signature ability the moment it's
@@ -6684,6 +6737,7 @@ export class Game {
       this.maybeReact(target);
       this.runHeroAttackKit(h, target); // weapon: cleave/chain/AoE/status/crit RE-AUTHOR the attack
       h.attackCd = def.attackInterval / this.heroHaste(h);
+      this.heroAttackPeriods.set(h, h.attackCd);
     }
   }
 
@@ -6744,6 +6798,7 @@ export class Game {
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
       h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
+      this.heroPulsePeriods.set(h, h.pulseCd);
     }
   }
 
@@ -6768,6 +6823,7 @@ export class Game {
     if (def.pulseInterval > 0 && h.pulseCd <= 0) {
       this.heroPulse(h);
       h.pulseCd = def.pulseInterval / this.heroHaste(h); // Frenzy speeds the role pulse too
+      this.heroPulsePeriods.set(h, h.pulseCd);
     }
   }
 
@@ -6804,6 +6860,7 @@ export class Game {
     if (target && h.attackCd <= 0) {
       this.fireSiegeShell(h, def, target);
       h.attackCd = def.attackInterval;
+      this.heroAttackPeriods.set(h, h.attackCd);
     }
   }
 
@@ -6875,6 +6932,7 @@ export class Game {
     this.maybeReact(target);
     this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
     h.attackCd = def.attackInterval / this.heroHaste(h);
+    this.heroAttackPeriods.set(h, h.attackCd);
   }
 
   /** The hive's SKY caste — the CINDERWYRM (Caustic strafe-flier). It never lands and never
@@ -6944,6 +7002,7 @@ export class Game {
     this.runHeroAttackKit(h, target); // weapon: cleave/chain/on-hit re-authors the strike
     this.spawnParticles(target.x, target.y, PARTICLE.acid, def.color, 0.5); // a searing pass
     h.attackCd = def.attackInterval / this.heroHaste(h);
+    this.heroAttackPeriods.set(h, h.attackCd);
     // Bank point: carry the strafe line PAST the victim (clamped to the arena).
     const ang = Math.atan2(target.y - h.y, target.x - h.x);
     h.bankX = Math.max(0, Math.min(WIDTH, target.x + Math.cos(ang) * WYRM.bankDist));
@@ -7082,6 +7141,7 @@ export class Game {
     if (delay === 0 && ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py); // relic/rule hooks fire at the cast point
     h.abilityCd = this.heroAbilityCooldownFor(h);
+    this.heroAbilityPeriods.set(h, h.abilityCd);
     this.pushSfx('ability');
     if (this.events.hasListeners('heroAbilityUsed')) this.events.emit('heroAbilityUsed', { kind: h.kind }); // drives the Combat Tutorial (golden-safe: gated on a listener)
     // The name rides ABOVE the zone (the caster repositions onto its centre) — never on its body,
@@ -8548,6 +8608,8 @@ export class Game {
       floats: this.floats,
       particles: this.particles,
       heroes: this.heroes,
+      heroRecoverySeconds: this.heroes.some((hero) => hero.down)
+        ? Object.fromEntries(this.heroes.filter((hero) => hero.down).map((hero) => [hero.kind, this.heroRecoverySeconds(hero)])) : undefined,
       minions: this.minions,
       phase: this.phase,
       selectedTower: this.selectedTower,
@@ -8661,17 +8723,18 @@ export class Game {
     const h = this.getSelectedHero();
     if (!h) return null;
     const def = HERO_DEFS[h.kind];
+    const attackPeriod = this.heroAttackPeriods.get(h) ?? (def.behavior === 'siege' ? def.attackInterval : def.attackInterval / this.heroHaste(h));
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
     const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
-    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: def.ability.cooldown }];
+    const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCycleFor(h) }];
     // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
     const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;
     const skillDefs = this.heroAbilityKits[h.kind]?.skills ?? HERO_SKILL_DEFS[h.kind];
     for (let i = 0; i < unlockedSkills && i < skillDefs.length; i++) {
-      cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown });
+      cooldowns.push({ id: `skill${i}`, label: skillDefs[i].name, remaining: Math.max(0, h.skillCd?.[i] ?? 0), total: skillDefs[i].cooldown * this.heroProgress[h.kind].cooldownMult });
     }
-    if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: def.attackInterval });
-    if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: def.pulseInterval });
+    if (def.attackRange > 0) cooldowns.push({ id: 'attack', label: 'Attack', remaining: Math.max(0, h.attackCd), total: attackPeriod });
+    if (def.pulseInterval > 0) cooldowns.push({ id: 'pulse', label: 'Pulse', remaining: Math.max(0, h.pulseCd), total: this.heroPulsePeriods.get(h) ?? def.pulseInterval / this.heroHaste(h) });
     // Buffs from live hero state (extensible — a new hero status appends a chip). Debuffs: none yet.
     const buffs: HeroStatusChip[] = [];
     if (h.shield > 0) buffs.push({ id: 'shield', label: 'Shielded', kind: 'buff', detail: `${Math.round(h.shield)} absorb · ${h.shieldTime.toFixed(1)}s` });
@@ -8692,13 +8755,13 @@ export class Game {
       name: def.name,
       combatClass: def.combatClass,
       damage: Math.round(damage),
-      attackSpeed: def.attackInterval > 0 ? this.heroHaste(h) / def.attackInterval : 0,
+      attackSpeed: def.attackInterval > 0 ? 1 / attackPeriod : 0,
       moveSpeed: Math.round(this.heroSpeed(h)),
       hp: Math.max(0, Math.round(h.hp)),
       maxHp: Math.round(h.maxHp),
       shield: Math.round(h.shield),
       down: h.down,
-      respawn: Math.max(0, h.respawn),
+      respawn: this.heroRecoverySeconds(h),
       state: h.moveState,
       target,
       cooldowns,
@@ -8738,13 +8801,13 @@ export class Game {
       hero: {
         kind: h.kind,
         down: h.down,
-        respawn: h.respawn,
+        respawn: this.heroRecoverySeconds(h),
         hp: Math.ceil(h.hp),
         maxHp: h.maxHp,
         shield: Math.ceil(h.shield), // 0 when no shield (zeroed on expiry in updateHero)
         abilityReady: h.abilityCd <= 0 && !h.down,
         abilityCd: Math.max(0, h.abilityCd),
-        abilityCdMax: this.heroAbilityCooldownFor(h),
+        abilityCdMax: this.heroAbilityCycleFor(h),
       },
       enemiesAlive: this.enemies.length,
       // Banner rides the danger-camera STATE (deliberate entry + min-hold + smooth exit,
@@ -8790,11 +8853,12 @@ export class Game {
       runHeadline: this.runPlan?.headline || undefined,
       selectedHero: this.selectedHeroView(),
       anticipation: this.tutorialWaves > 0 ? [] : this.nextAnticipation(), // the lesson has no finale to anticipate
-      autoStart: this.autoStart,
+      autoStart: this.autoStart || this.hiveActive,
+      hiveActive: this.hiveActive,
       hiveReady: this.hiveReadySnapshot(),
       threat: this.threat,
-      autoStartIn: this.autoStart && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
-      autoStartWaiting: this.autoStart && !this.autoStartReady,
+      autoStartIn: (this.autoStart || this.hiveActive) && this.autoStartReady && this.phase === 'prep' ? Math.max(0, this.prepCountdown) : 0,
+      autoStartWaiting: (this.autoStart || this.hiveActive) && !this.autoStartReady,
       autocast: { unlocked: this.autocastUnlocked, on: this.autocastOn, cost: HERO_AUTOCAST.cost, affordable: this.biomass >= HERO_AUTOCAST.cost },
       heroEvo: { levels: { ...this.heroEvoLevels }, totalOwned: heroEvoTotalOwned(this.heroEvoLevels) },
     };

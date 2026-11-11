@@ -7,7 +7,7 @@
 // buys support click / hold-to-repeat / shift×5 with the overspend guard. Opens from the HUD
 // hero summary or the E hotkey; closes with ✕ / E / Escape.
 
-import { useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import type { Game } from '../core/game';
 import type { HeroKind, HudSnapshot } from '../core/types';
 import { HERO_CRIT_BASE, HERO_EVO, HERO_EVO_CATEGORIES, deriveHeroEvoMods, heroEvoCost, heroEvoEffectLabel } from '../core/heroEvolution';
@@ -49,7 +49,7 @@ function UpgradeRow({
   const maxed = level >= HERO_EVO.maxLevel;
   // Hold-to-buy (usePressRepeat): each fire attempts ONE level; a failed buy halts the hold.
   const press = usePressRepeat(() => !maxed && onBuy(1));
-  const [flash, setFlash] = useState(0);
+  const [flash, setFlash] = useState(false);
 
   // Full comparison for the expanded state — the REAL models end to end.
   const detail = useMemo(() => {
@@ -72,7 +72,8 @@ function UpgradeRow({
   }, [cat, level, levels, maxed, powerDelta]);
 
   return (
-    <div className={`hcc-row${expanded ? ' is-open' : ''}${flash ? ' is-bought' : ''}`} key={flash}>
+    <div className={`hcc-row${expanded ? ' is-open' : ''}${flash ? ' is-bought' : ''}`}
+      onAnimationEnd={(e) => { if (e.target === e.currentTarget) setFlash(false); }}>
       <button className="hcc-row-head" onClick={onToggle} aria-expanded={expanded}>
         <span className="hcc-row-icon" aria-hidden>{cat.icon}</span>
         <span className="hcc-row-name">{cat.name}</span>
@@ -85,9 +86,10 @@ function UpgradeRow({
       <button
         className={`hcc-buy${affordable ? ' can' : ''}`}
         disabled={maxed || !affordable}
+        aria-label={maxed ? `${cat.name} fully evolved` : `Upgrade ${cat.name} for ${cost} Biomass`}
         title={maxed ? 'Maxed out' : `Hold to repeat · shift-click buys 5 · ${cost} Biomass`}
         {...press}
-        onClick={(e) => { if (e.shiftKey) { for (let i = 0; i < 4; i++) if (!onBuy(1)) break; } setFlash((n) => n + 1); }}
+        onClick={(e) => { press.onClick(e); if (e.shiftKey) { for (let i = 0; i < 4; i++) if (!onBuy(1)) break; } setFlash(true); }}
       >
         {maxed ? 'MAX' : <>{cost} ⬢</>}
       </button>
@@ -116,6 +118,7 @@ export function HeroEvolutionPanel({
   onClose: () => void;
 }): JSX.Element {
   const roster = game.heroes; // fielded champions (1–3) — tabs switch instantly, no reload
+  const rosterId = useId();
   const [selKind, setSelKind] = useState<HeroKind>(hud.hero.kind);
   const [expanded, setExpanded] = useState<string | null>(null);
   const floats = useRef(0);
@@ -143,9 +146,8 @@ export function HeroEvolutionPanel({
     const powerBefore = meta.powerWith(game.powerEffects()).score;
     const cat = HERO_EVO_CATEGORIES.find((c) => c.id === id)!;
     if (!game.buyHeroEvolution(id)) return false;
-    audio.cue('splice');
     announcePower('Hero Evolution', powerBefore, meta.powerWith(game.powerEffects()).score);
-    const lvl = (hud.heroEvo.levels[id] ?? 0) + 1; // hud refreshes next tick; show the level just reached
+    const lvl = game.heroEvoLevelsView()[id] ?? 0; // multi-buy can advance several levels before HUD refresh
     const gain = cat.op === 'mul' ? pct(Math.abs(cat.perLevel)) : pct(cat.perLevel);
     const fid = ++floats.current;
     setFloatFx((f) => [...f.slice(-3), { id: fid, text: `${gain} ${cat.name} · Lv ${lvl}` }]);
@@ -156,7 +158,6 @@ export function HeroEvolutionPanel({
 
   // Ability readout: base values folded through the LIVE evolution modifiers.
   const ab = def.ability;
-  const abCd = ab.cooldown * mods.cooldownMult;
   const abDmg = Math.round(ab.damage * mods.damageMult);
   const abRadius = Math.round(ab.radius * mods.abilityRadiusMult);
   // Gene interactions: drafted cards whose subject is a hero (docs/GENE-CARDS.md subjects).
@@ -191,10 +192,23 @@ export function HeroEvolutionPanel({
             <button
               key={h.kind}
               role="tab"
+              id={`${rosterId}-${h.kind}`}
+              aria-controls={`${rosterId}-panel`}
               aria-selected={h.kind === def.kind}
+              tabIndex={h.kind === def.kind ? 0 : -1}
               className={`hcc-tab${h.kind === def.kind ? ' on' : ''}${h.down ? ' is-down' : ''}`}
               style={{ ['--hc' as string]: d.color }}
               onClick={() => setSelKind(h.kind)}
+              onKeyDown={(e) => {
+                const index = roster.findIndex((entry) => entry.kind === h.kind);
+                const next = e.key === 'ArrowRight' ? (index + 1) % roster.length
+                  : e.key === 'ArrowLeft' ? (index + roster.length - 1) % roster.length
+                  : e.key === 'Home' ? 0 : e.key === 'End' ? roster.length - 1 : -1;
+                if (next < 0) return;
+                e.preventDefault();
+                setSelKind(roster[next].kind);
+                e.currentTarget.closest('[role="tablist"]')?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+              }}
             >
               <HeroPortrait def={d} size={30} />
               <span>{d.name}</span>
@@ -204,17 +218,17 @@ export function HeroEvolutionPanel({
         <span className="hcc-tabs-note">Evolution empowers the whole roster</span>
       </div>
 
-      <div className="hcc-body" style={{ ['--hc' as string]: def.color }}>
+      <div className="hcc-body" id={`${rosterId}-panel`} role="tabpanel" aria-labelledby={`${rosterId}-${def.kind}`} style={{ ['--hc' as string]: def.color }}>
         {/* ── VITALS — the selected champion's live numbers ── */}
         <div className="hcc-vitals">
           <div className="hcc-vname" style={{ color: def.color }}>{def.name} <span className="hcc-vclass">{def.combatClass}</span></div>
           {hero && (hero.down
-            ? <div className="hcc-down">DOWN · revives in {Math.ceil(hud.hero.respawn)}s</div>
+            ? <div className="hcc-down">DOWN · revives in {Math.ceil(game.heroRecoverySeconds(hero))}s</div>
             : <ProgressBar value={Math.round(hero.hp)} max={hero.maxHp} color={def.color} height={8} label={`${def.name} HP`} />)}
-          {hero && !hero.down && <div className="hcc-hp">{Math.round(hero.hp)} / {Math.round(hero.maxHp)}{hud.hero.shield > 0 && def.kind === hud.hero.kind ? ` · ⛨${hud.hero.shield}` : ''}</div>}
+          {hero && !hero.down && <div className="hcc-hp">{Math.round(hero.hp)} / {Math.round(hero.maxHp)}{hero.shield > 0 ? ` · ⛨${Math.ceil(hero.shield)}` : ''}</div>}
           <div className="hcc-stats">
             <span><i>Damage</i><b>{Math.round(def.attackDamage * mods.damageMult)}</b></span>
-            <span><i>Atk / s</i><b>{(mods.attackSpeedMult / def.attackInterval).toFixed(1)}</b></span>
+            <span title={def.attackInterval > 0 ? 'Basic attacks per second' : 'No basic attack'}><i>Atk / s</i><b>{def.attackInterval > 0 ? (mods.attackSpeedMult / def.attackInterval).toFixed(1) : '—'}</b></span>
             <span><i>Move</i><b>{Math.round(def.speed * mods.moveSpeedMult)}</b></span>
             <span><i>Crit</i><b>{Math.round(mods.critChance * 100)}%</b></span>
             <span><i>Armor</i><b>{Math.round(mods.armor * 100)}%</b></span>
@@ -233,7 +247,7 @@ export function HeroEvolutionPanel({
             {floatFx.map((f) => <span className="hcc-float" key={f.id}>{f.text}</span>)}
           </div>
           <div className="hcc-ability" title={ab.blurb}>
-            <span className="hcc-ab-k">{ab.name} <i>{hud.hero.abilityReady && def.kind === hud.hero.kind ? 'READY' : `↻ ${abCd.toFixed(1)}s`}</i></span>
+            <span className="hcc-ab-k">{ab.name} <i>{hero?.down ? 'RECOVERING' : (hero?.abilityCd ?? 0) > 0 ? `↻ ${Math.ceil(hero?.abilityCd ?? 0)}s` : 'READY'}</i></span>
             <span className="hcc-ab-v">
               {ab.damage > 0 && <b>{abDmg} dmg</b>}
               {ab.radius > 0 && <b>{abRadius} radius</b>}

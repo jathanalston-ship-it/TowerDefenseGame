@@ -201,6 +201,82 @@ describe('save export / import', () => {
 });
 
 describe('backups & corruption recovery', () => {
+  it('preserves supplied live progress when restoring over a pending disk save', () => {
+    const store = new SaveStore(mem());
+    store.save({ ...defaultSave(), shards: 100 });
+    const target = store.backup()!;
+    store.save({ ...defaultSave(), shards: 200 });
+    expect(store.restoreBackup(target.id, { ...defaultSave(), shards: 300 })?.shards).toBe(100);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(300);
+  });
+
+  it.each(['snapshot', 'index', 'main'] as const)('does not replace a save when an import %s write fails', (failure) => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    store.save({ ...defaultSave(), shards: 100 });
+    const main = storage.map.get('assimilate.save');
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      if ((failure === 'main' && key === 'assimilate.save') ||
+          (failure === 'index' && key === 'assimilate.save.baklist') ||
+          (failure === 'snapshot' && key.startsWith('assimilate.save.bak.'))) throw new Error('Storage full');
+      write(key, value);
+    };
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(false);
+    expect(storage.map.get('assimilate.save')).toBe(main);
+    expect(store.load().shards).toBe(100);
+    storage.setItem = write;
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(true);
+    expect(store.load().shards).toBe(999);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(250);
+  });
+
+  it('imports into an empty store while preserving the current live session', () => {
+    const store = new SaveStore(mem());
+    expect(store.importSave({ ...defaultSave(), shards: 999 }, { ...defaultSave(), shards: 250 })).toBe(true);
+    expect(store.load().shards).toBe(999);
+    expect(store.restoreBackup(store.listBackups()[0].id)?.shards).toBe(250);
+  });
+
+  it.each(['snapshot', 'index'] as const)('keeps existing backups when the %s write fails', (failure) => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    for (let i = 0; i < 10; i++) {
+      store.save({ ...defaultSave(), shards: i + 1 });
+      expect(store.backup()).not.toBeNull();
+    }
+    const before = new Map(storage.map);
+    const snapshots = store.listBackups();
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      const isIndex = value.startsWith('[{"id":');
+      if ((failure === 'index') === isIndex) throw new Error('Storage full');
+      write(key, value);
+    };
+    expect(store.backup()).toBeNull();
+    expect(storage.map).toEqual(before);
+    expect(store.listBackups()).toEqual(snapshots);
+    storage.setItem = write;
+    for (const snapshot of snapshots) {
+      const copy = mem();
+      for (const [key, value] of before) copy.map.set(key, value);
+      expect(new SaveStore(copy).restoreBackup(snapshot.id)).not.toBeNull();
+    }
+    expect(store.backup()).not.toBeNull();
+  });
+
+  it('does not publish a backup for an absent or corrupt current save', () => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    expect(store.backup()).toBeNull();
+    store.save(defaultSave());
+    expect(store.backup()).not.toBeNull();
+    storage.map.set('assimilate.save', '{broken');
+    const before = new Map(storage.map);
+    expect(store.backup()).toBeNull();
+    expect(storage.map).toEqual(before);
+  });
+
   it('backs up and restores a snapshot', () => {
     const store = new SaveStore(mem());
     store.save({ ...defaultSave(), shards: 100 });
@@ -210,6 +286,59 @@ describe('backups & corruption recovery', () => {
     const restored = store.restoreBackup(b!.id);
     expect(restored?.shards).toBe(100);
     expect(store.load().shards).toBe(100);
+    const undo = store.listBackups()[0];
+    expect(undo.id).not.toBe(b!.id);
+    expect(store.restoreBackup(undo.id)?.shards).toBe(0);
+  });
+
+  it('leaves current progress alone when the pre-restore backup cannot be written', () => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    store.save({ ...defaultSave(), shards: 100 });
+    const target = store.backup()!;
+    store.save({ ...defaultSave(), shards: 250 });
+    const before = new Map(storage.map);
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      if (key !== 'assimilate.save') throw new Error('Backup storage unavailable');
+      write(key, value);
+    };
+    expect(store.restoreBackup(target.id)).toBeNull();
+    expect(storage.map).toEqual(before);
+    expect(store.load().shards).toBe(250);
+  });
+
+  it('does not report a restore when writing the main save fails', () => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    store.save({ ...defaultSave(), shards: 100 });
+    const target = store.backup()!;
+    for (let i = 0; i < 7; i++) {
+      store.save({ ...defaultSave(), shards: i });
+      store.backup();
+    }
+    store.save({ ...defaultSave(), shards: 250 });
+    const write = storage.setItem;
+    storage.setItem = (key, value) => {
+      if (key === 'assimilate.save') throw new Error('Main save unavailable');
+      write(key, value);
+    };
+    expect(store.restoreBackup(target.id)).toBeNull();
+    expect(store.load().shards).toBe(250);
+    expect(store.listBackups().some((entry) => entry.id === target.id)).toBe(true);
+    expect(store.listBackups().length).toBeLessThanOrEqual(8);
+    storage.setItem = write;
+    expect(store.restoreBackup(target.id)?.shards).toBe(100);
+  });
+
+  it('can restore over a corrupt main save without backing up corrupt data', () => {
+    const storage = mem();
+    const store = new SaveStore(storage);
+    store.save({ ...defaultSave(), shards: 100 });
+    const target = store.backup()!;
+    storage.map.set('assimilate.save', '{broken');
+    expect(store.restoreBackup(target.id)?.shards).toBe(100);
+    expect(store.listBackups()).toEqual([target]);
   });
 
   it('recovers from a corrupt main save using the newest valid backup', () => {

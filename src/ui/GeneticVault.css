@@ -2,6 +2,8 @@
    boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
    more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
 
+.vreveal-backdrop[data-flashes="off"] :is(.hatch-flash, .rfx-flash) { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .vault-obj-core, .hatch-spores, .vreveal-backdrop.is-rare, .vreveal-backdrop.is-rare::before, .hatch-shadow, .hatch-prize-halo { animation: none; }
 }

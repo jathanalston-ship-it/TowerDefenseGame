@@ -5,7 +5,7 @@
 // (Enhance / Reroll / Reforge / Upgrade Rarity / Salvage) with live costs, and the item's story
 // (upgrade potential, power contribution, source, mod history). Reads the reactive save via meta.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
@@ -47,8 +47,8 @@ function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: R
         <span className="id-affix-explain">{affixEffectText(affix)}</span>
       </span>
       <span className="id-affix-actions">
-        <button className={`id-mini${affix.locked ? ' is-on' : ''}`} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>
-        <button className="id-mini" title={`Randomize this affix — a new type (${costLabel(randCost)})`} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
+        <button className={`id-mini${affix.locked ? ' is-on' : ''}`} aria-label={`${def?.name ?? affix.affixId} affix lock`} aria-pressed={!!affix.locked} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>
+        <button className="id-mini" aria-label={`Randomize ${def?.name ?? affix.affixId} affix`} title={`Randomize this affix — a new type (${costLabel(randCost)})`} disabled={!canRand} onClick={() => meta.randomizeItemAffix(item.uid, index)}>⤨</button>
       </span>
     </div>
   );
@@ -63,6 +63,27 @@ export function ItemDetails({
 }): JSX.Element | null {
   const save = meta.use(); // reactive: equips / reforges / salvage reflect immediately
   const [confirming, setConfirming] = useState(false); // salvage confirm dialog (tiered by rarity / power)
+  const boxRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const salvageDescriptionId = useId();
+  useEffect(() => {
+    const previous = document.activeElement;
+    boxRef.current?.querySelector<HTMLButtonElement>('.id-close')?.focus();
+    return () => {
+      if (previous instanceof HTMLElement && previous.isConnected && !previous.matches(':disabled')) previous.focus();
+    };
+  }, [uid]);
+  useEffect(() => {
+    if (!confirming) return;
+    const previous = document.activeElement;
+    const box = boxRef.current;
+    if (box) box.inert = true;
+    cancelRef.current?.focus();
+    return () => {
+      if (box) box.inert = false;
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
+    };
+  }, [confirming]);
   useEffect(() => { meta.markItemSeen(uid); }, [uid]); // opening Details clears the "NEW" badge
   const item = save.equipment.inventory.find((i) => i.uid === uid);
   const def = item ? itemDef(item.defId) : undefined;
@@ -100,8 +121,16 @@ export function ItemDetails({
   return (
     <Popup onClose={onClose}>
     <div className="cmp-overlay">
-      <div className="id-box" onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
-        <button className="id-close" onClick={onClose} title="Close">✕</button>
+      <div ref={boxRef} className="id-box" role="dialog" aria-modal="true" aria-label={`${def.name} details`}
+        onKeyDown={(e) => {
+          if (confirming || e.key !== 'Tab') return;
+          const buttons = e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+          const first = buttons[0], last = buttons[buttons.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+        }}
+        onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+        <button className="id-close" onClick={onClose} aria-label="Close item details" title="Close item details">✕</button>
 
         {/* ── Identity: large art + a LIVE preview of the hero wearing it + name + Power + management ── */}
         <div className="id-head">
@@ -124,8 +153,8 @@ export function ItemDetails({
               <button className={`id-equip${equipped ? ' on' : ''}`} onClick={() => meta.equip(hero, def.slot, equipped ? null : uid)}>
                 {equipped ? 'Unequip' : rival ? `Equip to ${heroName}` : 'Equip'}
               </button>
-              <button className={`id-mini${item.favorite ? ' is-on' : ''}`} title="Favorite (pins the item; never auto-salvaged)" onClick={() => meta.toggleFavorite(uid)}>★</button>
-              <button className={`id-mini${item.locked ? ' is-on' : ''}`} title="Lock (protect from salvage)" onClick={() => meta.toggleLock(uid)}>{item.locked ? '🔒' : '🔓'}</button>
+              <button className={`id-mini${item.favorite ? ' is-on' : ''}`} aria-label="Favorite item" aria-pressed={!!item.favorite} title={item.favorite ? 'Remove favorite' : 'Favorite (pins the item; never auto-salvaged)'} onClick={() => meta.toggleFavorite(uid)}>★</button>
+              <button className={`id-mini${item.locked ? ' is-on' : ''}`} aria-label="Item salvage lock" aria-pressed={!!item.locked} title={item.locked ? 'Unlock item for salvage' : 'Lock (protect from salvage)'} onClick={() => meta.toggleLock(uid)}>{item.locked ? '🔒' : '🔓'}</button>
             </div>
           </div>
         </div>
@@ -167,7 +196,8 @@ export function ItemDetails({
             {REFORGE_OPS.map((op) => {
               const isSalvage = op.id === 'salvage';
               const cost = reforgeCost(op.id, item);
-              const disabled = !opAvailable(op.id, item) || (!isSalvage && !canAfford(mats, cost));
+              const available = opAvailable(op.id, item);
+              const disabled = !available || (!isSalvage && !canAfford(mats, cost));
               if (isSalvage) {
                 return (
                   <button key={op.id} className="id-op danger" disabled={!!salvageBlock} onClick={requestSalvage}>
@@ -176,10 +206,23 @@ export function ItemDetails({
                   </button>
                 );
               }
+              let reason: string | null = null;
+              if (!available) {
+                if (op.id === 'upgrade') reason = `Rarity upgrades stop at ${rarityLabelOf('legendary')}.`;
+                else if (item.affixes.length === 0) reason = 'This item has no affixes to modify.';
+                else if (op.id === 'enhance' && !item.affixes.some((a) => a.tier < ceiling)) reason = `Affixes have reached this item's T${ceiling} limit.`;
+                else reason = op.id === 'enhance' ? `Unlock an affix below T${ceiling} to enhance.` : 'Unlock an affix first.';
+              } else if (disabled) {
+                const missing = ([['mutagen', 'Mutagen'], ['scrap', 'Scrap'], ['catalyst', 'Catalyst']] as const)
+                  .filter(([key]) => cost[key] > mats[key])
+                  .map(([key, name]) => `${cost[key] - mats[key]} more ${name}`);
+                reason = `Need ${missing.join(', ')}.`;
+              }
               return (
-                <button key={op.id} className="id-op" disabled={disabled} onClick={() => meta.reforgeOp(uid, op.id)}>
+                <button key={op.id} className="id-op" disabled={disabled} title={reason ?? op.blurb} onClick={() => meta.reforgeOp(uid, op.id)}>
                   <span className="id-op-h"><b>{op.icon} {op.label}</b><span className="id-op-cost">{costLabel(cost)}</span></span>
                   <span className="id-op-blurb">{op.blurb}</span>
+                  {reason && <span className="id-op-reason">{reason}</span>}
                 </button>
               );
             })}
@@ -234,9 +277,18 @@ export function ItemDetails({
           const rIdx = RARITY_ORDER.indexOf(item.rarity);
           const level = higherPower ? 'warning' : rIdx >= 3 ? 'legendary' : rIdx === 2 ? 'epic' : 'rare';
           return (
-            <div className="id-salvage-scrim" onClick={() => setConfirming(false)}>
-              <div className={`id-salvage is-${level}`} onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
-                {higherPower ? (
+            <Popup onClose={() => setConfirming(false)}>
+            <div className="id-salvage-scrim">
+              <div className={`id-salvage is-${level}`} role="alertdialog" aria-modal="true" aria-label={`Salvage ${def.name}?`} aria-describedby={salvageDescriptionId}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Tab') return;
+                  const buttons = e.currentTarget.querySelectorAll<HTMLButtonElement>('button');
+                  const first = buttons[0], last = buttons[buttons.length - 1];
+                  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+                  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+                }}
+                onClick={(e) => e.stopPropagation()} style={{ ['--rc' as string]: c }}>
+                <div id={salvageDescriptionId}>{higherPower ? (
                   <>
                     <div className="id-salvage-warn">⚠ WARNING</div>
                     <p className="id-salvage-copy">This item has <b>+{powerDiff}</b> higher Power than your equipped {slotWord}.</p>
@@ -249,13 +301,14 @@ export function ItemDetails({
                     {level === 'epic' && <p className="id-salvage-copy">Power {power}{rival ? ` vs ${rivalPower} equipped (${powerDiff >= 0 ? '+' : ''}${powerDiff})` : ''} · yields +{costLabel(salvageValue(item))}.</p>}
                     {level === 'rare' && <p className="id-salvage-copy">Yields +{costLabel(salvageValue(item))} materials.</p>}
                   </>
-                )}
+                )}</div>
                 <div className="id-salvage-btns">
-                  <button onClick={() => setConfirming(false)}>Cancel</button>
+                  <button ref={cancelRef} onClick={() => setConfirming(false)}>Cancel</button>
                   <button className="danger" onClick={doSalvage}>Salvage</button>
                 </div>
               </div>
             </div>
+            </Popup>
           );
         })()}
       </div>

@@ -8,6 +8,9 @@ export const SW_UPDATE_EVENT = 'assimilate:sw-update';
 let waitingWorker: ServiceWorker | null = null;
 let reloading = false;
 
+/** A prompt mounting after the worker's event must still see the pending update. */
+export function hasWaitingUpdate(): boolean { return waitingWorker !== null; }
+
 export function registerServiceWorker(): void {
   if (!import.meta.env.PROD || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {

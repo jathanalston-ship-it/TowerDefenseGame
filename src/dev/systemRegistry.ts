@@ -44,10 +44,10 @@ export interface SystemDef {
 
 export const SYSTEMS: SystemDef[] = [
   {
-    id: 'hive-mind', name: 'Hive Intelligence (in-run)', purpose: 'The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Golden-safe: only the player button calls it. Distinct from state/hiveIntel.ts (the HUB intel FEED).',
+    id: 'hive-mind', name: 'Hive Intelligence (in-run)', purpose: 'The in-run best-upgrade executive (player-facing HIVE INTELLIGENCE button): a pure provider-registry planner over every Biomass purchase (branch tiers, hero evolution, auto-cast, conveyor deploy/merge — future sinks register one provider), exact power-per-cost scoring with context multipliers (sparse board, heavy wave, pinned reserve), deterministic pulse execution through the same public APIs manual clicks use. Opt-in run-local continuous toggle after Campaign Stage 5; purchases and waves use the sim clock, gene picks use the existing visible draft countdown. Distinct from state/hiveIntel.ts (the HUB intel FEED).',
     files: ['src/core/hivemind.ts'],
     dependsOn: ['engine', 'content-infra', 'towers', 'heroes', 'power'],
-    powerScore: 'reads the temporary bucket for exact purchase deltas (never writes)', save: [], tutorial: [], help: [],
+    powerScore: 'reads the temporary bucket for exact purchase deltas (never writes)', save: [], tutorial: [], help: ['hive-autoplay'],
     hud: ['GameView (◈ HIVE INTELLIGENCE button + pulse ticker)'], ui: ['GameView'], collection: null, achievements: [],
     localization: 'inline-en', docs: ['docs/HIVE-MIND.md'],
   },

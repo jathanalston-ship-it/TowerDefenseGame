@@ -4,6 +4,7 @@
 // (3/5/7/10◈) earn a celebratory banner. Dismissible at any time. Pure presentation — the star was
 // already bought/persisted upstream; this only choreographs the reveal.
 
+import { useEffect, useRef } from 'react';
 import type { StepView } from './towerLabModel';
 import type { TowerKind } from '../core/types';
 import { TowerPortrait } from './TowerPortrait';
@@ -37,8 +38,22 @@ export function StarCeremony({
   onClose: () => void;
 }): JSX.Element {
   const isMilestone = milestoneStar != null;
+  const continueRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    continueRef.current?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
+  }, []);
   return (
-    <div className="tl-ceremony-backdrop" onClick={onClose}>
+    <div className="tl-ceremony-backdrop" onClick={onClose}
+      role="dialog" aria-modal="true" aria-label={`${name} upgraded to ${toStar} stars`}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault(); e.stopPropagation(); onClose();
+        } else if (e.key === 'Tab') {
+          e.preventDefault(); continueRef.current?.focus();
+        }
+      }}>
       <div
         className={`tl-ceremony${isMilestone ? ' is-milestone' : ''}`}
         style={{ ['--tw' as string]: color }}
@@ -89,7 +104,7 @@ export function StarCeremony({
           </div>
         )}
 
-        <button type="button" className="primary tl-cer-continue" onClick={onClose}>
+        <button ref={continueRef} type="button" className="primary tl-cer-continue" onClick={onClose}>
           Continue
         </button>
       </div>

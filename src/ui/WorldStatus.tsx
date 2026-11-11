@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { WorldStatusView } from './homeModel';
+import { motionPrefs, onMotionPrefs, resolveMotion } from '../state/prefs';
 
 const TAU = Math.PI * 2;
 
@@ -24,7 +25,7 @@ const MEMBRANE = hexRgb('#7ce6a0');
 
 interface Spore { x: number; y: number; r: number; vy: number; vx: number; a: number }
 
-function drawWorld(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, ws: WorldStatusView, spores: Spore[]): void {
+function drawWorld(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, ws: WorldStatusView, spores: Spore[], animate: boolean): void {
   ctx.clearRect(0, 0, w, h);
   const cx = w * 0.5;
   const cy = h * 0.52;
@@ -51,7 +52,7 @@ function drawWorld(ctx: CanvasRenderingContext2D, w: number, h: number, t: numbe
 
   // Spore field — density follows the account's development intensity.
   for (const p of spores) {
-    p.y += p.vy; p.x += p.vx;
+    if (animate) { p.y += p.vy; p.x += p.vx; }
     if (p.y < -4) { p.y = h + 4; p.x = Math.random() * w; }
     if (p.x < -4) p.x = w + 4; else if (p.x > w + 4) p.x = -4;
     ctx.fillStyle = rgba(MEMBRANE, p.a * (0.35 + 0.65 * ws.intensity));
@@ -110,6 +111,7 @@ function drawWorld(ctx: CanvasRenderingContext2D, w: number, h: number, t: numbe
 export function WorldStatus({ ws }: { ws: WorldStatusView }): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wsRef = useRef(ws);
+  const paintStillRef = useRef<(() => void) | null>(null);
   wsRef.current = ws;
 
   useEffect(() => {
@@ -119,7 +121,9 @@ export function WorldStatus({ ws }: { ws: WorldStatusView }): JSX.Element {
     if (!ctx) return;
     let raf = 0;
     let spores: Spore[] = [];
-    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let prefs = motionPrefs();
+    let still = resolveMotion(prefs, media?.matches ?? false).motion === 0;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const size = (): void => {
       const rect = canvas.getBoundingClientRect();
@@ -131,32 +135,46 @@ export function WorldStatus({ ws }: { ws: WorldStatusView }): JSX.Element {
         r: 0.6 + Math.random() * 1.6, vy: -(0.06 + Math.random() * 0.22), vx: (Math.random() - 0.5) * 0.08,
         a: 0.25 + Math.random() * 0.5,
       }));
-      if (still) frame(performance.now()); // re-render the still frame at the new size
+      if (still && !document.hidden) frame(performance.now()); // re-render at the new size
     };
     const t0 = performance.now();
     const frame = (now: number): void => {
       const rect = canvas.getBoundingClientRect();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawWorld(ctx, rect.width, rect.height, (now - t0) / 1000, wsRef.current, spores);
+      drawWorld(ctx, rect.width, rect.height, still ? 0 : (now - t0) / 1000, wsRef.current, spores, !still);
     };
     const tick = (now: number): void => {
       frame(now);
       raf = requestAnimationFrame(tick);
     };
     const play = (): void => {
-      if (still) return; // reduced motion: one composed frame, no loop
+      still = resolveMotion(prefs, media?.matches ?? false).motion === 0;
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(tick);
+      if (document.hidden) return;
+      if (still) frame(performance.now()); // one composed frame, no loop
+      else raf = requestAnimationFrame(tick);
     };
     // A hidden tab burns no frames — the organism sleeps with the player.
-    const onVis = (): void => { document.hidden ? cancelAnimationFrame(raf) : play(); };
+    const onVis = (): void => { play(); };
+    paintStillRef.current = () => { if (still && !document.hidden) frame(performance.now()); };
     size();
     const ro = new ResizeObserver(size);
     ro.observe(canvas);
+    const offPrefs = onMotionPrefs((next) => { prefs = next; play(); });
+    media?.addEventListener('change', play);
     play();
     document.addEventListener('visibilitychange', onVis);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); document.removeEventListener('visibilitychange', onVis); };
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      offPrefs();
+      media?.removeEventListener('change', play);
+      document.removeEventListener('visibilitychange', onVis);
+      paintStillRef.current = null;
+    };
   }, []);
+
+  useEffect(() => { paintStillRef.current?.(); }, [ws]);
 
   return (
     <div className={`cc-world is-era${ws.era}`} aria-label="World status">

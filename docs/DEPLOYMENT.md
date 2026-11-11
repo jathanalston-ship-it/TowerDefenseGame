@@ -344,3 +344,31 @@ Two speeds, both safe:
 2. **Source-of-truth (one commit)** — `git revert <bad-sha> && git push` on the deploying
    branch. CI rebuilds, redeploys, and the verify gate confirms production serves the
    reverted tree. Chronicle artifacts are committed data, so notes/news revert with it.
+
+## Service-worker update prompt
+
+UpdateToast stays mounted to receive waiting-worker events but hides while App is outside the idle hub (including deployment, runs, tutorials, results, roulette and live Arena). Returning to the hub reveals the pending notice; the player explicitly selects Refresh to promote the worker. hasWaitingUpdate also covers an update announced before the prompt mounts. Dismissal has localized accessible text and restores the previous connected keyboard control without moving unrelated focus. Registration and first-install reload behavior are unchanged.
+
+### Standings request feedback
+
+LeaderboardBlock retains best-effort submission/fetch behavior and provides Retry when unavailable or Refresh when ready. Loading disables duplicate requests; a status region announces loading, unavailability or board context/count. Mode changes clear previous rows, and effect cleanup ignores superseded responses. The named table has Rank/Commander/Result column headers. No endpoint, ranking, submission or score rules change.
+
+## 2026-11-10 13:33 UTC — Progress Explained live
+
+v2026.11.10.3 Progress Explained deployed at SHA8bca53e653f88178fe17a6f189133024a1e0760b. Actions42794604361 completed SUCCESS including the exact-SHA production guard. Normal custom-domain game/home/news/all8notes verified by ../verify-current-release.ps1; asset /assets/play-Ctdm4tfv.js matches the final local build and returns200. Initial immediate asset request returned404 during propagation; the same normal URL succeeded on retry. No outstanding release checks. Next approximate deployment14:33UTC; continuous improvement goal remains active.
+
+## 2026-11-10 14:20 UTC — Clearer Briefings live
+
+v2026.11.10.4 Clearer Briefings deployed at SHAd1642e26c1bc1459e536c94c1beb6cdd97e4d1c6. Actions42832653336 SUCCESS including exact-SHA production guard. Normal custom-domain game/home/news/all5notes verified by ../verify-current-release.ps1; asset /assets/play-hhnWgeY7.js matches sealed local build and returns200. Initial check saw cached prior asset; same URLs passed after propagation. Full3177tests, final build16.25s,4site tests,docs and mobile27screens/9gameplay viewports PASS. No remaining release checks. Next approximate deployment15:20UTC. Continuous goal active.
+
+## 2026-11-10 15:04 UTC — Films That Follow You live
+
+v2026.11.10.5 deployed at SHA82998411c90caf74ec77d5c847e6bc1645b708a0. Actions42840127306 SUCCESS including exact-SHA production guard. ../verify-current-release.ps1 confirmed normal custom-domain game/home/news/all4notes; asset /assets/play-CXZtdME2.js matches final build and returns200. Initial cached prior entry resolved on same URLs after propagation. Full3177tests, build8.17s,4site tests,docs and mobile27screens/9gameplay viewports PASS. All release checks complete; next approximate deployment16:04UTC. Continuous goal active.
+
+## 2026-11-10 23:32 UTC — clearer upgrade controls live
+
+LIVE v2026.11.10.15 Clearer Upgrade Controls. SHAe15b1827f86bdb6c8c722d7e049091a12260d98d; Actions42923489450/job130203938604 SUCCESS including exact-commit production guard. Normal public game/home/news/all5notes verified at23:32UTC; asset /assets/play-BKBxfanN.js matches standalone production build (5.90s, SWmwbbp895). Full normal validator23275 PASS3194tests/typecheck/mobile/docs at23:26. Caveat discovered during public verification: validator launched under vite-node inherited development NODE_ENV for its nested build, producing development JSX runtime and different entry hash. All241 entry source-map sources match apart from React runtime selection; live HarvestScreen source matches exactly. Standalone production build56606 passed and normal URL check passed. Follow up validator environment isolation next; do not treat the previous hash mismatch as stale deployment. No gameplay/save changes. Both untracked devlog drafts preserved. Goal remains active; next approximate deployment00:32UTC.
+
+## 2026-11-11 00:43 UTC — smoother growth/navigation live
+
+LIVE v2026.11.10.16 Smoother Growth and Navigation. SHA bd8624a1cd353b8ad34fff389afd6324b409e331; Actions42933253291/job130236928735 SUCCESS including exact-commit production guard. Normal custom-domain game/home/news/all7notes verified at00:43UTC; asset /assets/play-B5ZgEVpc.js exactly matches validator production build. Full3194tests/typecheck/production mobile/docs PASS00:39UTC. All processes terminal. Seven changes cover harvest focus/cost guidance, Hive motion and growth reveals, shared page-tab keyboard navigation, expedition send focus and readable persistent claim receipts. No gameplay/reward/timing rules changed. Devserver5174 remains stopped. Goal active; next approximate deployment01:43UTC.

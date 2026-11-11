@@ -2,6 +2,12 @@
    boot stylesheet (docs/DEPLOYMENT.md §boot-css). src/index.css keeps every class a boot screen (or
    more than one lazy chunk) renders; lazy stylesheets load AFTER it, so override here, not there. */
 
+.save-import-review { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-2); font-size: 13px; }
+.save-import-review h3 { margin: 0 0 8px; font-size: 16px; }
+.save-import-review p { margin: 8px 0; }
+.save-import-name { overflow-wrap: anywhere; color: var(--muted); }
+.save-import-review button { min-height: 44px; }
+
 .shop-item:first-child {
   border-top: none;
 }

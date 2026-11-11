@@ -5,10 +5,11 @@
 // A rank-up CELEBRATION (Power-gain popup + fanfare) fires for any promotions since the last visit
 // (meta.pollCollectionRankUps, session-diffed). Read-only over meta.collection().
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { RANK_COLORS, rankMilestones } from '../core/collection';
 import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, CollectionRankUp, RewardKind } from '../core/collection';
 import type { CutsceneDef } from '../core/cutscenes';
@@ -49,7 +50,7 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
       <canvas ref={cvRef} className="mem-art" aria-hidden />
       <div className="mem-body">
         <span className="mem-kind">{def.kind === 'mega' ? '☠ MEGA MEMORY' : '◈ STORY MEMORY'}</span>
-        <span className="mem-title">{unlocked ? def.title : '· · ·'}</span>
+        <h3 className="mem-title">{unlocked ? def.title : 'Unrecovered memory'}</h3>
         <span className="mem-sub">{unlocked ? def.subtitle : def.unlockHint}</span>
         <span className="mem-boost">{unlocked ? `✦ ${def.boost.label}` : '✦ Unlock for a small permanent boost'}</span>
       </div>
@@ -65,14 +66,40 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
 /** The Memory Archive wing — every story cutscene as a collectible, replayable forever. */
 function MemoryArchive({ memories }: { memories: ReturnType<typeof meta.cutscenesView> }): JSX.Element {
   const [playing, setPlaying] = useState<CutsceneDef | null>(null);
+  const [query, setQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [filter, setFilter] = useState<'all' | 'recovered' | 'unrecovered'>('all');
   const unlocked = memories.filter((m) => m.unlocked).length;
+  const needle = query.trim().toLocaleLowerCase();
+  const visible = memories.filter(({ def, unlocked: recovered }) => {
+    if (filter === 'recovered' && !recovered || filter === 'unrecovered' && recovered) return false;
+    // Search only revealed copy: locked titles, subtitles and bonuses stay secret.
+    const copy = [def.kind === 'mega' ? 'mega memory' : 'story memory',
+      ...(recovered ? [def.title, def.subtitle, def.boost.label] : ['Unrecovered memory', def.unlockHint])];
+    return copy.join(' ').toLocaleLowerCase().includes(needle);
+  });
   return (
     <>
       <div className="cx-wing-sub">
-        {unlocked}/{memories.length} recovered · story cutscenes replay forever · each grants a small passive
+        {unlocked}/{memories.length} recovered. Recovered bonuses apply automatically to your runs. Replay memories anytime; watching again does not grant another bonus.
       </div>
+      <label className="mem-search">Search memories
+        <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, bonus, or unlock hint" />
+      </label>
+      <div className="mem-filters" role="group" aria-label="Memory recovery">
+        {(['all', 'recovered', 'unrecovered'] as const).map((value) => (
+          <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
+            {value === 'all' ? `All (${memories.length})` : value === 'recovered' ? `Recovered (${unlocked})` : `Unrecovered (${memories.length - unlocked})`}
+          </button>
+        ))}
+      </div>
+      <div className="cx-wing-sub" role="status">Showing {visible.length} of {memories.length} memories</div>
+      {visible.length === 0 && <div className="mem-empty">
+        <span>No memories match. Clear the search or choose All.</span>
+        <button onClick={() => { setQuery(''); setFilter('all'); searchRef.current?.focus(); }}>Show all memories</button>
+      </div>}
       <div className="mem-grid">
-        {memories.map((m) => (
+        {visible.map((m) => (
           <MemoryCard key={m.def.id} def={m.def} unlocked={m.unlocked} onPlay={() => { audio.cue('ui'); setPlaying(m.def); }} />
         ))}
       </div>
@@ -152,14 +179,14 @@ function tierColor(e: CollectionEntry): string {
 
 function EntryGrid({ entries }: { entries: CollectionEntry[] }): JSX.Element {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: 6, marginTop: 8 }}>
+    <div role="list" aria-label="Collection entries" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(126px, 1fr))', gap: 6, marginTop: 8 }}>
       {entries.map((e) => (
-        <div key={e.id} title={`${e.name} — ${e.tierLabel}`} style={{
+        <div key={e.id} role="listitem" title={`${e.tier <= 0 ? 'Undiscovered entry' : e.name} — ${e.tierLabel}`} style={{
           display: 'flex', flexDirection: 'column', gap: 2, padding: '6px 8px', borderRadius: 6,
-          background: 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${tierColor(e)}`, opacity: e.tier <= 0 ? 0.45 : 1,
+          background: 'rgba(255,255,255,0.04)', borderLeft: `3px solid ${tierColor(e)}`, overflowWrap: 'anywhere',
         }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600 }}>{e.tier <= 0 ? '???' : e.name}</span>
-          <span style={{ fontSize: 10.5, opacity: 0.75 }}>{e.tierLabel}{e.maxTier > 1 && e.tier > 0 ? ` · ${e.tier}/${e.maxTier}` : ''}</span>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{e.tier <= 0 ? 'Undiscovered entry' : e.name}</span>
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>{e.tierLabel}{e.maxTier > 1 && e.tier > 0 ? ` · ${e.tier}/${e.maxTier}` : ''}</span>
         </div>
       ))}
     </div>
@@ -177,7 +204,7 @@ function nextRankText(c: CollectionCategory): string {
 function CategoryTile({ c, onOpen }: { c: CollectionCategory; onOpen: () => void }): JSX.Element {
   const color = RANK_COLORS[c.rank];
   return (
-    <button className="cx-tile" style={{ ['--cxc' as string]: color }} onClick={onOpen}>
+    <button className="cx-tile" data-category={c.id} style={{ ['--cxc' as string]: color }} onClick={onOpen}>
       <span className="cx-tile-top">
         <b className="cx-tile-name">{c.name}</b>
         <RankBadge rank={c.rank} size={10} />
@@ -194,12 +221,14 @@ function CategoryTile({ c, onOpen }: { c: CollectionCategory; onOpen: () => void
 /** The drilled-in category page: back row, header, reward track, bonuses, every entry. */
 function CategoryDetail({ c, onBack }: { c: CollectionCategory; onBack: () => void }): JSX.Element {
   const color = RANK_COLORS[c.rank];
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { titleRef.current?.focus(); }, [c.id]);
   return (
     <div className="cx-detail" style={{ ['--cxc' as string]: color }}>
       <button className="cx-back" onClick={onBack}>‹ All categories</button>
       <div className="cx-detail-head">
         <div className="cx-detail-title">
-          <h3>{c.name}</h3>
+          <h3 ref={titleRef} tabIndex={-1}>{c.name}</h3>
           <RankBadge rank={c.rank} />
         </div>
         <span className="cx-detail-count">{c.discovered}/{c.total} · {Math.round(c.completion * 100)}%</span>
@@ -214,20 +243,45 @@ function CategoryDetail({ c, onBack }: { c: CollectionCategory; onBack: () => vo
 
 /** Celebration overlay — fires the fanfare + a Power-gain popup for promotions since the last visit. */
 function RankUpCelebration({ rankUps, powerGain, onClose }: { rankUps: CollectionRankUp[]; powerGain: number; onClose: () => void }): JSX.Element {
+  const titleId = useId();
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const [motion, setMotion] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()).motion);
   useEffect(() => { audio.resume(); audio.cue('rankup'); }, []);
+  useEffect(() => {
+    const previous = document.activeElement;
+    continueRef.current?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true }); };
+  }, []);
+  useEffect(() => {
+    let prefs = motionPrefs();
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setMotion(resolveMotion(prefs, media.matches).motion);
+    const unsubscribe = onMotionPrefs((next) => { prefs = next; update(); });
+    media.addEventListener('change', update);
+    update();
+    return () => { unsubscribe(); media.removeEventListener('change', update); };
+  }, []);
   return (
-    <div onClick={onClose} style={{
+    <div className={`cx-celebration${motion ? '' : ' is-still'}`} onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'rgba(4,8,14,0.74)', backdropFilter: 'blur(3px)', animation: 'codexFade 0.3s ease',
     }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        minWidth: 300, maxWidth: 420, padding: '22px 26px', borderRadius: 14, textAlign: 'center',
+      <div className="cx-celebration-card" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()} onKeyDown={(e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose(); }
+        if (e.key !== 'Tab') return;
+        const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('[tabindex="0"], button'));
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }} style={{
+        width: 420, maxWidth: 'calc(100% - 24px)', boxSizing: 'border-box', padding: '22px 26px', borderRadius: 14, textAlign: 'center',
         background: 'linear-gradient(160deg, rgba(28,20,44,0.98), rgba(12,16,26,0.98))',
         border: '1px solid rgba(230,162,255,0.4)', boxShadow: '0 12px 48px rgba(0,0,0,0.6)', animation: 'codexPop 0.5s cubic-bezier(.2,1.3,.4,1)',
       }}>
-        <div style={{ fontSize: 11, letterSpacing: '0.28em', opacity: 0.7, marginBottom: 12 }}>CODEX RANK UP</div>
+        <h2 id={titleId} style={{ fontSize: 11, letterSpacing: '0.28em', opacity: 0.7, margin: '0 0 12px' }}>CODEX RANK UP</h2>
+        <div className="cx-celebration-results" role="region" aria-label="Collection promotions and Power gain" tabIndex={0}>
         {rankUps.map((r) => (
-          <div key={r.category} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '8px 0', animation: 'codexBadge 0.6s ease both' }}>
+          <div key={r.category} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10, margin: '8px 0', animation: 'codexBadge 0.6s ease both' }}>
             <span style={{ fontSize: 16, fontWeight: 700 }}>{r.categoryName}</span>
             <RankBadge rank={r.rank} size={14} />
           </div>
@@ -237,8 +291,9 @@ function RankUpCelebration({ rankUps, powerGain, onClose }: { rankUps: Collectio
             +{powerGain.toLocaleString()} Power
           </div>
         )}
-        <button onClick={onClose} style={{
-          marginTop: 16, padding: '8px 22px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+        </div>
+        <button ref={continueRef} onClick={onClose} style={{
+          marginTop: 16, minHeight: 44, padding: '8px 22px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
           color: '#0a0e16', background: 'linear-gradient(90deg,#c9a2ff,#e6a2ff)', border: 'none',
         }}>Continue ▸</button>
       </div>
@@ -256,6 +311,9 @@ type CxTab = (typeof CX_TABS)[number]['id'];
 /** Codex as a dedicated headquarters screen. Reflects meta.collection() / meta.collectionRewards();
  * read-only, except it polls session rank-ups on mount to celebrate promotions. */
 export function CollectionScreen(): JSX.Element {
+  const screenId = useId();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const returnCategory = useRef<string | null>(null);
   const view = useMemo(() => meta.collection(), []);
   const rewards = useMemo(() => meta.collectionRewards(), []);
   const memories = useMemo(() => meta.cutscenesView(), []);
@@ -266,12 +324,20 @@ export function CollectionScreen(): JSX.Element {
   const memUnlocked = memories.filter((m) => m.unlocked).length;
 
   useEffect(() => {
+    if (openCat !== null || returnCategory.current === null) return;
+    const tile = Array.from(screenRef.current?.querySelectorAll<HTMLButtonElement>('[data-category]') ?? [])
+      .find((button) => button.dataset.category === returnCategory.current);
+    tile?.focus();
+    returnCategory.current = null;
+  }, [openCat]);
+
+  useEffect(() => {
     const { rankUps, powerGain } = meta.pollCollectionRankUps();
     if (rankUps.length > 0) setCelebration({ rankUps, powerGain });
   }, []);
 
   return (
-    <div className="collection cx" style={{ color: '#dfe8f2' }}>
+    <div ref={screenRef} className="collection cx" style={{ color: '#dfe8f2' }}>
       <style>{KEYFRAMES}</style>
 
       {/* ── MASTHEAD — the whole collection at a glance ── */}
@@ -297,9 +363,22 @@ export function CollectionScreen(): JSX.Element {
           <button
             key={t.id}
             role="tab"
+            id={`${screenId}-tab-${t.id}`}
+            aria-controls={`${screenId}-panel-${t.id}`}
             aria-selected={tab === t.id}
+            tabIndex={tab === t.id ? 0 : -1}
             className={`wing-tab${tab === t.id ? ' on' : ''}`}
             onClick={() => { setTab(t.id); setOpenCat(null); }}
+            onKeyDown={(e) => {
+              const index = CX_TABS.findIndex((entry) => entry.id === t.id);
+              const next = e.key === 'ArrowRight' ? (index + 1) % CX_TABS.length
+                : e.key === 'ArrowLeft' ? (index + CX_TABS.length - 1) % CX_TABS.length
+                : e.key === 'Home' ? 0 : e.key === 'End' ? CX_TABS.length - 1 : -1;
+              if (next < 0) return;
+              e.preventDefault();
+              setTab(CX_TABS[next].id); setOpenCat(null);
+              e.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+            }}
           >
             <span className="wing-tab-glyph" aria-hidden>{t.glyph}</span>
             <span className="wing-tab-body">
@@ -311,9 +390,13 @@ export function CollectionScreen(): JSX.Element {
           </button>
         ))}
       </div>
+      {CX_TABS.filter((entry) => entry.id !== tab).map((entry) => (
+        <div key={entry.id} hidden role="tabpanel" id={`${screenId}-panel-${entry.id}`} aria-labelledby={`${screenId}-tab-${entry.id}`} />
+      ))}
 
+      <div className="cx-page" role="tabpanel" id={`${screenId}-panel-${tab}`} aria-labelledby={`${screenId}-tab-${tab}`} tabIndex={0}>
       {tab === 'codex' && (open ? (
-        <CategoryDetail c={open} onBack={() => setOpenCat(null)} />
+        <CategoryDetail c={open} onBack={() => { returnCategory.current = open.id; setOpenCat(null); }} />
       ) : (
         <>
           <div className="cx-wing-sub">Every category ranks Bronze → Ascendant — open one for its reward track, bonuses and entries.</div>
@@ -347,6 +430,7 @@ export function CollectionScreen(): JSX.Element {
         </>
       )}
 
+      </div>
       {celebration && <RankUpCelebration rankUps={celebration.rankUps} powerGain={celebration.powerGain} onClose={() => setCelebration(null)} />}
     </div>
   );

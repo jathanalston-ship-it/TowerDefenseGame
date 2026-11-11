@@ -5,6 +5,7 @@ import {
   RARITY_AFFIXES,
   WEAPONS,
   affixEffectText,
+  AFFIXES,
   itemDef,
   itemEffects,
   loadoutEffects,
@@ -98,6 +99,29 @@ describe('Details-screen support: affix explanations + item provenance', () => {
     expect(affixEffectText({ affixId: 'piercing', tier: 1 })).toBe('+1 max Fracture'); // add
     expect(affixEffectText({ affixId: 'anchored', tier: 1 })).toBe('Sets Anchor Point → nucleus'); // set
     expect(affixEffectText({ affixId: 'swift', tier: 1 })).toBe('−5% Ability Cooldown'); // reduction
+  });
+
+  it('affix descriptions follow the applied tier without changing the effect', () => {
+    expect(affixEffectText({ affixId: 'keen', tier: 6 })).toBe('+10% Tower Damage');
+    expect(affixEffectText({ affixId: 'keen', tier: 2 })).toBe('+5.9% Tower Damage');
+    expect(affixEffectText({ affixId: 'swift', tier: 6 })).toBe('−10% Ability Cooldown');
+    expect(affixEffectText({ affixId: 'flush', tier: 6 })).toBe('+120 Starting Biomass');
+    expect(affixEffectText({ affixId: 'anchored', tier: 6 })).toBe('Sets Anchor Point → nucleus');
+    for (const def of AFFIXES) {
+      for (const tier of [0, 1, 2, 3, 4, 5, 6, 99]) {
+        const affix = { affixId: def.id, tier };
+        const item = { uid: 'description-check', defId: WEAPONS[0].id, rarity: 'rare' as const, affixes: [affix] };
+        const before = itemEffects(item);
+        const label = affixEffectText(affix);
+        expect(itemEffects(item)).toEqual(before);
+        const effect = before[before.length - 1];
+        if (effect.op === 'mul') {
+          expect(label).toContain(`${Number((Math.abs(effect.value - 1) * 100).toFixed(2))}%`);
+        } else if (effect.op === 'add') {
+          expect(label).toContain(`${Number(Math.abs(effect.value).toFixed(4))} `);
+        }
+      }
+    }
   });
 
   it('rolled items are stamped with a source (Vault gear says so)', () => {

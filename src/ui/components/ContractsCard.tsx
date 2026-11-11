@@ -3,6 +3,7 @@
 // ❖ names the Gilded marquee), the weekly rotation countdown, and the PERFECT WEEK
 // sweep meter. Deterministic UTC board — no server.
 
+import { useEffect, useState } from 'react';
 import { meta } from '../../state/meta';
 import {
   MODE_LABEL, PERFECT_WEEK, activeContracts, constraintLabel, contractRotationEnd, contractWeekKey,
@@ -14,8 +15,18 @@ import { CurrencyIcon } from './CurrencyIcon';
 
 export function ContractsCard(): JSX.Element {
   const save = meta.use();
-  const wk = contractWeekKey();
-  const rows = activeContracts();
+  const [now, setNow] = useState(liveopsNow);
+  useEffect(() => {
+    const refresh = (): void => { if (!document.hidden) setNow(liveopsNow()); };
+    const timer = window.setInterval(refresh, 60_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, []);
+  const wk = contractWeekKey(now);
+  const rows = activeContracts(now);
   const done = new Set(save.contracts.completed);
   const hits = rows.filter((c) => done.has(`${wk}:${c.id}`)).length;
   const swept = hits === rows.length;
@@ -23,7 +34,7 @@ export function ContractsCard(): JSX.Element {
     <div className="cc-contracts panel" aria-label="Champion Contracts">
       <div className="liveops-head">
         <span className="liveops-k">❖ CHAMPION CONTRACTS</span>
-        <span className="liveops-next">rotates in {untilText(liveopsNow(), contractRotationEnd())}</span>
+        <span className="liveops-next">rotates in {untilText(now, contractRotationEnd(now))}</span>
       </div>
       {rows.map((c) => {
         const hit = done.has(`${wk}:${c.id}`);

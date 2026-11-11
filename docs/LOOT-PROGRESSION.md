@@ -29,7 +29,7 @@ compact toast — *"Bio-Container Acquired · &lt;Rarity&gt; Container Earned ·
 Vault"* — glowing in the container's rarity color (`--rc`), with an animated icon and a rarity-scaled
 audio cue. It **never interrupts play** (a pointer-through corner overlay) and **never overlaps**: the
 toaster renders only the FRONT of its queue, so a burst of completions plays out one at a time and
-auto-dismisses (`TOAST_MS`). `meta.debugAddLootPoints` emits the same event, so the toast is testable
+auto-dismisses (`TOAST_MS`). Hovering or keyboard focus pauses expiry; leaving grants a fresh reading interval. A labeled dismiss button advances keyboard focus through queued notices and restores the prior control after the last notice. Reading holds do not replay the reward cue; the entry animation remains visible until dismissal. `meta.debugAddLootPoints` emits the same event, so the toast is testable
 from the debug panel. Golden-safe: emission is gated on a listener, so the sim/headless path is untouched.
 
 ---

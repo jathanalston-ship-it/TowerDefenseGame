@@ -560,3 +560,33 @@ legendary-hued bolt.
 The visualization system is feature-complete. (Distinct new equipment SLOTS — helmet/shoulders as
 *separate* slots — were considered and deliberately left out: they are a data-model + balance change,
 not visual polish, and the current 3 slots already render shoulders/back/plates/organs.)
+
+Premium ItemArt card canvases follow live OS reduced motion and the shared in-game override. Reduced motion renders a visible still; IntersectionObserver and document visibility pause offscreen/hidden animation. Resuming preserves animation time without a hidden-time jump. Common/rare art remains static; item stats and generated silhouettes are unchanged.
+
+HeroGearPreview follows the same live motion/visibility policy. Its still mode redraws on drag, preserving manual inspection without an animation loop. Pointer cancellation/lost capture clears dragging. Automatic rotation uses elapsed time (the previous 60Hz speed), so high-refresh displays no longer spin faster. Presentation only; preview loadout/stat derivation is unchanged.
+
+The hero gear preview has native Left/Right rotation buttons with 44px targets and descriptive labels. Keyboard focus on these controls pauses automatic animation for stable inspection; moving focus out resumes according to motion/visibility settings. Enter/Space rotates in either motion mode. The canvas is named as a hero gear image; existing dragging is retained.
+
+Salvage confirmation renders through a nested Popup at viewport level, so scrolling Item Details cannot move the prompt offscreen. Its alert dialog names the item and describes the existing warning, focuses Cancel, traps Tab between actions and restores the invoking control on dismissal. Item Details is inert while confirming. Escape/Back dismiss only the confirmation; backdrop and Cancel retain their behavior. Buttons have 44px minimum height; long confirmations scroll within the viewport. Existing rarity/Power warnings, protections, one-click common salvage and underlying salvage/Undo rules are unchanged.
+
+Favorite, item salvage lock and individual affix locks expose stable descriptive names with aria-pressed. Favorite/item-lock tooltips describe the current available action. Randomize names its affected affix. Existing handlers, protection checks, costs and layout are unchanged.
+
+Disabled whole-item upgrades retain their action description and show a readable reason: exact missing materials, no affixes, locked eligible affixes, the item-level tier ceiling, or the rarity upgrade limit. Existing opAvailable/canAfford/reforgeCost remain authoritative; presentation derives the explanation without changing availability or costs. Disabled cards use a dashed border rather than fading their explanations.
+
+ItemDetails is a named modal dialog. Opening an item focuses Close, Tab/Shift+Tab wrap through enabled buttons, and closing restores the connected enabled invoking control. The outer keyboard handler defers while salvage confirmation is open; its nested focus/restore rules remain independent.
+
+Armory filter recovery: a selected rarity remains among the visible choices even when none of that rarity remains in inventory. Clear filters appears whenever category/rarity/favorites restrict the list, resets only those three browsing filters, preserves sort and salvage selection/mode, and moves focus to All categories. Category/rarity/favorites controls expose selected state. Inventory mutations and salvage protections are unchanged.
+
+Quick-Salvage selection status includes the count of eligible selected items hidden by current filters. It derives hidden count from the existing eligible salvage preview minus visible eligible selection, so protected stale selections do not inflate it. The status is announced; quick-grab tooltips explicitly describe inventory-wide scope. Filtering does not change the batch, and the two-step confirmation/cancellation/Undo rules remain unchanged.
+
+### Codex effect units
+
+EquipmentCollection uses core/effectLanguage.describeEffects exact text for set bonuses. FIELD_VOCAB supplies percentage/count units; do not reintroduce a private field-name formatter. Equipment definitions and effects are unchanged.
+
+### Codex search
+
+Codex search uses the shared ListControls and organizeList framework with authored ordering. Queries match item name, description, slot label and set name; queries are transient and never saved. Matching set bonuses remain visible, empty slots disappear, phone search results bypass folds, and Clear search restores focus to the search field. Collection progress remains global and unchanged by searching.
+
+### Affix tier descriptions
+
+affixEffectText scales its displayed first effect with the same affixTierFactor and scaleEffect used by itemEffects. Tier bounds and applied effects are unchanged; percentage descriptions retain two decimals and additive descriptions four to avoid floating-point noise. Behavioral effects remain unscaled. Equipment tests compare descriptions with applied effects for every affix across tiers and bounds.

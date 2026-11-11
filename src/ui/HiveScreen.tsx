@@ -5,7 +5,7 @@
 // (the store persist re-renders the hub shell — the new fixture layers simply appear).
 // Constitution: organs are sidegrades (base transformation + fiction) — never combat power.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
@@ -52,6 +52,17 @@ function HiveGrowth(): JSX.Element {
   const idle = meta.idleView();
   const builtLedger = meta.get().hive.built;
   const [ceremony, setCeremony] = useState<{ def: HiveOrganDef; tier: number } | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const returnButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!ceremony) return;
+    returnButton.current?.focus();
+    return () => {
+      const card = rootRef.current?.querySelector<HTMLElement>(`[data-hive-organ="${ceremony.def.id}"]`);
+      const button = card?.querySelector<HTMLButtonElement>('button:not(:disabled)');
+      (button ?? card)?.focus({ preventScroll: true });
+    };
+  }, [ceremony]);
 
   const build = (def: HiveOrganDef, tier: number): void => {
     if (meta.buildOrgan(def.id)) {
@@ -62,7 +73,7 @@ function HiveGrowth(): JSX.Element {
   };
 
   return (
-    <div className="hive">
+    <div className="hive" ref={rootRef}>
       <div className="hive-head">
         <div>
           <div className="hive-title">⬡ THE HIVE — GROWTH</div>
@@ -92,7 +103,7 @@ function HiveGrowth(): JSX.Element {
             </div>
             <div className="hive-grid" data-guide="hive-grid">
               {organs.map(({ def, built, next }) => (
-                <div className={`hive-organ${built > 0 ? ' is-built' : ''}${next?.affordable ? ' is-afford' : ''}`} key={def.id}>
+                <div data-hive-organ={def.id} tabIndex={-1} role="group" aria-label={`${def.name}, tier ${built} of ${def.tiers}`} className={`hive-organ${built > 0 ? ' is-built' : ''}${next?.affordable ? ' is-afford' : ''}`} key={def.id}>
                   <div className="hive-organ-top">
                     <span className="hive-organ-icon" aria-hidden>{def.icon}</span>
                     <span className="hive-organ-name">{def.name}</span>
@@ -159,7 +170,8 @@ function HiveGrowth(): JSX.Element {
       {ceremony && (
         <Popup>
           <div className="hive-ceremony-veil" onClick={() => setCeremony(null)}>
-            <div className="hive-ceremony" role="dialog" aria-label={`${ceremony.def.name} grown`} onClick={(e) => e.stopPropagation()}>
+            <div className="hive-ceremony" role="dialog" aria-modal="true" aria-label={`${ceremony.def.name} grown`} onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => { if (e.key === 'Tab') { e.preventDefault(); returnButton.current?.focus(); } }}>
               <div className="intro-eyebrow">⬡ THE HIVE GROWS</div>
               <div className="hive-ceremony-icon" aria-hidden>{ceremony.def.icon}</div>
               <div className="hive-ceremony-name">
@@ -167,7 +179,7 @@ function HiveGrowth(): JSX.Element {
               </div>
               <div className="hive-ceremony-blurb">{ceremony.def.blurb}</div>
               <div className="hive-ceremony-perk">{ceremony.def.perk}</div>
-              <button className="primary" onClick={() => setCeremony(null)}>Return to the lab ▸</button>
+              <button ref={returnButton} className="primary" onClick={() => setCeremony(null)}>Return to the lab ▸</button>
             </div>
           </div>
         </Popup>

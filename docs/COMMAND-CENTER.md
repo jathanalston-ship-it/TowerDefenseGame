@@ -124,3 +124,5 @@ achievements pushed by the meta layer, cap 60) newest-first with human recency l
    towers (dormant strains locked, never fielded).
 5. The registry is OPEN (registering a widget surfaces it in zone order) and `when` guards
    are honored per-save.
+
+World Status follows live OS reduced-motion changes and the existing in-game allow-motion override. It cancels animation immediately for a still frame, repaints that frame after account/size changes, and resumes only when motion is permitted and the document is visible. Preference/media/visibility listeners and pending frames are cleaned up on unmount.

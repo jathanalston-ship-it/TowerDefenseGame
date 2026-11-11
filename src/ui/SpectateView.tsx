@@ -7,7 +7,7 @@
 // speed into whole SIM_DT steps, renders via the normal renderer, and compares the
 // finished outcome against the record's claim — a shared code is self-verifying.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Game } from '../core/game';
 import { SIM_DT } from '../core/config';
 import { WIDTH, HEIGHT } from '../core/map';
@@ -38,6 +38,8 @@ interface SpectateHud {
 
 export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit: () => void }): JSX.Element {
   useLocale();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const outcomeId = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<Game | null>(null);
   // Someone else's run: a private event bus, so its kills never credit the viewer's save.
@@ -133,7 +135,7 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
         last = now;
         let over = false;
         const lastKill = lastKillRef.current!;
-        if (!pausedRef.current && lastKill.tick(dt * 1000)) audio.cue('clear');
+        if (!pausedRef.current && lastKill.tick(dt * 1000) && !skippingRef.current) audio.cue('clear');
         if (!pausedRef.current) {
           if (skippingRef.current) {
             for (let i = 0; i < SKIP_STEPS_PER_FRAME && !over; i++) over = !stepOnce();
@@ -144,9 +146,9 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
               over = !stepOnce();
             }
           }
-          // The sim's presentation cues still land — the theater has sound.
+          // Drain even while skipping so compressed combat sounds cannot burst now or on resume.
           const cues = game.drainSfx();
-          if (cues.length) {
+          if (cues.length && !skippingRef.current) {
             const tally: Record<string, number> = {};
             for (const c of cues) tally[c] = (tally[c] ?? 0) + 1;
             audio.cueBatch(tally);
@@ -182,59 +184,71 @@ export function SpectateView({ record, onExit }: { record: ReplayRecord; onExit:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Escape leaves the theater (parity with every other full-screen surface).
+  // Keep keyboard navigation in the theater and return to its opener after closing.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onExit();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onExit]);
+    const previous = document.activeElement;
+    dialogRef.current?.querySelector<HTMLButtonElement>('.spectate-exit')?.focus();
+    return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true }); };
+  }, []);
+  useEffect(() => {
+    if (done) dialogRef.current?.querySelector<HTMLButtonElement>('.spectate-exit-big')?.focus();
+  }, [done]);
 
   return (
-    <div className="spectate" role="dialog" aria-modal="true" aria-label={t('spectate.title')}>
-      <div className="spectate-bar">
+    <div ref={dialogRef} className="spectate" role="dialog" aria-modal="true" aria-label={t('spectate.title')} aria-describedby={done ? outcomeId : undefined}
+      onKeyDown={e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onExit(); return; }
+        if (e.key !== 'Tab') return;
+        const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>(done ? '.spectate-done button' : 'button:not(:disabled)'));
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }}>
+      <div className="spectate-bar" aria-hidden={done ? true : undefined}>
         <span className="spectate-k">{t('spectate.title')}</span>
         <span className="spectate-stats">
           {t('spectate.line', { wave: hud.wave, kills: hud.kills, integrity: hud.integrity })}
         </span>
         <span className="spectate-claim">{t('spectate.claim', { wave: record.claim.wave, kills: record.claim.kills })}</span>
-        <button className="spectate-exit" onClick={onExit}>{t('spectate.exit')}</button>
+        <button className="spectate-exit" tabIndex={done ? -1 : undefined} onClick={onExit}>{t('spectate.exit')}</button>
       </div>
-      <div className="spectate-stage">
+      <div className="spectate-stage" aria-hidden={done ? true : undefined}>
         {/* LIVING GUTTERS (docs/SIGNATURE-MOMENTS.md §4): the periphery continues in the theater too. */}
         <LivingGutters game={game} boardRef={canvasRef} />
         <canvas className="board" width={WIDTH} height={HEIGHT} ref={canvasRef} role="img" aria-label={t('spectate.title')} />
         {stageCard && <CentreStage shown={stageCard} />}
       </div>
-      <div className="spectate-controls">
-        <button className="spectate-btn" onClick={() => setPaused((p) => !p)} disabled={!!done}>
+      <div className="spectate-controls" aria-hidden={done ? true : undefined}>
+        <button className="spectate-btn" aria-pressed={paused} onClick={() => setPaused((p) => !p)} disabled={!!done}>
           {paused ? t('spectate.resume') : t('spectate.pause')}
         </button>
         {SPEEDS.map((s) => (
           <button
             key={s}
             className={`spectate-btn spectate-speed ${speed === s && !skipping ? 'on' : ''}`}
+            aria-pressed={speed === s && !skipping}
             onClick={() => { setSkipping(false); setSpeed(s); }}
             disabled={!!done}
           >
             ×{s}
           </button>
         ))}
-        <button className={`spectate-btn ${skipping ? 'on' : ''}`} onClick={() => setSkipping(true)} disabled={!!done}>
+        <button className={`spectate-btn ${skipping ? 'on' : ''}`} aria-pressed={skipping} onClick={() => { setPaused(false); setSkipping(true); }} disabled={!!done}>
           {t('spectate.skip')}
         </button>
-        <div className="spectate-progress" aria-hidden>
+        <div className="spectate-progress" role="progressbar" aria-label={t('spectate.progress')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(hud.progress * 100)}>
           <i style={{ width: `${Math.round(hud.progress * 100)}%` }} />
         </div>
       </div>
       {done && (
         <div className="spectate-done">
           <div className="spectate-done-card">
-            <div className={`spectate-verdict ${done.verified ? 'ok' : 'bad'}`}>
-              {done.verified ? t('spectate.verified') : t('spectate.diverged')}
+            <div id={outcomeId} className="spectate-outcome-copy">
+              <div className={`spectate-verdict ${done.verified ? 'ok' : 'bad'}`}>
+                {done.verified ? t('spectate.verified') : t('spectate.diverged')}
+              </div>
+              <div className="spectate-outcome">{t('spectate.outcome', { wave: done.wave, kills: done.kills })}</div>
             </div>
-            <div className="spectate-outcome">{t('spectate.outcome', { wave: done.wave, kills: done.kills })}</div>
             <button className="primary spectate-exit-big" onClick={onExit}>{t('spectate.exit')}</button>
           </div>
         </div>

@@ -5,17 +5,18 @@
 import { useState } from 'react';
 import { affectsOf } from './cardAffects';
 import type { CardOption, HudSnapshot } from '../core/types';
-import { meta } from '../state/meta';
 import { COMBAT_CLASSES } from '../core/combatClass';
 import { BOND, CLASS_BONDS, bondFxLine, bondTierFx } from '../core/classBonds';
 import type { BondTier } from '../core/classBonds';
+import { threatRungs } from '../core/threat';
+
+type RunCommitment = { icon: string; name: string; blurb: string };
 
 const ROMAN = ['', 'I', 'II', 'III'] as const;
 
 /** CLASS BONDS (docs/CLASS-BONDS.md) — every class with a fielded unit: glyph, count toward the next
- *  tier, three tier pips, and (hover) exactly what its awake bond gives at the account's bond level. */
+ *  tier, three tier pips, and expandable effects at the run's resolved bond level. */
 function BondsSection({ bonds }: { bonds: NonNullable<HudSnapshot['bonds']> }): JSX.Element {
-  const levels = meta.bondLevels();
   return (
     <div className="side-sec bonds-strip" aria-label="Class bonds">
       <div className="side-k">Class Bonds</div>
@@ -28,18 +29,23 @@ function BondsSection({ bonds }: { bonds: NonNullable<HudSnapshot['bonds']> }): 
             const def = CLASS_BONDS[b.cls];
             const tier = b.tier as BondTier;
             const tip = tier > 0
-              ? `${def.name} ${ROMAN[tier]} — ${bondFxLine(bondTierFx(b.cls, tier, levels[b.cls] ?? 0))}${b.next ? ` · ${b.next - b.count} more for tier ${ROMAN[tier + 1]}` : ''}`
+              ? `${def.name} ${ROMAN[tier]} — ${bondFxLine(bondTierFx(b.cls, tier, b.level))}${b.next ? ` · ${b.next - b.count} more for tier ${ROMAN[tier + 1]}` : ''}`
               : `${def.name} — ${(b.next ?? 0) - b.count} more ${b.cls} unit${(b.next ?? 0) - b.count === 1 ? '' : 's'} to wake it`;
             return (
-              <span className={`bond-chip tt${tier > 0 ? ' is-on' : ''}`} key={b.cls} style={{ ['--cc' as string]: cc.color }}>
-                <i className="bond-glyph" aria-hidden>{cc.glyph}</i>
-                <span className="bond-name">{b.cls}</span>
-                <span className="bond-count">{b.count}{b.next ? `/${b.next}` : ''}</span>
-                <span className="bond-pips" aria-label={`Bond tier ${tier} of 3`}>
-                  {[1, 2, 3].map((n) => <i key={n} className={n <= tier ? 'on' : ''} />)}
-                </span>
-                <span className="tt-bubble">{tip}</span>
-              </span>
+              <details className="bond-entry" key={b.cls} onKeyDown={(event) => {
+                if (event.key !== 'Escape') event.stopPropagation();
+              }}>
+                <summary className={`bond-chip${tier > 0 ? ' is-on' : ''}`} style={{ ['--cc' as string]: cc.color }}
+                  aria-label={`${b.cls} bond, tier ${tier} of 3, ${b.count} ${b.count === 1 ? 'unit' : 'units'} deployed. Effects and next tier`}>
+                  <i className="bond-glyph" aria-hidden>{cc.glyph}</i>
+                  <span className="bond-name">{b.cls}</span>
+                  <span className="bond-count">{b.count}{b.next ? `/${b.next}` : ''}</span>
+                  <span className="bond-pips" aria-hidden>
+                    {[1, 2, 3].map((n) => <i key={n} className={n <= tier ? 'on' : ''} />)}
+                  </span>
+                </summary>
+                <p className="bond-detail">{tip}</p>
+              </details>
             );
           })}
         </div>
@@ -66,13 +72,20 @@ function groupCards(cards: CardOption[]): { category: string; stacks: Stack[] }[
   return [...byCat.entries()].map(([category, m]) => ({ category, stacks: [...m.values()] }));
 }
 
-export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnapshot; onCollapse?: () => void; onOpenEvolution?: () => void }): JSX.Element {
+export function BuildPanel({ hud, onCollapse, onOpenEvolution, doctrine = null, vows = [] }: {
+  hud: HudSnapshot;
+  onCollapse?: () => void;
+  onOpenEvolution?: () => void;
+  doctrine?: RunCommitment | null;
+  vows?: RunCommitment[];
+}): JSX.Element {
   const groups = groupCards(hud.cards);
   const hasCards = hud.cards.length > 0;
   // Collapsible sections — grouped, animated, no dead space (docs/HUD.md §left panel).
   const [folded, setFolded] = useState<Record<string, boolean>>({});
   const toggle = (k: string): void => setFolded((f) => ({ ...f, [k]: !f[k] }));
   const wavesLeft = Math.max(0, hud.totalWaves - Math.max(0, hud.wave));
+  const hasConditions = !!doctrine || vows.length > 0 || hud.threat > 0 || hud.biome.id !== 'neutral' || !!hud.runHeadline || !!hud.runEvent;
 
   return (
     <aside className="side-panel build-panel" aria-label="Run build">
@@ -101,17 +114,17 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
                   {g.stacks.map((s) => {
                     const aff = affectsOf(s.opt.subject);
                     return (
-                      <span
-                        key={s.opt.id}
-                        className="card-chip tt"
-                        data-rarity={s.opt.rarity}
-                        tabIndex={0}
-                      >
-                        <span className="chip-dot" style={{ background: aff.color }} aria-hidden />
-                        {s.opt.name}
-                        {s.count > 1 && <b className="stack">×{s.count}</b>}
-                        <span className="tt-bubble">{aff.label} · {s.opt.description}</span>
-                      </span>
+                      <details className="gene-entry" key={s.opt.id} onKeyDown={(event) => {
+                        if (event.key !== 'Escape') event.stopPropagation();
+                      }}>
+                        <summary className="card-chip" data-rarity={s.opt.rarity}
+                          aria-label={`${s.opt.name}${s.count > 1 ? `, ${s.count} copies` : ''}. ${aff.label}. Gene details`}>
+                          <span className="chip-dot" style={{ background: aff.color }} aria-hidden />
+                          <span className="gene-name">{s.opt.name}</span>
+                          {s.count > 1 && <b className="stack">×{s.count}</b>}
+                        </summary>
+                        <p className="gene-detail"><strong>{aff.label}</strong> · {s.count > 1 ? 'Per copy: ' : ''}{s.opt.description}</p>
+                      </details>
                     );
                   })}
                 </div>
@@ -141,6 +154,24 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
         </div>
       )}
 
+      {hasConditions && (
+        <details className="side-sec run-conditions" onKeyDown={(event) => {
+          // Native disclosure/reading keys must not also trigger battlefield shortcuts.
+          if (event.key !== 'Escape') event.stopPropagation();
+        }}>
+          <summary className="side-k">Run conditions</summary>
+          <dl>
+            {doctrine && <div><dt>{doctrine.icon} Doctrine · {doctrine.name}</dt><dd>{doctrine.blurb}</dd></div>}
+            {vows.map((vow) => <div key={vow.name}><dt>{vow.icon} {vow.name}</dt><dd>{vow.blurb} Active for this Molt cycle.</dd></div>)}
+            {hud.threat > 0 && <div><dt>Threat {hud.threat}</dt><dd>These ladder modifiers stack for this run.</dd></div>}
+            {threatRungs(hud.threat).map((rung) => <div key={rung.level}><dt>{rung.icon} {rung.level}. {rung.name}</dt><dd>{rung.blurb}</dd></div>)}
+            {hud.biome.id !== 'neutral' && <div><dt>Biome · {hud.biome.name}</dt><dd>{hud.biome.modifier || 'Current battlefield biome.'}{hud.biome.hazardActive ? ` · Active hazard: ${hud.biome.hazardName}` : ''}</dd></div>}
+            {hud.runHeadline && <div><dt>Run identity</dt><dd>{hud.runHeadline}</dd></div>}
+            {hud.runEvent && <div><dt>Current event · {hud.runEvent.name}</dt><dd>{hud.runEvent.desc}</dd></div>}
+          </dl>
+        </details>
+      )}
+
       <div className={`side-sec${folded.fx ? ' is-folded' : ''}`}>
         <button className="side-k side-fold" onClick={() => toggle('fx')} aria-expanded={!folded.fx}>
           Active Effects{hud.buffs.length > 0 ? ` · ${hud.buffs.length}` : ''}
@@ -155,7 +186,7 @@ export function BuildPanel({ hud, onCollapse, onOpenEvolution }: { hud: HudSnaps
             ))}
           </div>
         ) : (
-          <p className="side-empty">No run modifiers yet.</p>
+          <p className="side-empty">No active bonuses to show.</p>
         ))}
       </div>
 

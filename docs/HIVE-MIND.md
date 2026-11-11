@@ -8,23 +8,19 @@
 
 ## The player contract
 
-- One clearly visible HUD button in every run's prep + combat phases: **◈ HIVE INTELLIGENCE**.
-  It GLOWS when at least one worthwhile purchase is affordable (the `hiveReady` snapshot flag).
-  It lives in the run-controls strip beside speed + Pause (docs/HUD.md §layout; phones show
-  the short key "◈ HIVE"); the pulse report ticker rides the strip's free end as a two-line log
-  (phones: a toast over the board) — it never covers the wave briefing or ▶ Start Wave.
-  It ACTS only on **solved content** (§solved-content) — elsewhere it is visibly off and says why.
-- Pressing it runs one **pulse**: evaluate every currently-available Biomass purchase, execute
-  the best ones (multi-buy) until nothing worthwhile remains or Biomass hits the reserve.
-- Every action it takes is announced on the battlefield ("◈ Evolved Bone Mortar", "◈ Placed
-  Parasite Nest") and each purchase fires its own existing ceremony (mutation spectacle,
-  arrival, splice cue) — the hive visibly does the work; gameplay is never interrupted.
-- Manual play is untouched: every surface the mind buys from remains fully manual, and the
-  mind never SPENDS on its own — a pulse happens only when the player asks for one. Its one
-  standing behavior is the **HIVE CALL** (§hive-call): with the player's Auto Wave on, on solved
-  content, it calls the next wave early when its forecast says the board holds with a wide margin.
-  (Future seam: optional modes — one-purchase / spend-all / boss-prep profiles — ride the
-  same planner with different tunables; see §modes.)
+Complete Campaign Stage 5 on any difficulty to unlock **HIVE INTELLIGENCE**. Its ON/OFF button
+starts off each run — docked on the build console beside Auto Wave / Auto Gene while the console is
+up (prep; it used to sit on the board's top edge over the spawn lane — owner playtest 2026-11-11),
+in the run-controls strip mid-wave, and on the draft as **◈ Enable Hive Intelligence** / **Stop**.
+While on, the hive buys through the existing planner every two simulation seconds, starts waves
+after the normal setup countdown, **calls the next wave early** when its forecast says the board
+holds the overlap with a wide margin (the HIVE CALL — §hive-call; also with Auto Wave on), and picks
+the recommended gene after its visible **three-second** countdown (owner ask 2026-11-11; was ten).
+Manual gene picks override the recommendation. Stop Hive Intelligence in the draft or toggle it off
+on the battlefield to take control. Pause freezes purchases and wave starts; draft auto-picks wait
+while paused. Standalone Auto Wave and Auto Gene preferences are preserved. Each purchase retains its
+normal effects and the action ticker. The toggle ends with the run; it does not launch the next
+campaign stage or spend hub currencies.
 
 ## Architecture (the foundation rule: new systems join for free)
 
@@ -82,33 +78,18 @@ members only — no Game import at runtime, no cycles, unit-testable with a stub
     single `applyContext()` — additive, and every multiplier must name its reason in
     `HiveAction.detail` (the tooltip/toast explains WHY).
 
-## §solved-content — automation never replaces a frontier decision (2026-11)
+## §solved-content — stage-5 unlock (revised)
 
-`npm run sim:hive` shows the mind out-surviving the scripted manual policy by ~57% — so on a
-FRONTIER stage, unrestricted, the best play would be pressing one button. Hive Intelligence and
-**Auto Gene** (automatic draft picks) therefore run only on content the account has already beaten:
+The previous replay-only rule is replaced by account completion of Campaign Stage 5.
+Campaign (including new stages) and Infinite allow automation after that milestone. Tutorial,
+Daily, Boss Rush and Quick Skirmish remain manual; Threat levels above the mode's cleared record
+remain locked. The stage is configured in HIVE_MIND.unlockStage. save/derive.ts automationFor
+uses highestCampaignStage and passes the verdict as RunOptions.automationAllowed (omitted = false).
 
-| Run | Hive Intelligence + Auto Gene | Why |
-|---|---|---|
-| **Infinite** | ON | the farm — solved content by design |
-| **Campaign replay** (stage ≤ cleared on that difficulty track) | ON | farming / replaying a beaten stage |
-| Campaign **frontier** stage | off — *"Unlocks on stages you've cleared"* | the decisions ARE the content |
-| **Boss Rush** | off — *"every run chases a record"* | its payouts are new-record lanes; every run is a frontier |
-| **Daily** | off — *"one shared, fair board"* | a worldwide, replay-verified leaderboard |
-| **Quick Skirmish** | off — *"practice is played by hand"* | the practice sandbox |
-| **Tutorial** | off (button hidden) | the lesson is the decisions |
-| Any **Threat** level above the mode's best cleared (docs/THREAT.md) | off — *"Unlocks at Threat levels you've cleared"* | a new rung is a frontier |
-
-Wiring (the sim never reads the save): the pure policy is `automationGate()` in
-`core/hivemind.ts` (`AUTOMATION_POLICY` — one data row per mode); `save/derive.ts automationFor()`
-evaluates it from the save once at run mount (GameView) and threads ONE run option,
-**`RunOptions.automationAllowed`** — **fail-closed** (omitted ⇒ false). With it false,
-`hiveEvaluate()` returns `[]` (the button never glows) and `hivePulse()` is a no-op; GameView
-disables the pill and prints the reason inside it, forces the draft manual (`DraftModal
-forceManual`), and BuildControls shows Auto Gene as **LOCKED** with the reason. **Auto Wave and game
-speed stay available everywhere** (pure convenience); the purchased hero **auto-cast** is an in-run
-upgrade, not governed here. Headless instruments that model solved content (sim-hive, the hivemind
-tests) pass `automationAllowed: true` explicitly.
+Game.setHiveActive controls a run-local toggle. The fixed-step loop calls hivePulse at the
+configured cadence; Auto Wave reads the toggle without overwriting the standalone preference.
+DraftModal uses a live override of its existing countdown, with a Stop button and pause handling.
+No save-schema migration is needed. The input recorder includes setHiveActive.
 
 ## §opening — the first Biomass goes into towers (Batch G, 2026-11)
 
@@ -202,7 +183,7 @@ Auto Gene's countdown is **3 s** since the same ask (was 10 s) — any manual pi
 
 ## §golden-safety & determinism
 
-The mind only ever acts inside `hivePulse()`, which only the player's button calls — golden
+The mind only ever acts inside `hivePulse()`, which the enabled toggle calls — golden
 autoplay never presses it, so every golden seed is untouched by construction. A pulse itself
 is deterministic: same run state ⇒ same plan ⇒ same purchases (pinned by test).
 
@@ -238,3 +219,14 @@ progression-sim accounts, pressing only the glowing button, 6 seeds): towers at 
 Lesson baked into the code: the pulse pins its reserve ONCE from the starting wallet
 (per-iteration recomputation on a shrinking wallet asymptotically spends to zero — the
 first sim draft caught 87 violations/cohort before the pin).
+
+## Hero combat and manual takeover
+
+While enabled, the lead hero uses the existing ability targeting/cooldown path during combat,
+without purchasing the separate Auto-Cast upgrade. Other roster heroes and star skills already
+act autonomously. Each purchase pulse rallies the lead hero toward the deepest live threat.
+Turning Hive Intelligence off stops this steering and ability automation; previously purchased
+standalone Auto-Cast remains as the player left it. The planner skips that redundant purchase
+while the toggle is on. Upgrades, conveyor deployment/merges and extra Splice drafts already
+use the planner. Conveyor overflow already recycles automatically. No automatic selling,
+relocation, early-call overlaps, paid rerolls, hub spending or next-run launch is introduced.

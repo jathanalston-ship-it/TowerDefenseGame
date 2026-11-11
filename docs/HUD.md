@@ -1,5 +1,11 @@
 # HUD.md — HUD Analysis & Redesign (desktop-first)
 
+Keyboard ownership: focused controls own Space; text fields do not dispatch board shortcuts.
+Paused runs ignore board actions except P to resume. The hero console owns its pause and
+closes with E/Escape; board shortcuts cannot act through it. The pause sheet is a labelled modal
+dialog: opening focuses Resume, Tab wraps through its buttons and sliders, and closing restores
+the previous connected control. Abandon confirmation focuses Keep Playing, the safe choice.
+
 Layout + visual specs for the in-run HUD. Derives all colors/type/spacing from
 `STYLE-GUIDE.md`. Grounded in the current build (`src/ui/Hud.tsx`,
 `Toolbar.tsx`, `DraftModal.tsx`, `GameView.tsx`; data model = `HudSnapshot` in
@@ -28,10 +34,21 @@ The redesign below has been implemented and extended. The live combat HUD is now
 - **Tower cards**: hover lift + sheen sweep, mastery ring (conic, capped 99), star-tier pips,
   DPS + deployed-count chips, affordable-pulse edge.
 - **Start Wave focal** + full-board energy sweep on launch; the briefing header carries the
-  encounter forecast (Σ bounty Biomass + ELITES/BOSS INBOUND warnings).
+  encounter forecast (Σ unmodified bounty, labeled base Biomass, + ELITES/BOSS INBOUND warnings).
+  Reward, adaptation and enemy chips open a keyboard-focusable detail region below the bar,
+  outside the mobile horizontal scroller. On phone layouts the expanded details replace the
+  compact intel row, preserving reading space and launch controls. Details stay within the
+  battlefield and scroll when necessary, with Close kept visible. Escape/Close returns focus
+  to the triggering chip after the compact row reappears;
+  a new preview or departure from prep dismisses the details. Enemy HP/armor are explicitly
+  base stats, elite counts are included in the total, and rewards explain modifier/kill limits.
 - **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
   rarity-lit equipment slots, evolution chip, compact run stats.
-- **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section.
+- **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section. Run conditions
+  is a native keyboard/touch disclosure with a 44px summary. It lists the selected doctrine,
+  run-captured vows (same Daily/tutorial exclusions), active Threat rungs, current biome/hazard,
+  run identity and current event from their existing data. It is omitted when none apply.
+  Reading/disclosure keys do not trigger battlefield shortcuts; Escape retains its normal handling.
 
 ### §0b — the 2026-07 HUD OVERHAUL (triple-A pass: organs, belt, vessel)
 
@@ -260,3 +277,66 @@ AUTO-SLOW (once per run each): the FINAL Campaign/Stage wave beginning, or reach
 your Infinite record (best ≥ 12), pulls the throttle back to 1× and posts an explanatory
 notice ("Final wave — speed returned to 1×…"). Acknowledge with OK; the chips stay free to
 re-raise immediately. Controller support rides the same button group (documented seam).
+
+
+## Hive Intelligence continuous toggle
+
+Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and Infinite, including new campaign stages. It buys through the existing planner, starts waves and chooses recommended genes with a visible countdown. Stop from the battlefield or draft; Pause suspends actions. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain excluded. See `docs/HIVE-MIND.md`.
+
+### Hero and automation status clarity
+The ability shortcut displays seconds remaining while recharging, or a recovery timer while the hero is down. Its ring uses HudSnapshot.hero.abilityCdMax, including cooldown upgrades. Hive-managed wave/gene controls remain disabled but show HIVE at full text opacity, with a reason in their title.
+
+On phone layouts, pause is layered above run drawers and their veil; pausing from an open Status drawer must leave Resume reachable.
+
+Hero auto-cast accessibility: the Toolbar exposes aria-pressed only after the unlock or while Hive Intelligence manages it. The locked control stays a purchase button; the Hive-managed state is pressed and disabled. The browser AX tree verifies purchase/no-toggle, on, off and Hive/on-disabled through actual game actions. Mechanics and costs are unchanged.
+
+Placement accessibility: favorite tower and conveyor Deploy expose aria-pressed from the same armed/selected state as their visual classes. Conveyor deploy names identify the organism and live Biomass cost (or free starting gift). Keyboard selection, clearing and switching are checked through the real Game and browser AX tree; free and wave-grown paid pod labels match their definitions/costs. No placement or cost logic changes.
+
+Conveyor consumption: a focused recycle/merge action that removes its card restores focus to a remaining enabled Deploy, then the favorite tower, or the named conveyor group if no placement is affordable. Focus elsewhere is preserved. Recycle displays the actual refund: zero for the free starting organism, the normal conveyor refund otherwise. Merge/recycle accessible names include the organism and transaction amount. The simulation owns costs/refunds; no economy changes.
+
+Conveyor recycle audio is delivered once via the existing simulation queue, alongside the focus/refund behavior above; the button does not duplicate that cue.
+
+Tower sale/branch confirmations: named modal cards use Popup, safe initial Cancel focus, Tab containment and keyboard-event isolation. Escape/backdrop/Cancel restores the opener, or the surviving Inspector when the opener was removed. runBus Pause requests cancel pending prompts before Pause takes focus; browser Back retains the run's Pause contract. Successful purchases/sales still use their original callbacks and economy APIs.
+
+Branch upgrade buttons retain keyboard focus while the next buy remains available. If the completed path removes the button or the next tier disables it, focus moves to the selected tier preview in that same lane, without taking focus from another control.
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.
+
+Run control accessibility: speed buttons expose aria-pressed from the same state that drives their visual selection and simulation speed, including F cycling and automatic slowdown. Early Call and Splice accessible names describe their live wave/reward or draft cost. No timing, costs, hotkeys or simulation changes.
+
+Hero Ops ability wheel uses HudSnapshot.hero.abilityCdMax (the resolved live cooldown), with zero fill while recovering. Its named image and tooltip distinguish recovering/recharging/ready/armed, without live-region countdown chatter or changes to casting/cooldown simulation.
+
+Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.
+
+Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.
+
+Hero Ops ability explanation: the wheel is a44px disclosure button (aria-expanded/controls, named status and description). Click/Enter/Space toggle an inline paragraph; Escape closes it and stops propagation. Content remains in the scrolling panel instead of a clipped absolute tooltip. Opening does not arm/cast or start waves. Existing status/recovery/progress calculation is preserved.
+
+Class Bond chips in Run Build are native disclosures: keyboard/touch opens the current effect
+and next-tier requirement within the drawer. 44px summaries expose tier/count in their accessible
+names; expanded readers survive live board updates. No effect or threshold math changes.
+
+Bond effect descriptions read the resolved level from each HUD bond snapshot, not the live
+account store. Daily runs therefore display their actual base-strength effects even when the
+account owns upgrades. This snapshot field does not change the bond fold or combat values.
+
+## Drafted Gene Card reading
+
+Run Build groups repeated picks as before. Each card is a native 44px disclosure whose
+name wraps instead of truncating; tap, Enter or Space reveals the exact saved description
+and affected subject inside the scrollable drawer. Repeated picks label that description
+"Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
+live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
+its normal handling. Draft choices, stacking math and effects are unchanged.
+
+HUD resource explanations open below their readouts with inward edge alignment and raised active cells, so keyboard/hover/touch details stay inside the viewport. The shared tooltip behavior and simulation remain unchanged.
+
+Space on a focused HUD explanation is consumed before battlefield shortcuts; the Hero readout still opens its Console, and unfocused-board Space still starts waves.
+
+Automation help: a44px question button beside Auto Wave/Auto Gene opens the existing bounded briefing reader. It explains countdown/manual gene override, current WAIT, the live gate reason and Hive management; open text updates with these states. Existing Escape/focus restoration and reading-key isolation apply. Toggles, stored preferences, gates and gameplay remain unchanged. Compact labels may wrap instead of clipping.
+
+On portrait screens up to380px wide, an available Early Call uses a second control row with its label shown. Canvas top padding reserves that row so the button does not cover the battlefield. The extra row disappears when the offer does; launch rules, rewards and timing are unchanged.
+
+Post-run RewardReveal preserves keyboard position when its focused Skip button unmounts after skipping or natural completion: a layout effect restores focus to the persistent Continue control only if focus fell to body. Blur clears the pending handoff, so other controls/cinematics are not interrupted. Reward amounts, reveal timers, audio and Continue behavior are unchanged.
+
+Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.

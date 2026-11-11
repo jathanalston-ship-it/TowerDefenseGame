@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { AUTOMATION_POLICY, AUTOMATION_THREAT_REASON, automationGate, hiveBestSlot } from './hivemind';
+import { AUTOMATION_THREAT_REASON, automationGate, hiveBestSlot } from './hivemind';
 import type { HiveGame } from './hivemind';
 import { SIM_DT } from './config';
 import { HIVE_MIND } from './config';
@@ -113,15 +113,15 @@ describe('hive intelligence — placement (docs/HIVE-MIND.md §placement)', () =
   });
 });
 
-describe('the automation gate — solved content only (docs/HIVE-MIND.md §solved-content)', () => {
-  const base = { tutorial: false, contentCleared: false, threat: 0, threatCleared: 0 };
+describe('the automation gate — campaign milestone (docs/HIVE-MIND.md §solved-content)', () => {
+  const base = { campaignCleared: 5, tutorial: false, contentCleared: false, threat: 0, threatCleared: 0 };
 
-  it('policy: Infinite always; Campaign only on cleared stages; Rush/Daily/Skirmish/tutorial never', () => {
+  it('policy: Campaign and Infinite after stage 5; Rush/Daily/Skirmish/tutorial never', () => {
     expect(automationGate({ ...base, mode: 'endless' }).allowed).toBe(true);
     expect(automationGate({ ...base, mode: 'campaign', contentCleared: true }).allowed).toBe(true);
     const frontier = automationGate({ ...base, mode: 'campaign', contentCleared: false });
-    expect(frontier).toEqual({ allowed: false, reason: AUTOMATION_POLICY.campaign.reason });
-    expect(frontier.reason).toMatch(/cleared/);
+    expect(frontier.allowed).toBe(true);
+    expect(automationGate({ ...base, mode: 'campaign', campaignCleared: 4 }).allowed).toBe(false);
     for (const mode of ['bossRush', 'daily', 'stage'] as const) {
       const g = automationGate({ ...base, mode, contentCleared: true });
       expect(g.allowed, mode).toBe(false);
@@ -238,5 +238,61 @@ describe('hive intelligence — SPLICE (docs/CARDS.md §splice)', () => {
     g.debugAddBiomass(5e6);
     expect(g.spliceGainEstimate()).toBe(0);
     expect(g.hiveEvaluate().some((a) => a.provider === 'splice')).toBe(false);
+  });
+});
+
+
+describe('continuous Hive Intelligence', () => {
+  function game() { const g = new Game(29, NO_META, undefined, 'ravager', undefined, { mode: 'endless', automationAllowed: true }); g.isolateEvents(); return g; }
+  function ticks(g: Game, seconds: number) { for (let i = 0; i < seconds / SIM_DT; i++) g.advance(SIM_DT); }
+  it('unlocks exactly after stage 5 on any campaign difficulty', () => {
+    const c = { tutorial: false, contentCleared: false, threat: 0, threatCleared: 0, mode: 'campaign' as const };
+    expect(automationGate({ ...c, campaignCleared: 4 }).allowed).toBe(false);
+    expect(automationGate({ ...c, campaignCleared: 5 }).allowed).toBe(true);
+  });
+  it('builds an opening and launches waves without changing the standalone Auto Wave preference', () => {
+    const g = game(); g.setHiveActive(true); ticks(g, SIM_DT);
+    expect(g.towers.length).toBeGreaterThan(0);
+    expect(g.autoStart).toBe(false);
+    expect(g.getSnapshot().autoStart).toBe(true);
+    ticks(g, 16); expect(g.waveIndex).toBeGreaterThan(0);
+  });
+  it('stops purchases and automatic launches when disabled, and freezes while paused', () => {
+    const g = game(); g.setHiveActive(true); g.phase = 'draft'; ticks(g, 10);
+    expect(g.towers).toHaveLength(0);
+    g.phase = 'prep'; ticks(g, SIM_DT); g.setHiveActive(false);
+    const n = g.towers.length; const report = g.hiveReport.serial;
+    ticks(g, 20);
+    expect(g.phase).toBe('prep'); expect(g.towers).toHaveLength(n); expect(g.hiveReport.serial).toBe(report);
+    expect(g.getSnapshot().autoStart).toBe(false);
+  });
+  it('cannot enable in a locked run, tutorial, or terminal phase', () => {
+    const locked = new Game(1, NO_META); locked.setHiveActive(true); expect(locked.hiveActive).toBe(false);
+    const g = game(); g.tutorialMode = true; g.setHiveActive(true); expect(g.hiveActive).toBe(false);
+    g.tutorialMode = false; g.phase = 'lost'; g.setHiveActive(true); expect(g.hiveActive).toBe(false);
+  });
+  it('repeats purchases deterministically and retains a separately enabled Auto Wave on switch-off', () => {
+    const a = game(), b = game(); a.setHiveActive(true); b.setHiveActive(true);
+    ticks(a, 20); ticks(b, 20);
+    expect(a.hiveReport).toEqual(b.hiveReport); expect(a.biomass).toBe(b.biomass); expect(a.towers).toEqual(b.towers);
+    a.setAutoStart(true); a.setHiveActive(false); expect(a.getSnapshot().autoStart).toBe(true);
+  });
+});
+
+
+describe('Hive hero combat', () => {
+  it('casts the lead ability without buying autocast; stopping restores manual control', () => {
+    const g = new Game(1, NO_META, undefined, 'shepherd', undefined, { mode: 'endless', automationAllowed: true });
+    g.isolateEvents(); g.setHiveActive(true); g.startWave(); g.advance(SIM_DT);
+    expect(g.heroes[0].abilityCd).toBeGreaterThan(0);
+    expect(g.autocastUnlocked).toBe(false); expect(g.autocastOn).toBe(false);
+    g.setHiveActive(false); g.heroes[0].abilityCd = 0; g.advance(SIM_DT);
+    expect(g.heroes[0].abilityCd).toBe(0);
+  });
+  it('does not spend on redundant autocast and never casts while building', () => {
+    const g = new Game(2, NO_META, undefined, 'shepherd', undefined, { mode: 'endless', automationAllowed: true });
+    g.isolateEvents(); g.setHiveActive(true); g.advance(SIM_DT);
+    expect(g.heroes[0].abilityCd).toBe(0);
+    expect(g.hiveEvaluate().some(a => a.provider === 'autocast')).toBe(false);
   });
 });

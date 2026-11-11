@@ -151,8 +151,9 @@
   100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -74px) scale(0.96); }
 }
 
+/* Burst presence follows resolved device + Allow motion preferences in QuestBoard.tsx. */
 @media (prefers-reduced-motion: reduce) {
-  .qb-claimable-chip, .qb-m-readydot, .qb-m-claim, .qb-burst-ring, .qb-burst-chip { animation: none; }
+  .qb-claimable-chip, .qb-m-readydot, .qb-m-claim { animation: none; }
 }
 
 /* ── METABOLISM — the Milestones screen (docs/METABOLISM.md §screen) ─────────────────────

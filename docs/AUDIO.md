@@ -1,5 +1,11 @@
 # AUDIO — the SFX mix, its mastering, and the audit that measures it
 
+Queued gameplay-action cues have one owner: GameView drains and coalesces them into audio.
+The queue also drains while paused so console purchases give prompt feedback; that paused
+path does not advance the simulation, render the board, or add camera trauma. UI callers must
+not play a second direct splice cue for hero evolution or conveyor strain purchases already
+queued by the game. Synths, mastering and mix levels are unchanged by this routing.
+
 The game's sound effects are **synthesized** (`src/audio/sound.ts` — ~130 cue functions over a few
 voice primitives, dispatched by `audio.cue(tag)` / `audio.cueBatch(counts)`). The score is a separate
 engine with its own mastering (`src/audio/music.ts`, docs/MUSIC.md). This doc owns everything between
@@ -162,3 +168,7 @@ alone per section). Writes WAVs (`--mp3` adds the audition set) and docs/AUDIO_R
   cue can lose its tail layer). Priority stealing is the hook if it's ever audible.
 - Trims are measured at the default volume with a seeded room; each session's IR is freshly random
   (±0.5 dB on wet cues).
+
+SFX control smoothing: mute and player-volume changes ramp the existing master over20ms, anchored at currentTime. New cues are still rejected immediately while muted; changing volume while muted targets zero. Rapid changes cancel/hold the old ramp and start from the current gain (cancelScheduledValues fallback supported). Settings never instantiate an AudioContext. Initial graph gain and every synth/mix trim remain unchanged. Offline constant-signal measurement through the real master: abrupt mute max sample step0.187501 before,0.000195 after; rapid volume/mute/unmute sequence max0.000156, muted output0 and final expected level0.112501.
+
+Conveyor recycle confirmation uses the simulation's successful `dissolve` queue event only. Toolbar resumes audio and submits the action but does not add a duplicate direct cue; GameView drains the existing queue normally. Failed/stale attempts emit no success cue. Verified in a mounted GameView by observing direct and queued dispatches.

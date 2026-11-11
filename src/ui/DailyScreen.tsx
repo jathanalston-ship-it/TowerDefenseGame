@@ -4,10 +4,10 @@
 // Conveyor pool, and the day's champion. This terminal briefs the contract (what today IS),
 // shows the ledger (today's best / streak), ticks the reset countdown, and launches.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { meta } from '../state/meta';
 import type { ReplayRecord } from '../core/replay';
-import { decodeReplayCode } from '../net/replayShare';
+import { decodeReplayInput } from '../net/replayShare';
 import { t, useLocale } from '../i18n';
 import { ShareReplayButton } from './components/ShareReplay';
 import { LeaderboardBlock } from './components/LeaderboardBlock';
@@ -33,6 +33,24 @@ export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => 
   // Replay Theater (docs/REPLAY-SHARE.md): share today's best / watch any pasted code.
   const [shareCode, setShareCode] = useState('');
   const [badCode, setBadCode] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const decodeRequest = useRef(0);
+  const errorId = useId();
+  useEffect(() => () => { decodeRequest.current++; }, []);
+  const watchCode = async (): Promise<void> => {
+    if (checking || !shareCode.trim()) return;
+    const id = ++decodeRequest.current;
+    setChecking(true); setBadCode(false);
+    try {
+      const replay = await decodeReplayInput(shareCode);
+      if (id !== decodeRequest.current) return;
+      if (replay) onSpectate(replay); else setBadCode(true);
+    } catch {
+      if (id === decodeRequest.current) setBadCode(true);
+    } finally {
+      if (id === decodeRequest.current) setChecking(false);
+    }
+  };
   // Tick a real-time clock so the reset countdown is live — and REGENERATE the plan when the UTC
   // day flips mid-session (the key is state, so the flip re-renders everything below).
   const [key, setKey] = useState(() => dailyKey());
@@ -160,25 +178,25 @@ export function DailyScreen({ onStartDaily, onSpectate }: { onStartDaily: () => 
             ) : (
               <p className="panel-sub">{t('daily.theater.empty')}</p>
             )}
-            <div className="theater-paste">
+            <form className="theater-paste" onSubmit={e => { e.preventDefault(); void watchCode(); }}>
               <input
                 className="theater-input"
                 value={shareCode}
-                onChange={(e) => { setShareCode(e.target.value); setBadCode(false); }}
+                onChange={(e) => { decodeRequest.current++; setShareCode(e.target.value); setBadCode(false); setChecking(false); }}
                 placeholder={t('daily.theater.paste')}
                 aria-label={t('daily.theater.paste')}
+                aria-invalid={badCode || undefined}
+                aria-describedby={badCode ? errorId : undefined}
               />
               <button
                 className="theater-btn"
-                disabled={shareCode.trim().length === 0}
-                onClick={() => {
-                  void decodeReplayCode(shareCode).then((r) => (r ? onSpectate(r) : setBadCode(true)));
-                }}
+                type="submit"
+                disabled={checking || shareCode.trim().length === 0}
               >
-                {t('daily.theater.watchCode')}
+                {checking ? t('daily.theater.checking') : t('daily.theater.watchCode')}
               </button>
-            </div>
-            {badCode && <div className="theater-bad">{t('daily.theater.bad')}</div>}
+            </form>
+            {badCode && <div className="theater-bad" id={errorId} role="alert">{t('daily.theater.bad')}</div>}
           </div>
           <FieldResearchCard category="boost" note="Arm an observation boost before today's contract." />
         </div>

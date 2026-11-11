@@ -138,3 +138,13 @@
 
 .intro.is-still .intro-title > span::after,
 .intro.is-still .intro-begin::before { display: none; }
+/* Reading controls share the film's existing visual language. */
+.opening-controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.opening-film .intro-foot { gap: 12px; flex-wrap: wrap; }
+.opening-film .intro-skip, .intro-gate-skip { min-height: 44px; }
+.opening-film.is-manual .intro-text,
+.opening-film.is-manual .intro-title span,
+.opening-film.is-manual .intro-triad span,
+.opening-film.is-manual .intro-begin { animation: none; opacity: 1; transform: none; }
+.opening-film .intro-begin:focus-visible { animation: none; opacity: 1; transform: none; }
+.intro.opening-suspended, .intro.opening-suspended *, .intro.opening-suspended *::before, .intro.opening-suspended *::after { animation-play-state: paused !important; }

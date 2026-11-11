@@ -39,7 +39,9 @@
 
 .hvo-pip { fill: var(--caustic); }
 
-@media (prefers-reduced-motion: reduce) {
-  .hvo-mote { display: none; }
-  .hvo-syn, .hvo[data-producing='1'] .hvo-core-halo, .hvo[data-producing='1'] .hvo-organ.is-grown { animation: none; }
-}
+.hvo[data-active='0'] * { animation-play-state: paused !important; }
+.hvo[data-motion='reduced'] .hvo-mote { display: none; }
+.hvo[data-motion='reduced'] .hvo-syn,
+.hvo[data-motion='reduced'] .hvo-core-halo,
+.hvo[data-motion='reduced'] .hvo-organ.is-grown { animation: none; }
+.hvo[data-motion='reduced'] .hvo-core-fill { transition: none; }

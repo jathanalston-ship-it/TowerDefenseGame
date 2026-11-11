@@ -82,3 +82,12 @@ Defense, Adaptation/Antigen, and in-run Hero Evolution.
 - Media is placeholder-only (no assets yet).
 - Announcement order follows `MECHANICS` array order, not unlock recency.
 - `help.seen` grows unbounded (bounded in practice by the registry size).
+
+### Search and related-topic navigation
+Search normalizes punctuation/spacing and searches all What/Why/Where/Next/Watch out text plus titles, summaries and categories. Exact title/summary/body phrases rank before results whose query words span sections. All query words must match. Each query change selects the best result; related links clear the filter and focus their opened article. Unlocked-topic gating remains unchanged.
+
+What's New keyboard access: a visible queue captures its opener once. Each card focuses Got it, Tab stays inside the dialog (including the named explanation/list), and Escape uses the same acknowledgement as Got it. Closing the queue or unmounting restores a connected opener. Single cards include the mechanic title in the accessible dialog name; card identity follows the mechanic so the next card receives fresh focus.
+
+Field Manual reading flow: selecting an index entry focuses its article, including reselecting the current topic. Enter in search reads the current result without changing the query; typing and empty-result Enter retain search focus. Back to topics focuses the selected index entry (falling back to search if missing). Related-topic links still clear search and focus their destination. Search ranking and unlocked-only filtering are unchanged.
+
+Search recovery: the persistent described status reports matching-topic count and only offers Enter-to-read when a topic exists. No-result searches offer Clear search, resetting query/selection and returning focus to the search input; the button reuses the existing 44 px Help navigation style. Empty unlocked registries report that state. Ranking and progression gating are unchanged.

@@ -28,6 +28,10 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ---
 
+## Story film accessibility
+
+`ui/CutscenePlayer.tsx` and `ui/InitCutscene.tsx` support manual reading, keyboard scene controls, modal focus restoration and reduced-motion repaint on viewport changes. See `docs/CUTSCENES.md`; reward/unlock data and simulation are unchanged.
+
 ## System index
 
 [Campaign](#campaign) · [Infinite](#infinite) · [Arena (Live PvP)](#arena-live-pvp) ·
@@ -200,6 +204,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Power Score
 
+Career statistic hints use explicit Details buttons and inline reading panels. Profile power categories use native expandable rows with 44px targets and inline explanations; multipliers display up to four decimal places. Attribution and score formulas are unchanged.
+
 - **Purpose:** ONE number for account strength. Folds every permanent bucket (upgrades, stars,
   mastery, heroes, equipment, collection, genes, prestige) plus a temporary in-run bucket;
   drives recommended-power checks and progress prediction.
@@ -346,10 +352,14 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   `ui/EquipmentPanel.tsx`, `ui/ItemDetails.tsx`, `ui/components/ItemArt.tsx`.
   Docs: `EQUIPMENT.md`, `EQUIPMENT-PHILOSOPHY.md`.
 - **Related:** Hero Equipment (loadouts), Crafting (reforge), Loot (acquisition), Collections.
+- **Codex search:** Shared ListControls/organizeList search names, descriptions, slots and sets without persisting queries or changing discovery. Phone hits appear outside folds; clear-search restores input focus.
+- **Affix tier descriptions:** equipment.affixEffectText shares tier scaling with itemEffects, so enhanced gear describes its current strength; applied effects are unchanged. Coverage checks every affix/tier and actual UI enhancement.
+- **Codex effect units:** `ui/EquipmentCollection.tsx` uses `core/effectLanguage.describeEffects` exact text for set bonuses; shared FIELD_VOCAB preserves percentages versus counts. Equipment definitions are unchanged.
+- **Card motion:** ItemArt honors live reduced motion/override and pauses offscreen or hidden; static lower rarities are unchanged. HeroGearPreview also pauses while retaining still-mode drag inspection and uses refresh-independent rotation. Native Left/Right buttons support keyboard inspection and pause automatic motion while focused.
 - **Future expansion:** 500-item target; behavioral affix vocabulary keeps growing.
 - **Known limitations:** exotic rarity is loot-only in places (can't transmute past legendary).
 - **Developer tips:** destruction safeguards + Undo Salvage exist (`EQUIPMENT.md §safeguards`) —
-  route ALL item deletion through them, never delete inventory rows directly.
+  route ALL item deletion through them, never delete inventory rows directly. Item Details salvage confirmation is viewport-portaled, keyboard-contained and restores focus on cancellation. Favorite/item/affix locks expose their current toggle state to assistive tools. Disabled upgrades explain material deficits and affix/tier/rarity gates. Item Details manages keyboard entry, containment and return focus while deferring to nested confirmation. Armory filters remain recoverable after inventory changes, with a sort-preserving Clear filters action. Quick-Salvage reports eligible selections hidden by current filters.
 - **Gear chase (Batch G):** item level follows depth on an uncapped log curve (`ITEM_LEVEL_CURVE`, T6 from ~Stage 100); rarity per item-level band (`GEAR_RARITY_BANDS`, `gearRarityOdds` is the one source for roll + Armory line); permanent Gear Codex (`equipment.discovered`, v56). Known limit: base effects dominate item Power. Docs: `EQUIPMENT.md` §gear-chase §codex.
 
 ## Crafting / Reforging
@@ -375,7 +385,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Files:** `core/loot.ts` (rarity registry, `rollRarity`, pity), `core/lootQueue.ts`
   (pre-determined queue), `core/progressionLoot.ts` (catch-up bias), `core/materialDrop.ts`,
   `state/lootbox.ts` (chest reward tables), `state/vaultReveal.ts` (pull choreography model),
-  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`.
+  `ui/GeneticVault.tsx`, `ui/VaultReveal.tsx`, `ui/LootMeter.tsx`, `ui/LootToaster.tsx`. Container notices pause for reading and support keyboard dismissal with queue/final focus restoration. The HUD loot meter exposes named live progress derived from its visual fill and links keyboard focus to its explanation, which directs players to open completed containers in the Genetic Vault and shows zero remaining points when full. Loot celebration CSS honors the shared motion override even for the body-portaled flight.
   Docs: `LOOTBOX.md`, `LOOT-PROGRESSION.md`, `REWARD-PRESENTATION.md`.
 - **Related:** Equipment, Gene Essence (duplicate conversion + bonus drops), Crafting
   (materials), Currencies.
@@ -391,7 +401,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Purpose:** the codex — every enemy/boss/tower/hero/card/item/biome/cache discovered, with
   usage tiers, category ranks, completion rewards, and a small Power contribution.
 - **Dependencies:** lifetime stats, all content registries.
-- **Files:** `core/collection.ts` (view + tiers + bonuses + rewards), `ui/CollectionPanel.tsx`.
+- **Files:** `core/collection.ts` (view + tiers + bonuses + rewards), `ui/CollectionPanel.tsx`. Collection tabs and category drill-in preserve keyboard navigation/focus; undiscovered entry labels/tooltips conceal names while keeping status readable. Rank-up celebrations support keyboard focus, scrollable results and live reduced motion. Memory Archive supports revealed-copy search, recovery filters and accessible replay controls (see `CUTSCENES.md`).
   Docs: `COLLECTION.md`.
 - **Related:** every content system; Gene Cards (card entries show permanent Gene level —
   label only, completion untouched).
@@ -467,13 +477,13 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Achievements
 
-- **Purpose:** milestone recognition with Shard rewards, surfaced in Profile and toasts.
+- **Purpose:** milestone recognition with Genome Core rewards, surfaced in Profile and toasts. Gallery cards explicitly label earned/in-progress/undiscovered status, name reward currency and preview next ladder rewards without exposing secrets.
 - **Dependencies:** run summaries + lifetime stats; rewards auto-grant.
 - **Files:** `state/achievements.ts` (defs + checker), `ui/AchievementPanel.tsx`,
   `ui/AchievementToaster.tsx`, inline strip in `ui/RewardReveal.tsx`.
-- **Related:** Stats, Results (end-of-run reveal), notifications (profile badge).
+- **Related:** Stats, Results (end-of-run reveal), notifications (profile badge). The Profile Trophy Rack names mounted/owned/full/locked states and unlock sources; next-slot guidance derives from TROPHY_SLOT_THRESHOLDS.
 - **Future expansion:** an achievement is a def row (`test`, `progress`, `reward`).
-- **Known limitations:** flat list (no chains/categories yet).
+- **Gallery navigation:** shared search and All/Not earned/Earned chips filter authored milestones with a live count. Search uses only revealed name/description text; lifetime ladders remain a separate section.
 - **Developer tips:** achievements check on run finish (`checkAchievements`) — a new stat needs
   to be in the run summary or lifetime stats first.
 - **Ladders (Batch G):** `LADDER_FAMILIES` rows generate geometric rungs over lifetime ledgers (Cores-only rewards, kept out of authored totals; one gallery card per family); Results folds rungs crossed together into one line (`collapseLadderRungs`). Docs: `PROGRESSION-SYSTEMS.md` §ladders.
@@ -528,14 +538,30 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## HUD
 
+Post-run `RewardReveal` preserves Continue focus when its focused Skip control disappears, without moving focus from another control. See `docs/HUD.md`.
+
+- InfestationBoard on The Front follows shared live motion preferences, keeps reduced-motion canvas/sector geometry aligned on resize and stops its loop while hidden. Feed buttons expose actual selection state, distinct from a region-resolved feed marker. See INFESTATION.md.
+
+- Very narrow portrait Early Call uses a reserved second control row so it remains reachable without covering the battlefield. See EARLY-CALL.md.
+
+- BuildControls exposes live Auto Wave/Auto Gene explanations through a44px help button and its existing briefing reader; no automation behavior changes. See HUD.md.
+
+- HUD explanations open below their readouts with inward edge alignment and active stacking above run controls. Space while reading a focused HUD cell cannot start waves; Hero activation and board shortcuts retain their behavior. See HUD.md.
+
+- Toolbar hero auto-cast exposes its toggle state after unlock and under Hive management; the initial unlock retains purchase-button semantics. Favorite/conveyor placement exposes armed state, and conveyor deploy names include organism/cost. Consumed cards restore keyboard focus; free starting organisms display their actual zero recycle refund. Sale/branch confirmations contain keyboard focus and cancel on Pause; completed/unaffordable upgrades return focus to their tier preview. See HUD.md.
+
 - **Purpose:** the in-run interface — resources, wave state, tower rail, inspector, draft,
   build controls, live Power — and the Hub shell (nav, badges, rings, screens) around the game.
 - **Dependencies:** `game.getSnapshot()` (~10 Hz) + `meta.use()`; notifications registry.
+- Run Build drafted Gene Cards expand in-flow with exact saved descriptions, subject labels, wrapped names and explicit per-copy stack text. See CARDS.md.
+- Run Build bond chips expand in-flow for touch/keyboard readers, retaining current effect, tier and next-threshold details during live updates. The HUD snapshot carries the run-resolved bond level so Daily base-strength descriptions stay accurate. See CLASS-BONDS.md.
+- Run Build exposes existing doctrine/vow descriptions, active Threat rungs and current biome/event context through a keyboard/touch Run conditions disclosure; no simulation changes.
+- Wave briefing chips open readable details outside the phone scroller, with keyboard focus and Escape/Close restoration. Base bounty/HP/armor labels distinguish reference values from modified run results; elite counts are inclusive. See HUD.md.
 - **Files:** `ui/Hud.tsx`, `ui/Toolbar.tsx`, `ui/BuildControls.tsx`, `ui/Inspector.tsx`,
   `ui/BuildPanel.tsx`, `ui/DraftModal.tsx`, `ui/GameView.tsx` (rAF host), `ui/Hub.tsx` (nav
   shell), `ui/hubProgress.ts` (rings), `state/notificationSources.ts` (badges). The HOME
   screen is the Command Center (`ui/CommandCenter.tsx` + `ui/homeModel.ts` registry +
-  `ui/WorldStatus.tsx` living centerpiece — `COMMAND-CENTER.md`): registry-driven widget
+  `ui/WorldStatus.tsx` living centerpiece (live resolved motion preferences, still account/resize repaint) — `COMMAND-CENTER.md`): registry-driven widget
   zones (command strip, world status, mission control, forecast/roadmap rail, live army,
   command feed, dashboard); a future system's home widget = one register() + one renderer.
   Shell kit (2026-11): `ui/browserBack.ts` (Back/Escape + `useDismiss`), `components/
@@ -560,6 +586,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 
 ## Audio
 
+- Music enable restores the latest looping scene requested while muted, including boss binding; explicit stop clears it and one-shot ceremonies are not replayed. Shared output mute covers scheduled flourishes and stays silent during volume/duress updates. See MUSIC.md.
+
 - **Purpose:** synthesized SFX bus (no audio assets) — cues for combat, UI, rewards, branch
   tiers; heartbeat tempo under pressure — plus the ADAPTIVE SOUNDTRACK: a motif-library score
   (15-track data library, 8 intensity-gated layers, scene/rotation/progression-weighted
@@ -570,7 +598,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 - **Files:** `audio/sound.ts` (SFX bus + all synths + the cue→stinger `STING` bridge),
   `audio/sfxMix.ts` (THE MIX as data: categories, loudness targets, the audit-derived trim table,
   variation, voice budgets, the master chain), `audio/music.ts` (pure composition core + the music
-  manager), `ui/MusicDebug.tsx` (Settings dev console), `scripts/audio-audit.ts` (`npm run
+  manager), `ui/MusicDebug.tsx` (Settings dev console; 44px input/slider targets), `scripts/audio-audit.ts` (`npm run
   audio:audit` — renders every cue offline → `docs/AUDIO_REPORT.md`). Docs: `AUDIO.md`, `MUSIC.md`,
   `GAME-FEEL.md`. A new cue = a `case` + a `CUE_MIX` row (`sound.test.ts` enforces), its trim from
   `npm run audio:audit -- --only <tag> --suggest`.
@@ -581,6 +609,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   entry); real audio assets could layer in behind the same `audio.cue(tag)` / voice functions.
 - **Known limitations:** fully procedural — distinctive but synthetic (choir is detuned
   triangles, not voices).
+- **Touch settings:** Audio/motion switches keep44px coarse-pointer targets in Settings and the scrollable pause menu.
 - **Developer tips:** SFX API is `audio.cue(tag)` / `audio.resume()` (autoplay policy); music
   API is `music.play(category, opts)` + `setIntensity`/`setDuress`/`setScene`/`setProgression`/
   `stinger` — callers never pick tracks (there is no `audio.play`). Audition everything in
@@ -645,6 +674,8 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   any depth via the manual override.
 
 ## Online Foundation
+
+Global standings offer retry/refresh with announced request status and labeled columns; changing modes clears stale results and ignores superseded requests. Submission and ranking rules are unchanged. Replay sharing has localized pending/success/failure feedback and a selectable manual-copy fallback when clipboard access is unavailable; outdated async results are ignored. Replay Theater manages modal focus, exposes playback state/progress and resumes pacing when skipping from pause; simulation and verification are unchanged. Skip-to-outcome drains/discards combat cues and suppresses delayed clear fanfares; normal playback audio remains active. Daily replay input accepts links/codes locally, supports Enter and ignores outdated decode results after edits or unmount.
 
 - **Purpose:** the authoritative online architecture every online feature inherits — the
   replicated command vocabulary (ONE `applyArenaCommand` path onto Game intents), the versioned
@@ -755,7 +786,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   session/durable storage drivers + `swapStorage` — Guest Mode's seam, `ACCOUNTS.md §guest-mode`),
   `save/saveFile.ts` (file I/O), `save/derive.ts` (shared pure derivations, e.g.
   `highestCampaignStage`), `state/devReset.ts` + `state/prefs.ts` (`DEVICE_PREF_KEYS` registry),
-  `ui/SaveManager.tsx`. Docs: `DEV-RESET.md`, `SCALABILITY.md`.
+  `ui/SaveManager.tsx`. Backups publish their index before pruning; failed writes preserve prior snapshots and report failure in the UI. Confirmed restores keep a live recovery snapshot, protect their source from pruning and respect tab ownership; successful replacements clear older pending writes. File imports validate into a cancellable, keyboard-accessible preview; confirmed imports preserve live recovery state and commit to storage before notifying the session, with stale-tab protection. Docs: `DEV-RESET.md`, `SCALABILITY.md`.
 - **Related:** literally everything permanent; Power recomputes on every persist.
 - **Future expansion:** cloud sync shipped as the accounts platform (`ACCOUNTS.md` — envelope,
   sync engine, conflict flow); the schema stays additive-ready.
@@ -778,6 +809,7 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
 | Ability components | `core/ability.ts` | tower/hero combat as data blocks run by one executor |
 | Status engine | `core/status.ts` | stacking/duration/potency rules as data |
 | Read-model pattern | `state/*.ts` | pure `f(save) → view` modules; UI stays logic-free |
+| Update prompts | `net/swRegister.ts`, `ui/components/UpdateToast.tsx`, `ui/App.tsx` | pending service-worker snapshot plus events; prompt held outside idle hub, explicit refresh, localized dismissal with focus restoration |
 | Notifications | `state/notifications.ts` | menu badges = registered `count(save)` sources; `state/rewardToast.ts` + `RewardToaster` = the ONE claim-receipt popup every hub claim presents through |
 | Mechanics registry | `state/mechanics.ts` | Help wiki + What's New + tour from one def list |
 | Validation | `core/validate.ts` | dev-boot content invariants across all registries |
@@ -789,3 +821,100 @@ ladders. 4. Every permanent progression source must move the Power Score (valida
   shipped). Wrong manifests are worse than none.
 - New systems get a section with the same seven fields.
 - Keep each section ≤ ~15 lines — this is a map, not the territory (the linked doc is).
+
+
+## Hive Intelligence continuous toggle
+
+Campaign Stage 5 completion unlocks a run-local ON/OFF helper in Campaign and Infinite, including new campaign stages. It buys through the existing planner, starts waves and chooses recommended genes with a visible countdown. Stop from the battlefield or draft; Pause suspends actions. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain excluded. See `docs/HIVE-MIND.md`.
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.
+
+Run control accessibility: speed buttons expose aria-pressed from the same state that drives their visual selection and simulation speed, including F cycling and automatic slowdown. Early Call and Splice accessible names describe their live wave/reward or draft cost. No timing, costs, hotkeys or simulation changes.
+
+Hero Ops ability wheel uses HudSnapshot.hero.abilityCdMax (the resolved live cooldown), with zero fill while recovering. Its named image and tooltip distinguish recovering/recharging/ready/armed, without live-region countdown chatter or changes to casting/cooldown simulation.
+
+Selected-hero ability cooldown totals use the existing heroAbilityCooldownFor calculation; star-skill totals use the same progression multiplier as skill casts. HeroSelectPanel displays the live ability total to one decimal place and suppresses Ready/fill while downed. This is observational only: no cast timers, combat effects, saves or balance changed. Attack/pulse gauges use the observed cadence described below.
+
+Observed attack/pulse cadence: Game keeps presentation-only WeakMaps keyed by hero, recording the unchanged timer immediately after each attack/pulse starts. Selected-hero gauges and attack-speed text read that interval, including siege/mega-raid transitions; before the first action they use the behavior baseline. These maps are never read by combat or serialized. Regression probes cover all12 heroes with haste and a Vitriol raid-to-siege transition.
+
+Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.
+
+Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.
+
+Hero Ops ability explanation: the wheel is a44px disclosure button (aria-expanded/controls, named status and description). Click/Enter/Space toggle an inline paragraph; Escape closes it and stops propagation. Content remains in the scrolling panel instead of a clipped absolute tooltip. Opening does not arm/cast or start waves. Existing status/recovery/progress calculation is preserved.
+
+Account-level notices: hover (non-touch) and focus pause expiry, then grant the original full3400ms/5200ms reading window on leave. A24px dismiss button supports Enter/Space; queued notices retain focus, final dismissal restores the prior connected control without stealing unrelated focus. Unlock-held notices clear reading flags and resume without replaying their cue. Timer callbacks verify the same front item before removing it. Reward grants, queue order and milestone duration are unchanged.
+
+Reward-stack focus: dismissals capture the active stack control; after removal, only if focus fell to body, a layout effect focuses the next dismiss button or the previous connected external control. This covers the disappearing Dismiss All footer too. Navigation actions opt out so their destination owns focus. Unrelated focus, reading holds, pinning, merge windows, reward grants and queue rules are unchanged.
+
+Update briefing presentation: ui/UpdateBriefing.css gives secondary release actions 44px minimum touch targets; see CHANGELOG-PIPELINE.md.
+
+Update briefing keyboard lifecycle (ui/UpdateBriefing.tsx): visibility-based initial/restored focus, local Escape, contained Tab and focusable note regions; CHANGELOG-PIPELINE.md documents the behavior.
+
+Mechanic introductions (ui/WhatsNew.tsx): one focus session across queued/summarized unlock cards, per-card dismiss focus and contained Tab/Escape; HELP.md and GUIDED-UNLOCKS.md document keyboard and settlement behavior.
+
+HelpWiki search reports result counts and accurate no-result guidance, with keyboard-focused clear-search recovery. Reading navigation: index/Enter selection focuses the article, and Back to topics returns to its current index entry. Related links retain filter-clearing behavior; see HELP.md. Search ranking and progression visibility unchanged.
+
+Tutorial text presentation: tutorial/primitives.tsx consumes meta-store device prefs for live resolved typewriter motion and keeps the full sentence accessible. See TUTORIAL.md and UI-MOTION.md; lesson logic/rewards unchanged.
+
+GuidedUnlock completion (ui/GuidedUnlock.tsx, index.css): focus recovery, described result, local Escape and responsive touch controls; avoids stealing focus from real-action ceremonies. See GUIDED-UNLOCKS.md.
+
+Story cutscene presentation: ui/CutscenePlayer.tsx follows live resolved motion/flash preferences, preserves scene clocks and avoids elapsed-beat catch-up; see CUTSCENES.md and UI-MOTION.md.
+
+Opening cinematic (ui/InitCutscene.tsx): live resolved motion/flash preferences across gate/film/dive, elapsed-beat suppression on animation resume, safe reduced-motion dive exit. See GAME-FEEL.md and UI-MOTION.md.
+
+CutscenePlayer visibility lifecycle preserves scene/coda remaining time, pauses caption/projector motion and resumes the visual/audio-cue clock without catch-up; see CUTSCENES.md. No global audio-setting or progression changes.
+
+InitCutscene visibility lifecycle pauses scene holds, gate/film/dive clocks and caption animations while hidden, retaining once-only seen/completion behavior and live reduced-motion exits; GAME-FEEL.md and UI-MOTION.md document it.
+
+## Quest Board accessibility
+
+`ui/QuestBoard.tsx` names mission progress and claim controls with quest context and exposes reward descriptions. Progress accessibility values match the capped visible count; claims still use the existing meta pipeline. Successful focused mission claims preserve keyboard position on their completed row; successful focused batch claims return to the board heading, while rejected claims retain button focus. Keyboard claim celebrations originate at the activating control; pointer origins remain unchanged. Bursts follow live device/shared motion preferences, including the explicit override, and stop immediately when motion is disabled. See `docs/QUESTS.md`.
+
+## Champion Contracts display clock
+
+`ui/components/ContractsCard.tsx` refreshes its visible board every minute and on tab return, using one timestamp for roster, completion keys and countdown. See `docs/CONTRACTS.md`; no contract rule or reward changes.
+
+`ui/MulliganLab.tsx` organism previews follow live shared/device motion preferences, pause when offscreen/hidden and redraw still graft changes. See `docs/MULLIGANS.md`; simulation, graft costs and Power are unchanged.
+
+`ui/NucleusChambers.tsx` mutation previews follow live shared/device motion preferences, pause offscreen/hidden and retain current still mutation artwork. See `docs/NUCLEUS.md`; organ/chamber rules and Power are unchanged.
+
+Reforge reveal accessibility (2026-11-10): MulliganLab uses the shared Popup portal to escape transformed lab panels. Its card fits the viewport and scrolls on short displays; keyboard focus enters the dialog, moves to Accept on landing, stays inside on Tab, and returns to the opener (or its programmatically focusable slot when unaffordable). Escape follows the existing landed-only backdrop dismissal. Roll, cost, binding and ceremony duration are unchanged.
+
+Reforge wheel motion (2026-11-10): shared motion resolution honors Allow motion and listens to live preference/device changes. Reducing motion finishes the existing result immediately; a completed reveal never restarts. Animation and listener cleanup run on unmount; normal timing and roll/cost/binding remain unchanged.
+
+Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.
+
+Nucleus socket accessibility (2026-11-10): both empty and filled socket controls expose aria-pressed and chamber/socket identity; armed filled sockets use a visible outline. A status line explains the selected destination. Organ-specific graft/extract labels disambiguate actions; category filters expose selection. Successful graft/extract restores focus to the destination socket after its DOM replacement. Guarded meta operations, costs, effects and adaptation cues are unchanged.
+
+Nucleus opening focus (2026-11-10): the inline confirmation is a named group including chamber and Ichor cost. Opening focuses Not yet; cancellation restores the opener; successful guarded unlock focuses the new chamber first socket. Sequential gates, two-step confirmation, costs and XP fold remain unchanged.
+
+Cross-platform regression launcher (2026-11-10): scripts/validate.ts invokes the installed TypeScript, Vitest and vite-node JavaScript CLIs through process.execPath, avoiding Windows npm/npx executable-shim failures without invoking a shell. The full suite uses two workers (one minimum) to bound memory; test selection and assertions are unchanged. Child failures report exit status, launch errors or terminating signals with the last twelve output lines. Mobile validation still runs the original build-and-probe path; MOBILECHECK_CHROMIUM selects the installed browser as before.
+
+Complete class adaptation reveal (2026-11-10): shared Popup portal escapes transformed lab panels; scrollable card fits the app viewport. Continue receives focus without its former delayed entrance, Tab stays inside, and closing by Continue/backdrop/Escape restores the programmatically focusable host heading. Existing equip/adaptation completion and cue are unchanged.
+
+Adaptation reveal decoration: rotating rays are clipped in their own inset layer so they cannot widen the overlay or create horizontal scrolling; the content card remains independently scrollable.
+
+Graft-host keyboard navigation (2026-11-10): host tablist uses a single selected Tab stop, Arrow keys/Home/End with wrapping and nearest scrolling, and unique tab-to-panel ARIA links. Tab enters the named focusable showcase; class filters expose aria-pressed. Selection still uses the existing selectTower function; progression and graft operations are unchanged.
+
+Mulligan currency guidance (2026-11-10): tower graft level/ascend UI and Help now name Mulligan Tissue, matching meta/model spending. Bound-organism guidance explains permanent graft binding and upgrade caps. Nucleus Gene Essence remains unchanged; no economy or save changes. See MULLIGANS.md and ECONOMY.md §8.
+
+Harvest recommendation navigation (2026-11-10): the receipt CTA is named View next upgrade. In HarvestScreen, it closes the receipt then focuses and nearest-scrolls the corresponding named node card using the receipt recommendation id. HarvestArrival retains its existing onVisitHarvest callback. This action never calls buyIdleNode; collection, recommendation choice and upgrade prices remain unchanged.
+
+Harvest receipt accessibility (2026-11-10): HarvestCeremony uses the shared Popup portal so transformed panels cannot displace it. The viewport-bounded card scrolls, receives initial focus, traps Tab across its actions and dismisses with shared Escape/Back. Closing restores the production heading or the arrival banner’s prior outside control when still connected. Explicit upgrade navigation skips restoration. Its backdrop uses fade-in rather than the arrival banner’s translated entrance. Collection and rewards are unchanged.
+
+Validation environment isolation (2026-11-10): the validator explicitly launches Vitest with NODE_ENV=test, and mobilecheck explicitly builds with NODE_ENV=production. This overrides vite-node’s inherited development default only at the child boundary, preserving browser paths, compatibility preloads and other caller environment settings. Standalone mobilecheck and the nested validator now target the same production React runtime as deployment; --no-build requires a caller-provided production build.
+
+Production growth focus (2026-11-10): NodeCard keeps its card and Grow button mounted; only the decorative ring and header restart per successful purchase. If Grow held focus before buying, focus remains on the enabled button or falls back to the named node group when the next level is gated/unaffordable. Pointer actions without focus do not steal it. Existing purchase costs, gates, sound and reduced-motion suppression are preserved.
+
+Production upgrade guidance (2026-11-10): NodeCard receives the same idleView Chitin balance as the section header. Unaffordable, ungated nodes display max(0,cost-chitin) as a Chitin shortfall. Grow accessible names/tooltips specify node, next level and exact price. Stable useId descriptions associate the blurb and, when unavailable, shortfall/gate with the focusable group; its name includes current level. Browser accessibility snapshots verify post-purchase level1/81-Chitin shortfall and level9/CampaignStage25 gate, with unchanged debit/focus/animation.
+
+Hive diagram motion lifecycle (2026-11-10): HiveOrganism resolves live OS reduction and allowMotion preferences through the shared prefs resolver. A layout-effect subscription controls local motion/active attributes, SVG pauseAnimations/unpauseAnimations, CSS animation play state and fill transitions. IntersectionObserver and document visibility suspend invisible work; cleanup removes subscriptions/listeners/observer. The first paint is static until preferences resolve. Motion opt-in overrides OS reduction consistently. Browser checks verify actual offscreen pause, stopped SVG timeline/CSS on simulated hidden-document events, rerender stability, resume and live preference changes. This is presentation only; production, storage and built-organ data are untouched.
+
+Growth reveal focus (2026-11-10): HiveGrowth focuses the Return button on ceremony entry and traps Tab/ShiftTab there. The shared Popup handles Escape/Back. Effect cleanup restores the organ’s enabled Grow control or its named focusable tier group if maxed/unaffordable; missing/unmounted screens are ignored. The card is viewport-bounded and scrollable with a20px gutter. Actual-meta probes cover320x568/844x340, Escape/Return/backdrop, repeated-tier/fully-grown/insufficient-wallet fallback and byte-unchanged post-purchase save on dismissal. Purchase logic/audio unchanged.
+
+Hosted-page keyboard navigation (2026-11-10): HostedScreen computes visible host/folded/teaser keys and gives the shared tab strip and content panel a stable useId relationship. Selected tab is the single strip Tab stop; arrows/Home/End focus and invoke the existing guarded click. Locked teasers remain arrow-focusable but cannot activate. Tab reaches a named focusable panel when a strip exists; a single-page host gets no orphan tabpanel relationship. Existing unlock predicates, deep links, badge acknowledgement, exposure and click audio remain unchanged. Actual-screen browser checks cover Hive/QuestBoard/EquipmentPanel/Wardrobe, phone widths, locked teaser Enter/deep-link guard and live Production deep links. Development probe must import the same Vite timestamped HostTabs module as the host to share its module-state request bus.
+
+Expedition dispatch focus (2026-11-11): a successful send from a focused control records the hero for post-render focus/nearest-scroll to its matching named Away Team group. Shared useId status references expose the live return time or claim state. Send accessible names include hero, mission, hours, risk and projected multiplier; claim names identify hero and mission. Failed starts do not move focus. Actual-meta phone probes cover one and three dispatches, distinct tickets, full-slot board disappearance, unchanged wallets/fielded loadout and accessible ETA. Mission timing, rewards, claims and slot rules are untouched.
+
+Expedition receipt reading/focus (2026-11-11): removed the9-second auto-dismiss. The latest spoils card stays until explicit dismissal, replacement by another successful claim, or leaving the screen. Focused claims move focus/nearest-scroll to the receipt; dismissing from within it restores Mission Board heading focus. The status region has associated hero/outcome and haul descriptions; Mutagen, Scrap and Catalyst are separate named chips. Failed claims do not move focus. Real completed-mission probes verify persistence past9300ms, dismissal without reward/save changes, two claims replacing one receipt after the existing800ms guard cooldown, named material accessibility and dispatch regression. Timing/reward/security rules unchanged.

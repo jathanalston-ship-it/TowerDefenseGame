@@ -322,3 +322,5 @@ Verified live (Playwright, fresh context, 1440×900 + 1366×768): every step scr
 geometry audit — no bubble on the lane during a wave, none on a draft card, the ability arrow on
 `.ability-btn` with nothing over it, controls never on the pod, wave counter sequence `[1, 2]`,
 10 lessons + 4 Commissioning cards before the hub, exactly one reward card, 4 tour stops.
+
+Typewriter accessibility and motion: the visual transmission uses resolved device/game motion preferences with live subscriptions. Reduced motion completes the current sentence; enabling motion again does not restart already-read text. A visually clipped complete sentence stays in the accessibility tree while the animated copy is aria-hidden. The invisible remainder still reserves final layout. Text changes reset the visual reveal only when motion is allowed; preference listeners and reveal timers clean up on unmount.

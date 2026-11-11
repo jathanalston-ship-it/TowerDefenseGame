@@ -129,7 +129,9 @@ this extends the surrounding handlers:
 `game.click(px, py, { shift })` gains an options arg (Shift). Move mode is handled at
 the top of `click` (a tap lands/cancels the pickup). Nothing here blocks the sim or
 opens a full-screen modal — the only confirmation is the Sell dialog (a lightweight
-centered popup via the existing `createPortal` pattern, dismissible by click-away/ESC).
+centered `Popup`, dismissible by click-away/ESC). Cancel receives initial focus; Tab stays
+inside the named dialog, and closing restores the opener or surviving Inspector. A Pause
+request cancels the pending decision, so browser Back still opens Pause without stacking prompts.
 
 ---
 
@@ -148,3 +150,5 @@ and reactor counts stay coherent.
   per-tower or per-class refund modifier would extend the quote, not the call sites.
 - The Sell dissolve streams motes toward the core position; it does not path around
   obstacles (purely cosmetic).
+
+Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.

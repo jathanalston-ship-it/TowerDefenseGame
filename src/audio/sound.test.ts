@@ -180,15 +180,20 @@ describe('dispatch (a recording fake AudioContext)', () => {
     expect(firstFreq(made.osc[0])).toBeCloseTo(820 * 0.86, 6);
   });
 
-  it('mute and volume reach the master; a muted engine schedules nothing', () => {
+  it('mute and volume fade at the master; a muted engine schedules no new cues', () => {
+    const target = (): [string, number, number] => { const events = master().gain.events; return events[events.length - 1]; };
     audio.setVolume(0.5);
-    expect(master().gain.value).toBeCloseTo(SFX_MASTER.output * 0.5, 9);
+    const events = master().gain.events;
+    expect(events[events.length - 2][0]).toBe('set'); // first fade needs a timed starting point
+    expect(target()).toEqual(['lin', SFX_MASTER.output * 0.5, ctxMade!.currentTime + 0.02]);
     audio.setEnabled(false);
-    expect(master().gain.value).toBe(0);
+    expect(target()[1]).toBe(0);
     audio.cue('hit');
     expect(made.osc).toHaveLength(0);
+    audio.setVolume(0.25); // adjusting the saved level must not unmute the output
+    expect(target()[1]).toBe(0);
     audio.setEnabled(true);
-    expect(master().gain.value).toBeCloseTo(SFX_MASTER.output * 0.5, 9);
+    expect(target()[1]).toBeCloseTo(SFX_MASTER.output * 0.25, 9);
   });
 
   it('long noise layers LOOP from a random offset — they never stop dead at the buffer end', () => {

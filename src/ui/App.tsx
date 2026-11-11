@@ -683,7 +683,7 @@ export function App(): JSX.Element {
           }}
         /></Suspense>
       )}
-      <UpdateToast />
+      <UpdateToast held={!menuIdle} />
       {screen === 'roulette' && roulette && (
         <Suspense fallback={<ScreenFallback />}><BioRoulette
           spores={roulette.spores}

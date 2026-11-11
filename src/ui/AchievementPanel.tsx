@@ -3,15 +3,27 @@
 // progress bar; rewards are previewed. Reads the reactive save; no gameplay. Icons
 // are drawn monograms (no OS emoji), matching the game's art direction.
 
+import { useState } from 'react';
 import { meta } from '../state/meta';
 import { AUTHORED_ACHIEVEMENTS, LADDER_FAMILIES, ladderGoals } from '../state/achievements';
 import { ProgressBar } from './components/ProgressBar';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
 import { CurrencyIcon } from './components/CurrencyIcon';
+import { ListControls } from './components/ListControls';
 
 export function AchievementPanel(): JSX.Element {
   const save = meta.use();
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<'all' | 'unearned' | 'earned'>('all');
   const have = new Set(save.achievements);
+  const query = search.trim().toLocaleLowerCase();
+  const visible = AUTHORED_ACHIEVEMENTS.filter(a => {
+    const earned = have.has(a.id);
+    if (status === 'earned' && !earned || status === 'unearned' && earned) return false;
+    // Search only what the gallery may reveal. Secret names/descriptions must not leak via matches.
+    const text = a.hidden && !earned ? 'Hidden Undiscovered A secret milestone — keep playing to reveal it.' : `${a.name} ${a.desc}`;
+    return text.toLocaleLowerCase().includes(query);
+  });
   // Ladders (docs/PROGRESSION-SYSTEMS.md §ladders): one card per family — the rungs earned and
   // the next one — instead of hundreds of generated rows. Authored count stays the headline.
   const authoredGot = AUTHORED_ACHIEVEMENTS.filter((a) => have.has(a.id)).length;
@@ -25,8 +37,16 @@ export function AchievementPanel(): JSX.Element {
         Achievements <span className="achv-count">{authoredGot}/{AUTHORED_ACHIEVEMENTS.length}{totalRungs > 0 ? ` · ${totalRungs} ladder rung${totalRungs === 1 ? '' : 's'}` : ''}</span>
       </div>
       <div className="panel-sub">Milestones to chase — unlocked as you push deeper and grow your towers.</div>
+      <ListControls
+        search={{ value: search, onChange: setSearch, placeholder: 'Search milestones…', label: 'Search achievement milestones' }}
+        chips={([
+          ['all', 'All'], ['unearned', 'Not earned'], ['earned', 'Earned'],
+        ] as const).map(([id, label]) => ({ id, label, on: status === id, onToggle: () => setStatus(id) }))}
+      />
+      <div className="panel-sub" role="status">{visible.length} of {AUTHORED_ACHIEVEMENTS.length} milestones shown</div>
+      {visible.length === 0 && <div className="pf-empty">No milestones match. Clear the search or choose All.</div>}
       <div className="achv-grid">
-        {AUTHORED_ACHIEVEMENTS.map((a) => {
+        {visible.map((a) => {
           const got = have.has(a.id);
           const concealed = !!a.hidden && !got;
           const name = concealed ? 'Hidden' : a.name;
@@ -38,6 +58,7 @@ export function AchievementPanel(): JSX.Element {
               <span className="achv-badge-icon" aria-hidden>{mono}</span>
               <span className="achv-badge-text">
                 <span className="achv-badge-name">{name}</span>
+                <span className="achv-state">{got ? 'Earned' : concealed ? 'Undiscovered' : 'In progress'}</span>
                 <span className="achv-badge-desc">{desc}</span>
                 {prog && (
                   <span className="achv-progress">
@@ -53,12 +74,12 @@ export function AchievementPanel(): JSX.Element {
                     </span>
                   </span>
                 )}
+                {!got && !concealed && a.reward ? (
+                  <span className="achv-reward">
+                    <CurrencyIcon id="genomeCores" title="" /> +{a.reward.toLocaleString()} {ACCOUNT_CURRENCY.name}
+                  </span>
+                ) : null}
               </span>
-              {!got && !concealed && a.reward ? (
-                <span className="achv-reward" title={`${ACCOUNT_CURRENCY.name} reward`}>
-                  +{a.reward} <CurrencyIcon id="genomeCores" title="" />
-                </span>
-              ) : null}
             </div>
           );
         })}
@@ -79,6 +100,7 @@ export function AchievementPanel(): JSX.Element {
                     <ProgressBar value={Math.round(g.progress * 100)} max={100} color="var(--r-rare)" height={5} label={`${g.name} progress`} />
                   </span>
                 )}
+                {g && <span className="achv-reward">{g.reward}</span>}
               </span>
             </div>
           );

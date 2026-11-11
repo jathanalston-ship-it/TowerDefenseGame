@@ -4,8 +4,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { SIM_DT } from './config';
-import type { MetaModifiers } from './types';
+import { SIM_DT, HERO_DEFS, HERO_ORDER, HERO_SKILL_DEFS } from './config';
+import type { MetaModifiers, HeroProgress } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
 
@@ -69,4 +69,120 @@ describe('hero selection', () => {
     for (let i = 0; i < 30; i++) g.advance(SIM_DT);
     expect(g.getRenderState().selectedHero).toBeNull(); // nothing selects itself
   });
+});
+
+describe('selected hero cooldown readout', () => {
+  it('matches the cooldown applied by a cast after gear and progression modifiers', () => {
+    const progress = Object.fromEntries(HERO_ORDER.map((kind) => [kind, { damageMult: 1, cooldownMult: 0.5, skillCount: 1 }])) as HeroProgress;
+    const g = new Game(5, NO_META, undefined, 'ravager', progress, {
+      heroEquip: { ravager: [{ op: 'mul', field: 'heroCooldownMult', value: 0.8 }] },
+    });
+    g.selectHero('ravager');
+    const before = g.getSnapshot().selectedHero!;
+    expect(before.cooldowns.find((cd) => cd.id === 'ability')!.total).toBeCloseTo(g.getSnapshot().hero.abilityCdMax);
+    expect(before.cooldowns.find((cd) => cd.id === 'skill0')!.total).toBeCloseTo(HERO_SKILL_DEFS.ravager[0].cooldown * 0.5);
+    g.startWave();
+    g.armAbility();
+    g.click(300, 300);
+    g.selectHero('ravager');
+    const ability = g.getSnapshot().selectedHero!.cooldowns.find((cd) => cd.id === 'ability')!;
+    expect(ability.remaining).toBeGreaterThan(0);
+    expect(ability.total).toBeCloseTo(ability.remaining);
+    const state = JSON.stringify(g.getRenderState());
+    g.getSnapshot();
+    expect(JSON.stringify(g.getRenderState())).toBe(state);
+  });
+});
+describe('selected hero observed attack and pulse cadence', () => {
+  it.each(HERO_ORDER)('%s gauges match the interval actually started in combat', (kind) => {
+    const g = new Game(7, NO_META, undefined, kind, undefined, {
+      heroEquip: { [kind]: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 2 }] },
+    });
+    g.startWave();
+    g.debugSpawn('tank');
+    const h = g.heroes[0];
+    const def = HERO_DEFS[kind];
+    const timer = def.attackRange > 0 ? 'attackCd' : 'pulseCd';
+    const id = def.attackRange > 0 ? 'attack' : 'pulse';
+    h[timer] = 0;
+    for (let i = 0; i < 600 && h[timer] <= 0; i++) {
+      const enemy = g.enemies.find((e) => e.alive);
+      if (enemy) { enemy.x = h.x + 10; enemy.y = h.y - 10; }
+      g.advance(SIM_DT);
+    }
+    expect(h[timer]).toBeGreaterThan(0);
+    g.selectHero(kind);
+    const view = g.getSnapshot().selectedHero!;
+    const cd = view.cooldowns.find((c) => c.id === id)!;
+    expect(cd.total).toBeCloseTo(h[timer], 5);
+    if (id === 'attack') expect(view.attackSpeed).toBeCloseTo(1 / cd.total);
+    // A partially elapsed timer still reports the full observed interval, not remaining time.
+    h[timer] *= 0.5;
+    expect(g.getSnapshot().selectedHero!.cooldowns.find((c) => c.id === id)!.total).toBe(cd.total);
+  });
+});
+it('tracks the siege hero switching from a hasted mega raid to its normal siege cadence', () => {
+  const g = new Game(21, NO_META, undefined, 'vitriol', undefined, {
+    megaDaily: { defId: 'voraxis', tier: 1 },
+    heroEquip: { vitriol: [{ op: 'mul', field: 'heroAttackSpeedMult', value: 2 }] },
+  });
+  g.startWave();
+  const h = g.heroes[0];
+  h.attackCd = 0;
+  for (let i = 0; i < 900 && h.attackCd <= 0; i++) g.advance(SIM_DT);
+  g.selectHero('vitriol');
+  const read = () => g.getSnapshot().selectedHero!.cooldowns.find((cd) => cd.id === 'attack')!;
+  expect(h.attackCd).toBeGreaterThan(0);
+  expect(read().total).toBeCloseTo(HERO_DEFS.vitriol.attackInterval / 2);
+  g.debugSpawn('tank');
+  const enemy = g.enemies.find((e) => e.alive)!;
+  enemy.x = h.x; enemy.y = h.y - 10;
+  h.attackCd = 0;
+  g.advance(SIM_DT);
+  expect(h.attackCd).toBeGreaterThan(0);
+  expect(read().total).toBeCloseTo(HERO_DEFS.vitriol.attackInterval);
+  expect(g.getSnapshot().selectedHero!.attackSpeed).toBeCloseTo(1 / HERO_DEFS.vitriol.attackInterval);
+});
+it.each([1, 2])('recovery displays match actual revival time at speed multiplier %s', (reviveSpeedMult) => {
+  const progress = Object.fromEntries(HERO_ORDER.map((kind) => [kind, {
+    damageMult: 1, cooldownMult: 1, symbiote: { reviveSpeedMult },
+  }])) as HeroProgress;
+  const g = new Game(5, NO_META, undefined, 'ravager', progress);
+  g.startWave();
+  const h = g.heroes[0];
+  h.down = true;
+  h.respawn = 6;
+  g.selectHero(h.kind);
+  const expected = 6 / reviveSpeedMult;
+  expect(g.getSnapshot().hero.respawn).toBe(expected);
+  expect(g.getSnapshot().selectedHero!.respawn).toBe(expected);
+  expect(g.getRenderState().heroRecoverySeconds?.[h.kind]).toBe(expected);
+  expect(g.heroRecoverySeconds(h)).toBe(expected);
+  expect(h.respawn).toBe(6); // observational conversion, never rewrite the simulation timer
+  let elapsed = 0;
+  while (h.down && elapsed < 7) { g.advance(SIM_DT); elapsed += SIM_DT; }
+  expect(h.down).toBe(false);
+  expect(elapsed).toBeCloseTo(expected, 1);
+  expect(g.heroRecoverySeconds(h)).toBe(0);
+});
+it('keeps a running ability gauge stable when cooldown upgrades affect the next cast', () => {
+  const g = new Game(5, NO_META);
+  g.biomass = 100000;
+  g.startWave();
+  g.armAbility(); g.click(300, 300);
+  const h = g.heroes[0];
+  const duration = h.abilityCd;
+  for (let i = 0; i < 120; i++) g.advance(SIM_DT);
+  const remaining = h.abilityCd;
+  for (let i = 0; i < 10; i++) expect(g.buyHeroEvolution('cooldown')).toBe(true);
+  g.selectHero(h.kind);
+  expect(h.abilityCd).toBe(remaining);
+  expect(g.getSnapshot().hero.abilityCdMax).toBe(duration);
+  expect(g.getSnapshot().selectedHero!.cooldowns[0].total).toBe(duration);
+  while (h.abilityCd > 0) g.advance(SIM_DT);
+  const nextDuration = g.getSnapshot().hero.abilityCdMax;
+  expect(nextDuration).toBeLessThan(duration);
+  g.armAbility(); g.click(300, 300);
+  expect(h.abilityCd).toBeCloseTo(nextDuration);
+  expect(g.getSnapshot().hero.abilityCdMax).toBeCloseTo(nextDuration);
 });

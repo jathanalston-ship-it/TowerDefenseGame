@@ -5,9 +5,10 @@
 // next). Bottom: Champion Contracts, the quest-adjacent weekly skill checks, on the same
 // board. Poll-on-tick keeps the rotation + countdown live; claims pay through meta.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { meta } from '../state/meta';
+import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import type { QuestsView } from '../state/meta';
 import { rewardLabel } from '../core/battlePass';
 import { QUESTS } from '../core/quests';
@@ -30,30 +31,39 @@ function fmtLeft(ms: number): string {
   return d > 0 ? `${d}d ${h}h` : h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function MissionRow({ mi, cur, claimed, onClaim }: {
+function MissionRow({ mi, questName, cur, claimed, onClaim }: {
   mi: MissionDef;
+  questName: string;
   cur: number;
   claimed: boolean;
-  onClaim: (e: React.MouseEvent) => void;
+  onClaim: (e: React.MouseEvent) => boolean;
 }): JSX.Element {
+  const rowRef = useRef<HTMLDivElement>(null);
   const earned = cur >= mi.target;
-  const pct = Math.min(100, (cur / Math.max(1, mi.target)) * 100);
+  const current = Math.max(0, Math.min(cur, mi.target));
+  const pct = (current / Math.max(1, mi.target)) * 100;
+  const rewards = mi.rewards.map(rewardLabel);
+  const rewardText = `Rewards: ${rewards.map((r) => r.label).join(', ')}`;
   return (
-    <div className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
+    <div ref={rowRef} tabIndex={-1} role="group" aria-label={`${questName}: ${mi.name}${claimed ? ', claimed' : ''}`} className={`qb-mission${claimed ? ' is-claimed' : earned ? ' is-earned' : ''}`}>
       <div className="qb-m-main">
         <span className="qb-m-name">{mi.name}{!claimed && earned && <i className="qb-m-readydot" aria-label="Ready to claim" />}</span>
         <span className="qb-m-blurb">{mi.blurb}</span>
-        <div className="qb-m-bar" role="progressbar" aria-valuenow={cur} aria-valuemin={0} aria-valuemax={mi.target}>
+        <div className="qb-m-bar" role="progressbar" aria-label={`${questName}: ${mi.name} progress`} aria-valuenow={current} aria-valuemin={0} aria-valuemax={mi.target}
+          aria-valuetext={`${current} of ${mi.target}${claimed ? ', claimed' : earned ? ', ready to claim' : ''}`}>
           <i style={{ width: `${pct}%` }} />
         </div>
       </div>
       <div className="qb-m-side">
-        <span className="qb-m-count">{Math.min(cur, mi.target)}<em>/{mi.target}</em></span>
-        <span className="qb-m-pay" aria-hidden>{mi.rewards.map((r, i) => <i key={i}>{rewardLabel(r).icon}</i>)}</span>
+        <span className="qb-m-count">{current}<em>/{mi.target}</em></span>
+        <span className="qb-m-pay" role="img" aria-label={rewardText} title={rewardText}>{rewards.map((r, i) => <i key={i}>{r.icon}</i>)}</span>
         {claimed
           ? <span className="qb-m-done" aria-label="Claimed">✓</span>
           : earned
-            ? <button className="qb-m-claim act-claim" onClick={onClaim}>Claim</button>
+            ? <button className="qb-m-claim act-claim" aria-label={`Claim ${mi.name} — ${questName}`} onClick={(e) => {
+                const focused = document.activeElement === e.currentTarget;
+                if (onClaim(e) && focused) rowRef.current?.focus({ preventScroll: true });
+              }}>Claim</button>
             : null}
       </div>
     </div>
@@ -115,7 +125,7 @@ function FinaleStrip({ q, firstTime, claimable, claimed, onClaim }: {
       </div>
       {claimed
         ? <span className="qb-finale-done">✓ Claimed</span>
-        : <button className="primary qb-finale-claim" disabled={!claimable} onClick={onClaim}>
+        : <button className="primary qb-finale-claim" disabled={!claimable} aria-label={claimable ? `Claim finale for ${q.name}` : `Complete every mission in ${q.name}`} onClick={onClaim}>
             {claimable ? 'Claim finale' : 'Complete every mission'}
           </button>}
     </div>
@@ -128,6 +138,8 @@ export function QuestBoard(): JSX.Element {
 }
 
 function QuestDirectives(): JSX.Element {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const motionRef = useRef(motionPrefs());
   meta.use(); // re-render on credits / claims
   const [now, setNow] = useState(() => Date.now());
   const [burst, setBurst] = useState<{ x: number; y: number; lines: { icon: string; label: string }[]; big: boolean; key: number } | null>(null);
@@ -138,6 +150,17 @@ function QuestDirectives(): JSX.Element {
     return () => window.clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Device and explicit preference changes also stop an in-flight decorative burst.
+  useEffect(() => {
+    const sync = (): void => {
+      if (resolveMotion(motionRef.current, systemReducedMotion()).motion === 0) setBurst(null);
+    };
+    const off = onMotionPrefs((prefs) => { motionRef.current = prefs; sync(); });
+    const media = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    media?.addEventListener('change', sync);
+    sync();
+    return () => { off(); media?.removeEventListener('change', sync); };
+  }, []);
   // The burst self-clears (pointer-transparent, purely decorative).
   useEffect(() => {
     if (!burst) return;
@@ -147,21 +170,24 @@ function QuestDirectives(): JSX.Element {
 
   const view: QuestsView = meta.quests(now);
   const wk = view.weekly;
-  const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
 
   const celebrate = (e: React.MouseEvent, lines: { icon: string; label: string }[], big: boolean): void => {
-    if (reduced) return;
-    setBurst({ x: e.clientX, y: e.clientY, lines, big, key: Date.now() });
+    if (resolveMotion(motionRef.current, systemReducedMotion()).motion === 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.detail === 0 ? rect.left + rect.width / 2 : e.clientX;
+    const y = e.detail === 0 ? rect.top + rect.height / 2 : e.clientY;
+    setBurst({ x, y, lines, big, key: Date.now() });
   };
   // Claims present through the global claim popup (docs/NOTIFICATIONS.md §claim-popups):
   // a bold itemized receipt naming the mission/quest — the burst stays as local juice.
-  const claimMission = (mi: MissionDef, _accent: string, e: React.MouseEvent): void => {
+  const claimMission = (mi: MissionDef, _accent: string, e: React.MouseEvent): boolean => {
     const lines = meta.claimQuestMission(mi.id, Date.now());
     if (lines) {
       celebrate(e, lines, false);
       audio.cue('chest');
       audio.cue('power');
     }
+    return !!lines;
   };
   const claimFinale = (q: QuestDef, _firstTime: boolean, e: React.MouseEvent): void => {
     const lines = meta.claimQuestFinale(q.id, Date.now());
@@ -187,18 +213,20 @@ function QuestDirectives(): JSX.Element {
     + (wk.finaleClaimable && !wk.completionClaimed ? 1 : 0)
     + (activeChapter?.finaleClaimable ? 1 : 0);
   const claimAllMissions = (e: React.MouseEvent): void => {
+    const focused = document.activeElement === e.currentTarget;
     const now = Date.now();
     const lines = readyMissions.flatMap((mi) => meta.claimQuestMission(mi.id, now) ?? []);
     if (lines.length === 0) return;
     celebrate(e, lines, false);
     audio.cue('chest');
     audio.cue('power');
+    if (focused) headingRef.current?.focus({ preventScroll: true });
   };
 
   return (
     <div className="menu qb" style={{ ['--qa' as string]: wk.quest.accent } as CSSProperties}>
       <header className="screen-h">
-        <h2>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>Quest Board {claimableNow > 0 && <span className="qb-claimable-chip">◈ {claimableNow} to claim</span>}</h2>
         <p className="screen-sub">Directives from the deep — weekly orders and the story of the descent.</p>
         {readyMissions.length > 0 && <ClaimAll count={readyMissions.length} onClaim={claimAllMissions} className="qb-claimall" />}
       </header>
@@ -226,6 +254,7 @@ function QuestDirectives(): JSX.Element {
             <MissionRow
               key={mi.id}
               mi={mi}
+              questName={wk.quest.name}
               cur={wk.progress[mi.id] ?? 0}
               claimed={wk.claimed.has(mi.id)}
               onClaim={(e) => claimMission(mi, wk.quest.accent, e)}
@@ -276,6 +305,7 @@ function QuestDirectives(): JSX.Element {
                     <MissionRow
                       key={mi.id}
                       mi={mi}
+                      questName={c.name}
                       cur={progress[mi.id] ?? 0}
                       claimed={claimed.has(mi.id)}
                       onClaim={(e) => claimMission(mi, c.accent, e)}

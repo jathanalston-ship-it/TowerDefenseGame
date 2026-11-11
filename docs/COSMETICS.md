@@ -237,3 +237,5 @@ cosmetics get full provenance for free.
 Validator laws (`wardrobeProblems`): eras unique/non-empty; every override/set/lore key
 names a real item; RETIRED ∩ REISSUED = ∅; badge ids unique; lore length ≤400. Tests:
 wardrobe.test 'provenance & collector prestige' + wardrobeMeta.test 'collectorView'.
+
+Wardrobe ceremony accessibility: single/multi-card and backlog reveals are labelled modal dialogs. Opening and advancing focus the primary action; Tab wraps through current actions. Escape only closes the presentation (no navigation or inventory changes), contains the key event and restores the prior connected control. The final claim action still opens the Specimen Cabinet.
