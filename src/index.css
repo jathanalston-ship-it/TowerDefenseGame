@@ -3894,7 +3894,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 .gp-row:hover { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
 .gp-row-l { flex: none; width: 118px; font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gp-row-g { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; color: var(--gold); }
-.gp-row-gain { color: var(--gold); font-weight: 800; }
+.gp-row-gain { flex: none; margin-left: auto; font-size: 11px; color: var(--gold); font-weight: 800; white-space: nowrap; }
 .gp-ready { flex: none; min-width: 18px; text-align: center; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 999px; color: #0b1207; background: var(--gold); }
 .gp-row-note { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gp-row-go { flex: none; color: var(--dim); }

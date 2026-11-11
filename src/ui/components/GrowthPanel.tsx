@@ -107,9 +107,11 @@ export function GrowthPanel({ save, go }: { save: SaveData; go: (nav: string) =>
             <span className="gp-row-g" aria-hidden>{glyphOf(save, sys.nav)}</span>
             <span className="gp-row-l">{sys.label}</span>
             {sys.readyCount > 0 && <span className="gp-ready">{sys.readyCount}</span>}
-            <span className="gp-row-note">
-              {sys.move && sys.move.powerDelta > 0 ? <b className="gp-row-gain">+{sys.move.powerDelta} ⚡</b> : sys.note}
-            </span>
+            {/* The gain is its own fixed-width cell (never inside the ellipsing note — narrow
+                layouts clipped "+N ⚡"); the note fills the row only when there is no gain. */}
+            {sys.move && sys.move.powerDelta > 0
+              ? <b className="gp-row-gain">+{sys.move.powerDelta} ⚡</b>
+              : <span className="gp-row-note">{sys.note}</span>}
             <span className="gp-row-go" aria-hidden>▸</span>
           </button>
         ))}
