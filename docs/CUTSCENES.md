@@ -157,3 +157,7 @@ Live film preferences: CutscenePlayer subscribes to device settings and OS motio
 Hidden-tab story playback: CutscenePlayer pauses the remaining scene/coda timeout, projector, and caption CSS animations on visibilitychange. Resume offsets current/previous visual clocks by hidden duration, preserving beat timing without catch-up. Manual reading retains its existing timer behavior; a film mounted hidden waits to begin visible playback. Visibility listeners, timers and frames are removed on cleanup. Background music preference/ownership is unchanged.
 
 Archive discovery controls: search matches only revealed copy (recovered title/subtitle/bonus; locked unlock hint and kind). All/Recovered/Unrecovered filters expose pressed state and a result count, with a reset action returning focus to search. Replay controls have a 44px minimum height. Recovered passives apply automatically to runs; replaying never grants an extra bonus.
+
+Manual Memory Archive playback adds Back to scene on the final card. It returns to the caption
+that was open before the final card and restores dialog focus. Continue performs the usual exit
+and returns focus to the replay control.

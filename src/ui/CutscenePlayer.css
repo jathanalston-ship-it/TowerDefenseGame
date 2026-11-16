@@ -17,4 +17,6 @@
 
 .cutscene-coda-boost small { color: var(--muted); font-weight: 600; }
 
-.cutscene-coda-continue { display: block; margin: 0 auto; animation: cs-coda-in 0.6s var(--ease-out) 0.85s both; }
+.cutscene-coda-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.cutscene-coda-actions button { min-height: 44px; }
+.cutscene-coda-continue { animation: cs-coda-in 0.6s var(--ease-out) 0.85s both; }

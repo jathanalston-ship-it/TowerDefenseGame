@@ -74,11 +74,12 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // Keep keyboard navigation in the film, then return to the Archive's launch button.
   useEffect(() => {
     const previous = document.activeElement;
-    dialogRef.current?.focus();
     return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus(); };
   }, []);
   useEffect(() => {
-    if (coda) dialogRef.current?.querySelector<HTMLButtonElement>('.cutscene-coda-continue')?.focus();
+    const dialog = dialogRef.current;
+    if (coda) dialog?.querySelector<HTMLButtonElement>('.cutscene-coda-continue')?.focus();
+    else dialog?.focus();
   }, [coda]);
 
   const finish = (): void => {
@@ -91,6 +92,13 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     if (codaRef.current) return;
     audio.cue('cin_bloom');
     setCoda(true);
+  };
+  const returnToScene = (): void => {
+    const film = filmRef.current;
+    film.prev = -1;
+    film.startedAt = performance.now();
+    film.beatsFired = 0;
+    setCoda(false);
   };
   const advance = (): void => {
     if (codaRef.current) return;
@@ -260,7 +268,10 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
             <p id={`${codaId}-boost`} className="cutscene-coda-boost" style={{ ['--cs' as string]: def.palette.accent }}>
               <span aria-hidden>✦ </span>{def.boost.label} <small><span aria-hidden>· </span>permanent</small>
             </p>
-            <button className="primary cutscene-coda-continue" aria-describedby={`${codaId}-title ${codaId}-subtitle ${codaId}-boost`} onClick={finish}>Continue ▸</button>
+            <div className="cutscene-coda-actions">
+              {manual && <button type="button" onClick={returnToScene}>‹ Back to scene</button>}
+              <button type="button" className="primary cutscene-coda-continue" aria-describedby={`${codaId}-title ${codaId}-subtitle ${codaId}-boost`} onClick={finish}>Continue ▸</button>
+            </div>
           </div>
         )}
       </div>
