@@ -2267,3 +2267,7 @@ Sealed v2026.11.16.4 Clearer Draft and Placement Controls at 541df1d9. The publi
 ## 2026-11-16 — draft and placement release audit passed
 
 v2026.11.16.4 passed typecheck, 3194 tests, the production phone layout gate, and documentation checks. Verified all eight notes and the homepage release title in dist. Game entry is play-B9gdmA9O.js. Four cinematic improvements are committed separately on codex/cutscene-review.
+
+## 2026-11-16 — Clearer Draft and Placement Controls is live
+
+GitHub Actions run 43797843950 deployed 2f553a9b and passed the exact-commit guard. The normal custom-domain game serves play-B9gdmA9O.js. The homepage release title and all eight v2026.11.16.4 News notes are verified.

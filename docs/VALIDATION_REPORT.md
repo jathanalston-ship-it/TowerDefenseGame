@@ -66,3 +66,8 @@
 - Staleness advisory (code newer than docs): run `npm run docs:check`.
 - If a NEW system was added: register it in `src/dev/systemRegistry.ts` (the orphan test
   forces this), then `npm run docs:graph`.
+
+## Production deploy
+
+- v2026.11.16.4 deployed at 2f553a9b by GitHub Actions run 43797843950.
+- Verified normal custom-domain homepage, News and game with eight notes and play-B9gdmA9O.js.
