@@ -857,3 +857,4 @@
 - `8663b3a` **[UI]** Let players return to earlier cutscene captions _(internal)_
 - `e444c6a` **[UI]** Ui: make manual cinematic captions safe to select _(internal)_
 - `244bf01` **[UI]** Ui: remember cinematic reading pace _(internal)_
+- `5494b05` **[UI]** Fit cinematic captions on short screens _(internal)_

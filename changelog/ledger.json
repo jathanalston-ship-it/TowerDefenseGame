@@ -1,6 +1,6 @@
 {
-  "lastSha": "244bf01c9a539f8bc7d76abda5ec45b7c40a4c95",
-  "commitsSinceDraft": 9,
+  "lastSha": "5494b0581f806decaa4cb994ceff95bd9246958c",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4894,7 +4894,7 @@
       "id": "v2026.11.16.2",
       "date": "2026-11-16",
       "title": "Clearer Cinematic Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -11405,6 +11405,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: remember cinematic reading pace",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5494b0581f806decaa4cb994ceff95bd9246958c",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Fit cinematic captions on short screens",
       "internal": true,
       "needsReview": false
     }

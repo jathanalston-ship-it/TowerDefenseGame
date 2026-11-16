@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Unsealed v2026.11.16.2 Clearer Cinematic Controls now has five generated game and website notes. The short-screen layout fits the opening cinematic and final memory card on short landscape phones. Production v2026.11.16 remains verified.
+Sealed v2026.11.16.2 Clearer Cinematic Controls now has five generated game and website notes. The short-screen layout fits the opening cinematic and final memory card on short landscape phones. Production v2026.11.16 remains verified.
 
 ## Files modified
 
@@ -39,7 +39,7 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Wait for document.fonts.ready and two animation frames after setViewportSize before measuring CSS viewport rules. Browser probes verify layout and accessibility tree behavior. Actual spoken screen-reader output remains unverified. Preserve both untracked drafts.
+Wait for document.fonts.ready and two animation frames after setViewportSize before measuring CSS viewport rules. Browser probes verify layout and accessibility tree behavior. Actual spoken screen-reader output remains unverified. Preserve the three untracked drafts.
 
 ## Remaining technical debt
 
@@ -47,7 +47,7 @@ Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compa
 
 ## Recommended next tasks
 
-Continue goal and start full validation in time for the next deployment around 02:21 UTC. Seal, regenerate, validate, push production and confirm the live asset, homepage and all website notes.
+Clearer Cinematic Controls v2026.11.16.2 passed full validator 69343 at 01:55 UTC. All 3,194 tests, typecheck, production mobile check and documentation checks passed. Production asset /assets/play-B_AtZuk-.js and all five notes were verified in the built pages. Targeted phone browser checks covered caption announcements, keyboard navigation, remembering pace and short-viewport layouts. Deploy to production and verify the live game plus website. Follow-up investigation: film sound beats currently fire from animation frames, so reduced motion drops those sounds despite separate audio preferences. Parent cutscene-reduced-audio-check.cjs and intro-reduced-audio-check.cjs reproduced the missing cue in each player. After this release, separate beat timing from drawing and verify reduced playback, motion toggling, and scene/skip cleanup. Parent cutscene-reduced-audio-visibility-check.cjs and intro-reduced-audio-visibility-check.cjs are prepared to check no cues while hidden, one on resume, and no callbacks after dismissal.
 
 ## Future expansion hooks
 

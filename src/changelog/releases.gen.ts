@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.16.2",
     "date": "2026-11-16",
     "title": "Clearer Cinematic Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",

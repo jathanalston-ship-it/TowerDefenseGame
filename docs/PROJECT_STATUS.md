@@ -2179,3 +2179,11 @@ Both films remember the selected pace between openings and reloads. Manual first
 ## 2026-11-16 — short cinematic layout verified locally
 
 Opening title clipping reproduced at 640x270 after fonts and resize settled. Compact spacing and scrollable film area fixed it. Chrome confirmed all opening scenes across four phone sizes and a dismissible final memory card at 640x270. All 31 focused tests passed. Five game and website notes are prepared.
+
+## 2026-11-16 — cinematic release sealed and in validation
+
+Clearer Cinematic Controls v2026.11.16.2 has five sealed game and website notes. Full validation session 69343 writes clearer-cinematic-release-validation.log. Production stays at f89a9f88 until verified deployment. The generator left a third untracked devlog draft dated 2026-11-15. Preserve the drafts.
+
+## 2026-11-16 — cinematic release validated
+
+Clearer Cinematic Controls v2026.11.16.2 passed full validator 69343 at 01:55 UTC. All 3,194 tests, typecheck, production mobile check and documentation checks passed. Production asset /assets/play-B_AtZuk-.js and all five notes were verified in the built pages. Targeted phone browser checks covered caption announcements, keyboard navigation, remembering pace and short-viewport layouts.
