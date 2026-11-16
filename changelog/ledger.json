@@ -1,6 +1,6 @@
 {
-  "lastSha": "205ab64f115daadc2d73d1857d1da119f241f92a",
-  "commitsSinceDraft": 8,
+  "lastSha": "a53e0601c2079ca7c7ad98dcc5764ef98703f973",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4979,6 +4979,10 @@
         {
           "cat": "UI",
           "text": "Use Exact values in the gene draft to compare the full numbers for every card. Each panel shows its gene name, and the comparison stays open after rerolling."
+        },
+        {
+          "cat": "UI",
+          "text": "Compare three gene cards side by side in landscape on phones at least 520 pixels wide. Exact values expand inside the cards, and long comparison labels wrap so you can read them while scrolling the draft."
         }
       ]
     }
@@ -11621,6 +11625,22 @@
       "date": "2026-11-15",
       "cat": "Gene Cards",
       "text": "Make exact gene values available by tap",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "4f0078a1918c3b96b3253f6a244bc63595ae741e",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare exact values update note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a53e0601c2079ca7c7ad98dcc5764ef98703f973",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Fit gene comparisons on landscape phones",
       "internal": true,
       "needsReview": false
     }

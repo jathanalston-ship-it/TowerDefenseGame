@@ -876,3 +876,5 @@
 - `35774e6` **[Towers]** Label tower placement targets _(internal)_
 - `25b4457` **[Framework]** Release: prepare draft and placement notes _(internal)_
 - `205ab64` **[Gene Cards]** Make exact gene values available by tap _(internal)_
+- `4f0078a` **[Framework]** Release: prepare exact values update note _(internal)_
+- `a53e060` **[Gene Cards]** Fit gene comparisons on landscape phones _(internal)_

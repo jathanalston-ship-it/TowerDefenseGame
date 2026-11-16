@@ -2243,3 +2243,7 @@ Integrated gene draft Pause, named automatic draft choice, and labels and patter
 ## 2026-11-16 — tap or type to compare exact gene values
 
 The Exact values toggle shows all draft comparisons under the corresponding gene names. Chrome at 320px verified touch, keyboard activation and focus, reroll, Pause, Shift blur and manual selection. Typecheck and 62 focused tests passed. The fourth game and News note is generated for v2026.11.16.4.
+
+## 2026-11-16 — readable landscape gene comparisons
+
+Normal and Exact values drafts keep three cards in one row on landscape phones at least 520px wide. Exact values use the draft scroll surface rather than nested scrollers and preserve full comparison labels. Chrome verified 568x320 and 844x390, touch and keyboard, reroll access and visible text bounds. All 26 focused tests passed. The fifth game and News note is generated for v2026.11.16.4.

@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Use Exact values in the gene draft to compare the full numbers for every card. Each panel shows its gene name, and the comparison stays open after rerolling."
+      },
+      {
+        "cat": "UI",
+        "text": "Compare three gene cards side by side in landscape on phones at least 520 pixels wide. Exact values expand inside the cards, and long comparison labels wrap so you can read them while scrolling the draft."
       }
     ]
   },
