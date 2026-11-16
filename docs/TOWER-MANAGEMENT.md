@@ -135,6 +135,12 @@ request cancels the pending decision, so browser Back still opens Pause without 
 
 ---
 
+While a tower is armed, the pointer preview shows OPEN SLOT, INSPECT, or LOCKED.
+Open pads have a solid outline. Occupied and locked pads use a dashed outline.
+With reduced motion enabled the outline stays steady.
+
+---
+
 ## 5. Determinism & golden-safety
 
 Sell/Move mutate sim state but are **player-initiated** and never invoked by autoplay,

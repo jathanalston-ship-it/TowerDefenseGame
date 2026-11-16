@@ -3109,14 +3109,17 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
     // using the tower's EFFECTIVE range so mastery upgrades show in the preview
     drawRangeIndicator(ctx, slot.x, slot.y, rs.effectiveRanges[rs.selectedTower] ?? def.range, def.firing, tone, rs.time, def.minRange ?? 0);
 
-    // animated selection frame on the target pad
+    // Pair color with a line pattern and a label so placement remains readable without color.
     const sf = CELL - 8;
     roundRectPath(ctx, slot.x - sf / 2, slot.y - sf / 2, sf, sf, 6);
-    ctx.strokeStyle = rgba(tone, pulse(rs.time, 4, 0.5, 0.9));
+    ctx.strokeStyle = rgba(tone, viewFeel.motion > 0 ? pulse(rs.time, 4, 0.5, 0.9) : 0.9);
     ctx.lineWidth = 2;
+    if (invalid) ctx.setLineDash([4, 4]);
     ctx.stroke();
+    if (invalid) ctx.setLineDash([]);
 
-    if (locked) labelAt(ctx, slot.x, slot.y - CELL / 2 - 6, 'LOCKED', THEME.select.lockedLabel);
+    const label = tower ? 'INSPECT' : locked ? 'LOCKED' : 'OPEN SLOT';
+    labelAt(ctx, slot.x, slot.y - CELL / 2 - 6, label, invalid ? THEME.select.lockedLabel : rgba(tone, 1));
     return;
   }
 
