@@ -79,6 +79,7 @@ import type { BiomeGround } from './biomeGround';
 export interface Pointer {
   x: number;
   y: number;
+  keyboardPad?: boolean;
 }
 
 export const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
@@ -3106,13 +3107,17 @@ function drawEngagementFrontier(ctx: CanvasRenderingContext2D, x: number, y: num
 function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Pointer | null): void {
   if (!pointer) return;
 
-  if (rs.armedAbility) {
+  if (rs.armedAbility && !pointer.keyboardPad) {
     ring(ctx, pointer.x, pointer.y, 72, rgba(THEME.target.ability, 0.7), 2, [6, 4]);
     return;
   }
 
   const slot = slotAt(pointer.x, pointer.y);
   if (!slot) return;
+  if (pointer.keyboardPad) {
+    ring(ctx, slot.x, slot.y, CELL * 0.65, '#030509', 6);
+    ring(ctx, slot.x, slot.y, CELL * 0.65, '#fff', 2);
+  }
   const tower = rs.towers.find((tw) => tw.slot === slot.index);
 
   if (rs.selectedTower) {

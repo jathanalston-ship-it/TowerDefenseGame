@@ -158,3 +158,14 @@ and reactor counts stay coherent.
   obstacles (purely cosmetic).
 
 Hive-aware tower confirmations: sale quotes derive from the live selected tower. Branch purchase intents include the displayed tier; GameView rejects an intent if the tower has advanced. A pending first-tier prompt reports a changed upgrade, disables Commit and focuses Cancel after a Hive upgrade. Selection changes clear stale prompts. Costs, refunds and simulation APIs are unchanged.
+
+## Keyboard targeting
+
+In regular runs, Tab to Tower pads. Arrow keys follow the physical layout and identify
+the current row, column, and whether the pad is open, locked, or occupied. A contrast
+ring tracks focus on the battlefield.
+
+Use 1–4 to arm the favorite or a conveyor pod. Enter on an open pad places the armed
+tower or completes a relocation. Enter on an occupied pad inspects it, or cancels a
+relocation when it is the tower's original pad. The normal prices and placement rules
+apply. Escape cancels the current targeting action.

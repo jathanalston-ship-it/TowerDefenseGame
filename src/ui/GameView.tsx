@@ -32,6 +32,7 @@ import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
+import { BoardPadNavigator } from './BoardPadNavigator';
 import { ChipPopover } from './components/ChipPopover';
 import { MotionSettings } from './components/MotionSettings';
 import { MASTERY, TOWER_DEFS, FX } from '../core/config';
@@ -516,6 +517,7 @@ export function GameView({
   lastKillRef.current ??= new LastKillMoment();
   useEffect(() => game.events.on('waveLastKill', (e) => lastKillRef.current!.start(e, game.mode, game.timeScale)), [game]);
   const pointerRef = useRef<Pointer | null>(null);
+  const keyboardPadRef = useRef<Pointer | null>(null);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const peakTierRef = useRef(game.assimilation.peakTier); // the deepest assimilation tier already announced
@@ -829,7 +831,7 @@ export function GameView({
         }
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
-        drawGame(ctx, rs, pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
+        drawGame(ctx, rs, keyboardPadRef.current ?? pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
         drawImpacts(ctx, now); // boss-fall rings + ult impact frames ride the same camera kick
         runOutro.frame(ctx, now); // run-end outro FX (victory wash clock · defeat drain + cracks) — no-op mid-run
         // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
@@ -1199,6 +1201,14 @@ export function GameView({
         <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
         {/* LIVING GUTTERS (docs/SIGNATURE-MOMENTS.md §4): the biome continues past the board edge — a static periphery bake behind the board; desktop only. */}
         <LivingGutters game={game} boardRef={canvasRef} />
+        {!tutorial && (
+          <BoardPadNavigator
+            game={game}
+            enabled={!paused && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
+            showPad={(slot) => { keyboardPadRef.current = slot ? { x: slot.x, y: slot.y, keyboardPad: true } : null; }}
+            refresh={refresh}
+          />
+        )}
         <canvas
           ref={canvasRef}
           className="board"

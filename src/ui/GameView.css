@@ -1130,6 +1130,29 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   min-width: 0;
 }
 
+/* The pad navigator takes a Tab stop without covering touch targets on the field. */
+.board-pad-key {
+  position: absolute;
+  z-index: 45;
+  left: 50%;
+  bottom: calc(8px + var(--safe-b));
+  transform: translateX(-50%);
+  max-width: calc(100% - 16px);
+  min-height: 44px;
+  pointer-events: none;
+  background: var(--panel);
+}
+
+.board-pad-key:not(:focus-visible) {
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
 /* Slide — in-run side panels enter from their own edge (transform-only ⇒ the canvas never
    reflows). Fires on mount: run start, and re-opening after a collapse. */
 .side-panel.build-panel { animation: ui-slide-left var(--dur-3) var(--ease-out) both; }
