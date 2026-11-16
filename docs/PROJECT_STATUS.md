@@ -2358,3 +2358,8 @@ Production v2026.11.16.5 deploy 313a8b87 passed Actions run 43803868650 and job
 133090038619, including the exact-commit guard. The normal custom-domain game
 serves play-Cusy4WDE.js, the homepage shows the update, and all twelve notes are
 public on News. Confirmation audit 18509 is still running against the release.
+
+## 2026-11-16 — cinematic playback confirmation audit passed
+
+Audit 18509 passed all 3,194 tests, typecheck, mobile layout checks, and both
+documentation checks at 04:34 UTC. Production remains v2026.11.16.5.
