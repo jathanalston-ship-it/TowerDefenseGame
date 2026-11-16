@@ -2,7 +2,7 @@
 // merge), the settle (record, reward factor, milestone titles + frames + achievements — never
 // Power), the derived baseline/ceiling, and THE AUTOMATION GATE's save-aware verdict.
 
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { meta } from './meta';
 import type { RunResult } from './meta';
 import { CURRENT_VERSION, defaultLifetimeStats, defaultSave, parseImport } from '../save/saveStore';
@@ -92,12 +92,14 @@ describe('derived ladder state + the automation gate', () => {
 });
 
 describe('the settle — record, reward factor, cosmetic milestones (never Power)', () => {
+  afterEach(() => vi.restoreAllMocks());
   it('an Infinite run at Threat 3 pays ×threatRewardMult(3) on the core lane and records the clear', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-11-16T01:11:00Z'));
     climbedInfinite(2);
     expect(meta.get().threat.endless).toBe(2);
     const t0 = coreLane(meta.finishRun(makeResult({ wave: 20, kills: 200, endless: true })));
+    const neutralPower = meta.power();
     climbedInfinite(2);
-    const powerBefore = meta.power().score;
     const out = meta.finishRun(makeResult({ wave: 20, kills: 200, endless: true, threat: 3 }));
     const t3 = coreLane(out);
     expect(t3 / t0).toBeGreaterThan(threatRewardMult(3) * 0.98);
@@ -109,8 +111,8 @@ describe('the settle — record, reward factor, cosmetic milestones (never Power
     expect(meta.get().unlockedTitles).toContain('threat_t3');
     expect(titleName('threat_t3')).toBe('Threat-Tempered');
     expect(meta.get().achievements).toContain('threat_3');
-    // The Power rule: Threat moves no Power bucket (cores are a currency, unspent here).
-    expect(meta.power().score).toBe(powerBefore);
+    // Identical run progress can raise Power. The Threat reward and milestone add no Power.
+    expect(meta.power()).toEqual(neutralPower);
   });
 
   it('a Threat level above the earned ceiling settles CLAMPED (defense in depth)', () => {

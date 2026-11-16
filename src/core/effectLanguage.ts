@@ -224,7 +224,7 @@ function timesWord(n: number): string {
 function article(adjective: string): string {
   return /^[aeiou]/i.test(adjective) ? 'an' : 'a';
 }
-const pct = (x: number): number => Math.round(x * 100);
+const pct = (x: number, decimals: 0 | 2): number => decimals === 0 ? Math.round(x * 100) : Number((x * 100).toFixed(decimals));
 const trim = (x: number): string => String(+x.toFixed(2));
 
 const DEF_UP: Shape = { pre: '{A} increases ', post: '.' };
@@ -240,7 +240,7 @@ function scalarLine(v: Extract<FieldVocab, { kw: string; mode: 'mult' | 'frac' |
 }
 
 /** Describe ONE folded effect — null for no-ops (×1 / +0) and unknown shapes. */
-function describeEffect(e: CardEffect): EffectLine | null {
+function describeEffect(e: CardEffect, percentDecimals: 0 | 2): EffectLine | null {
   switch (e.op) {
     case 'mul': case 'add': {
       const v = FIELD_VOCAB[e.field];
@@ -253,7 +253,7 @@ function describeEffect(e: CardEffect): EffectLine | null {
             pre: v.pre.replace('{N}', n === 1 ? 'one' : countWord(n)),
             keyword: n === 1 ? v.kwOne : v.kwMany,
             post: v.tail.replace('{s}', n === 1 ? '' : 's'),
-            cat: v.cat, tier, good: n > 0, exact: `+${n} ${v.exactNoun}`,
+            cat: v.cat, tier, good: n > 0, exact: `+${percentDecimals ? trim(e.value) : n} ${v.exactNoun}`,
           };
         }
         if (v && v.mode === 'times') {
@@ -270,7 +270,7 @@ function describeEffect(e: CardEffect): EffectLine | null {
       if (e.op === 'mul') {
         if (e.value === 1) return null;
         const dirUp = e.value > 1;
-        const exact = e.value >= 1.5 ? `×${trim(e.value)} ${noun}` : dirUp ? `+${pct(e.value - 1)}% ${noun}` : `−${pct(1 - e.value)}% ${noun}`;
+        const exact = e.value >= 1.5 ? `×${trim(e.value)} ${noun}` : dirUp ? `+${pct(e.value - 1, percentDecimals)}% ${noun}` : `−${pct(1 - e.value, percentDecimals)}% ${noun}`;
         return scalarLine(v, dirUp, Math.abs(e.value - 1), exact);
       }
       if (e.value === 0) return null;
@@ -278,7 +278,7 @@ function describeEffect(e: CardEffect): EffectLine | null {
       const mag = Math.abs(e.value) * (v.mode === 'flat' ? (v.unit ?? 1) : 1);
       const exact = v.mode === 'flat'
         ? `${dirUp ? '+' : '−'}${trim(Math.abs(e.value))} ${noun}`
-        : `${dirUp ? '+' : '−'}${pct(Math.abs(e.value))}% ${noun}`;
+        : `${dirUp ? '+' : '−'}${pct(Math.abs(e.value), percentDecimals)}% ${noun}`;
       return scalarLine(v, dirUp, mag, exact);
     }
     case 'flag': {
@@ -361,10 +361,10 @@ export function foldEffects(effects: readonly CardEffect[]): CardEffect[] {
 
 /** The standardized player text for a set of effects: folded, described, buffs in author
  *  order, drawbacks last. This is THE generator every effect surface should call. */
-export function describeEffects(effects: readonly CardEffect[]): EffectLine[] {
+export function describeEffects(effects: readonly CardEffect[], options: { percentDecimals?: 0 | 2 } = {}): EffectLine[] {
   const lines: EffectLine[] = [];
   for (const e of foldEffects(effects)) {
-    const l = describeEffect(e);
+    const l = describeEffect(e, options.percentDecimals ?? 0);
     if (l) lines.push(l);
   }
   return [...lines.filter((l) => l.good), ...lines.filter((l) => !l.good)];

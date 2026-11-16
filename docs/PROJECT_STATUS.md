@@ -2143,3 +2143,15 @@ LIVE v2026.11.11 Clearer Equipment Details. SHA59b261e56d48bc93e2f36006bae516be9
 ## 2026-11-11 — affix randomize guidance verified locally
 
 LOCAL unsealed v2026.11.11.2 Clearer Affix Controls has one generated website/game note. Affix Randomize now visibly names costs and lock/material deficits, linked with aria-describedby; upgrade-bar deficits share equivalent formatter. Real320px browser purchase/accessibility probe passed lock/unlock, exact deficits,1Mutagen2Scrap debit and updated shortage; screenshot inspected.27 focused tests PASS28.53s; docs/handoff and production build8240 PASS26.37s Vite/SWmwbgp9bg. All check processes terminal; devserver64507 available. Gameplay/costs/save unchanged. Full next-release audit pending. Live remains v2026.11.11 verified01:42UTC; next deployment~02:42UTC; goal active.
+
+## 2026-11-16 — clearer affix controls release in validation
+
+Two notes sealed and generated for game and website. Shared effect language covers all rolled affixes and preserves tier precision for percentages and scaled counts. Focused equipment, combat behavior and effect-language tests passed (33). Full validator is active in session 96195, log clearer-affix-release-validation.log. Production branch still points to 59b261e5.
+
+## 2026-11-16 — Threat test correction during equipment release validation
+
+Validator 96195 completed. Typecheck, production mobile gate and docs passed. One Threat test failed because both matched runs normally increased Power from 1009 to 1010 while the test compared the settled Threat run to its initial save. Changed only the test to compare complete post-run Power results against the matched standard settlement, with a fixed date. All nine focused Threat tests passed. Full suite rerun is live in session 76363. Sealed release v2026.11.16 and its two website notes are ready once the rerun passes.
+
+## 2026-11-16 — Clearer Affix Controls validated
+
+The sealed v2026.11.16 Clearer Affix Controls release passed release validation. The initial audit passed production build, mobile layout and documentation. The Threat assertion was corrected to compare the complete Power outcomes of matched runs. Final-tree typecheck passed and all 3,194 tests across 354 files passed in the full rerun. Production source and assets match the mobile-tested build /assets/play-BC-EWbxo.js. Both website and in-game notes are generated.

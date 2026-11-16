@@ -1,6 +1,6 @@
 [
   {
-    "date": "2026-11-11",
+    "date": "2026-11-16",
     "title": "Clearer Affix Controls",
     "categories": [
       "UI"
@@ -9,6 +9,10 @@
       {
         "cat": "UI",
         "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now describes lifesteal, thorns and aura bonuses as percentages. Affix descriptions use the same vocabulary as the Equipment Codex and show small differences between tiers."
       }
     ]
   },

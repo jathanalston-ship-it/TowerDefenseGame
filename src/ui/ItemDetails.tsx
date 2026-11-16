@@ -10,7 +10,7 @@ import { meta } from '../state/meta';
 import { HERO_DEFS } from '../core/config';
 import type { HeroKind } from '../core/types';
 import {
-  RARITY_ORDER, SLOT_LABELS, affixDef, affixEffectText, itemDef, itemScore, loadoutScore, maxTierForIlvl, rarityLabelOf,
+  RARITY_ORDER, SLOT_LABELS, affixDef, affixEffects, itemDef, itemScore, loadoutScore, maxTierForIlvl, rarityLabelOf,
 } from '../core/equipment';
 import type { Loadout, OwnedItem, RolledAffix } from '../core/equipment';
 import {
@@ -21,6 +21,7 @@ import { ItemArt, rarityColor } from './components/ItemArt';
 import { HeroGearPreview } from './components/HeroGearPreview';
 import { PowerDelta } from './components/PowerDelta';
 import { compareItemPower } from '../state/itemPower';
+import { describeEffects, lineText } from '../core/effectLanguage';
 import { Popup } from './components/Popup';
 
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
@@ -46,6 +47,9 @@ function costLabel(cost: Mats, named = false): string {
 function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: RolledAffix; mats: Mats; tag: string; color: string }): JSX.Element {
   const index = item.affixes.indexOf(affix);
   const def = affixDef(affix.affixId);
+  const effects = affixEffects(affix);
+  const effectText = describeEffects(effects, { percentDecimals: 2 })
+    .map((line) => line.exact.startsWith('heroAnchor = ') ? lineText(line) : line.exact).join(' · ');
   const randCost = reforgeCost('randomize', item);
   const canRand = !affix.locked && canAfford(mats, randCost);
   const randomizeDescriptionId = useId();
@@ -56,7 +60,7 @@ function AffixRow({ item, affix, mats, tag, color }: { item: OwnedItem; affix: R
       <span className="id-affix-tag" style={{ color }}>{tag}</span>
       <span className="id-affix-main">
         <span className="id-affix-name">{def?.name ?? affix.affixId} <span className="id-affix-tier">T{affix.tier}</span></span>
-        <span className="id-affix-explain">{affixEffectText(affix)}</span>
+        <span className="id-affix-explain">{effectText || def?.name || affix.affixId}</span>
       </span>
       <span className="id-affix-actions">
         <button className={`id-mini${affix.locked ? ' is-on' : ''}`} aria-label={`${def?.name ?? affix.affixId} affix lock`} aria-pressed={!!affix.locked} title={affix.locked ? 'Unlock this affix' : 'Lock this affix (protect from reroll / reforge / randomize)'} onClick={() => meta.lockItemAffix(item.uid, index)}>{affix.locked ? '🔒' : '🔓'}</button>

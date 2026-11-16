@@ -354,7 +354,7 @@ Career statistic hints use explicit Details buttons and inline reading panels. P
 - **Related:** Hero Equipment (loadouts), Crafting (reforge), Loot (acquisition), Collections.
 - **Codex search:** Shared ListControls/organizeList search names, descriptions, slots and sets without persisting queries or changing discovery. Phone hits appear outside folds; clear-search restores input focus.
 - **Affix randomize guidance:** ItemDetails AffixRow exposes named costs and live lock/material shortfalls visibly and via aria-describedby, using the same material deficit formatter as the upgrade bar; purchase rules unchanged.
-- **Affix tier descriptions:** equipment.affixEffectText shares tier scaling with itemEffects, so enhanced gear describes its current strength; applied effects are unchanged. Coverage checks every affix/tier and actual UI enhancement.
+- **Affix tier descriptions:** ItemDetails uses shared effect language on the resolved effects from equipment.affixEffects. It displays fractional bonuses as percentages and retains tier precision.
 - **Codex effect units:** `ui/EquipmentCollection.tsx` uses `core/effectLanguage.describeEffects` exact text for set bonuses; shared FIELD_VOCAB preserves percentages versus counts. Equipment definitions are unchanged.
 - **Card motion:** ItemArt honors live reduced motion/override and pauses offscreen or hidden; static lower rarities are unchanged. HeroGearPreview also pauses while retaining still-mode drag inspection and uses refresh-independent rotation. Native Left/Right buttons support keyboard inspection and pause automatic motion while focused.
 - **Future expansion:** 500-item target; behavioral affix vocabulary keeps growing.

@@ -5,14 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
-    "id": "v2026.11.11.2",
-    "date": "2026-11-11",
+    "id": "v2026.11.16",
+    "date": "2026-11-16",
     "title": "Clearer Affix Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
         "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
+      },
+      {
+        "cat": "UI",
+        "text": "Item Details now describes lifesteal, thorns and aura bonuses as percentages. Affix descriptions use the same vocabulary as the Equipment Codex and show small differences between tiers."
       }
     ]
   },

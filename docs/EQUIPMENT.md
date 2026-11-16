@@ -92,7 +92,7 @@ To keep gear **understandable within seconds**, the two surfaces have distinct j
   **Favorite**. That's the whole scan-and-slot loop — nothing destructive on the card.
 - The **Details screen** is the single place everything else lives: large artwork + Power Score, a
   side-by-side **vs. the equipped item** (with the ▲/▼ Power verdict), affixes each written in
-  **plain language** (`affixEffectText` — "+5% Tower Damage", "Hero attacks apply Corrosion"), the
+  **plain language** (shared effect language, e.g. "+5% tower damage"), the
   full upgrade bar (**Enhance / Reroll / Reforge / Upgrade Rarity / Salvage** with live material
   costs), and the item's story: **upgrade potential** (tier headroom vs. its ilvl ceiling), **power
   contribution** (its share of the hero's gear), **source** (`OwnedItem.source` — where it dropped),
@@ -589,7 +589,7 @@ Codex search uses the shared ListControls and organizeList framework with author
 
 ### Affix tier descriptions
 
-affixEffectText scales its displayed first effect with the same affixTierFactor and scaleEffect used by itemEffects. Tier bounds and applied effects are unchanged; percentage descriptions retain two decimals and additive descriptions four to avoid floating-point noise. Behavioral effects remain unscaled. Equipment tests compare descriptions with applied effects for every affix across tiers and bounds.
+Item Details describes the resolved effects from affixEffects using the shared effect language. The affix view uses two decimal places of percentage precision and retains scaled counts. Tests check vocabulary coverage across all affixes and verify representative tier values.
 
 ### Targeted randomize guidance
 

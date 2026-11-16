@@ -848,3 +848,4 @@
 - `de9bc18` **[UI]** Make the equipment codex searchable _(internal)_
 - `59b261e` **[Gameplay]** Publish clearer equipment details _(internal)_
 - `34bb252` **[Gameplay]** Record verified equipment deployment _(internal)_
+- `bc1b006` **[UI]** Ui: explain affix randomize costs and availability _(internal)_

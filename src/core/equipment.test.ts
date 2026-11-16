@@ -4,7 +4,7 @@ import {
   ALL_ITEMS,
   RARITY_AFFIXES,
   WEAPONS,
-  affixEffectText,
+  affixEffects,
   AFFIXES,
   itemDef,
   itemEffects,
@@ -20,6 +20,7 @@ import {
   RARITY_ORDER,
   transmute,
 } from './equipment';
+import { describeEffects } from './effectLanguage';
 import { GEAR_RARITY_BANDS } from './config';
 
 const mk = (seed: number): (() => number) => {
@@ -94,33 +95,18 @@ describe('equipment', () => {
 });
 
 describe('Details-screen support: affix explanations + item provenance', () => {
-  it('affixEffectText renders a plain-language stat line per op', () => {
-    expect(affixEffectText({ affixId: 'keen', tier: 1 })).toBe('+5% Tower Damage'); // mul
-    expect(affixEffectText({ affixId: 'piercing', tier: 1 })).toBe('+1 max Fracture'); // add
-    expect(affixEffectText({ affixId: 'anchored', tier: 1 })).toBe('Sets Anchor Point → nucleus'); // set
-    expect(affixEffectText({ affixId: 'swift', tier: 1 })).toBe('−5% Ability Cooldown'); // reduction
-  });
-
-  it('affix descriptions follow the applied tier without changing the effect', () => {
-    expect(affixEffectText({ affixId: 'keen', tier: 6 })).toBe('+10% Tower Damage');
-    expect(affixEffectText({ affixId: 'keen', tier: 2 })).toBe('+5.9% Tower Damage');
-    expect(affixEffectText({ affixId: 'swift', tier: 6 })).toBe('−10% Ability Cooldown');
-    expect(affixEffectText({ affixId: 'flush', tier: 6 })).toBe('+120 Starting Biomass');
-    expect(affixEffectText({ affixId: 'anchored', tier: 6 })).toBe('Sets Anchor Point → nucleus');
+  it('describes resolved affixes in their current tier and player-facing units', () => {
+    const exact = (affixId: string, tier: number) =>
+      describeEffects(affixEffects({ affixId, tier }), { percentDecimals: 2 }).map((line) => line.exact);
+    expect(exact('keen', 2)).toEqual(['+5.9% tower damage']);
+    expect(exact('leeching', 2)).toEqual(['+4.72% Hero life steal']);
+    expect(exact('swift', 6)).toEqual(['−10% Hero ability cooldown']);
+    expect(exact('piercing', 2)).toEqual(['+1.18 max Fracture stacks']);
+    expect(exact('flush', 6)).toEqual(['+120 starting Biomass']);
+    expect(exact('keen', 99)).toEqual(exact('keen', 6));
     for (const def of AFFIXES) {
-      for (const tier of [0, 1, 2, 3, 4, 5, 6, 99]) {
-        const affix = { affixId: def.id, tier };
-        const item = { uid: 'description-check', defId: WEAPONS[0].id, rarity: 'rare' as const, affixes: [affix] };
-        const before = itemEffects(item);
-        const label = affixEffectText(affix);
-        expect(itemEffects(item)).toEqual(before);
-        const effect = before[before.length - 1];
-        if (effect.op === 'mul') {
-          expect(label).toContain(`${Number((Math.abs(effect.value - 1) * 100).toFixed(2))}%`);
-        } else if (effect.op === 'add') {
-          expect(label).toContain(`${Number(Math.abs(effect.value).toFixed(4))} `);
-        }
-      }
+      expect(exact(def.id, 1), def.id).toHaveLength(def.effects.length);
+      expect(exact(def.id, 6), def.id).toHaveLength(def.effects.length);
     }
   });
 

@@ -4,36 +4,37 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-11 01:47 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 34bb252c
+- **Generated:** 2026-11-16 00:49 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** bc1b006c
 
 ## Summary of work completed
 
-LOCAL unsealed v2026.11.11.2 Clearer Affix Controls has one generated game/home/news note. ItemDetails shows named affix Randomize costs, lock guidance and exact material deficits, associated with the button through useId/aria-describedby. Live remains v2026.11.11 SHA59b261e56d48bc93e2f36006bae516be9bcc4f8b verified01:42UTC; next deployment~02:42UTC. Goal active.
+The sealed v2026.11.16 Clearer Affix Controls release combines named randomize costs and shortages with shared effect descriptions for rolled affixes. Both notes are generated for the website and the in-game briefing. Production branch was verified at 59b261e56d48bc93e2f36006bae516be9bcc4f8b before release.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/EquipmentPanel.css`, `src/ui/ItemDetails.tsx`
-- Tests (0): —
+- Source (4): `src/changelog/releases.gen.ts`, `src/core/effectLanguage.ts`, `src/core/equipment.ts`, `src/ui/ItemDetails.tsx`
+- Tests (1): `src/core/equipment.test.ts`
 - Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **equipment** — `src/ui/ItemDetails.tsx`
-- Consumer ring (verify, unchanged): crafting
+- **equipment** — `src/core/equipment.ts`, `src/ui/ItemDetails.tsx`
+- **gene-cards** — `src/core/effectLanguage.ts`
+- Consumer ring (verify, unchanged): crafting, doctrines, engine
 
 ## Power Score changes
 
-None. Costs, affordability, locks, spending and equipment effects unchanged. Shared missingMaterials helper replaces equivalent upgrade-bar formatting only.
+Equipment retains its existing scaling and aggregation. Focused equipment, combat behavior and shared effect-language tests passed (33).
 
 ## UI changes
 
-Full-width row below each affix provides readable guidance without hover. Actual phone browser probe affix-randomize-guidance-check.cjs passed named costs/accessible description, lock/unlock, exact shortfall, successful randomize spending1Mutagen2Scrap and updated zero-wallet shortage;320px screenshot reviewed/no overflow. Browser terminal13807.
+Item Details describes rolled affix effects through the shared vocabulary, with up to two decimal places for percentages and scaled counts. The previous checkpoint verified named randomize costs, lock and shortage guidance, and the exact purchase debit in a 320px browser.
 
 ## Documentation changes
 
-EQUIPMENT and manifest updated; one next-release note generated. Docs anchors/references/staleness passed. Equipment philosophy/reforge/Help/tutorial/audio need no changes: no mechanic/cost/flow changes.
+EQUIPMENT and PROJECT_MANIFEST explain affix descriptions. Website notes and in-game notes come from the same sealed ledger. Other registry docs, Help and tutorials need no changes for this wording update.
 
 ## Save changes
 
@@ -41,16 +42,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Use exact transformed ItemDetails meta import URL in development fixtures to avoid HMR duplicate save modules. Preserve both untracked devlog drafts.
+Use the exact transformed ItemDetails meta import in browser fixtures to share save state with the screen. Preserve the two untracked devlog drafts.
 
 ## Remaining technical debt
 
-Potential future review: additive fractional affix descriptions still show raw units; no new debt. Chrome mobile audit env requires MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
+Local Chrome needs MOBILECHECK_CHROMIUM and the parent chrome-probe-compat.cjs preload for the mobile gate.
 
 ## Recommended next tasks
 
-Production build8240 PASS26.37s Vite/SWmwbgp9bg; all check processes terminal.27 focused crafting/UI/site tests PASS28.53s; docs/handoff8172 terminalPASS.  Continue improvements until next release; reserve full audit for release (recent run~27min).
+The sealed v2026.11.16 Clearer Affix Controls release passed release validation. The initial audit passed production build, mobile layout and documentation. The Threat assertion was corrected to compare the complete Power outcomes of matched runs. Final-tree typecheck passed and all 3,194 tests across 354 files passed in the full rerun. Production source and assets match the mobile-tested build /assets/play-BC-EWbxo.js. Both website and in-game notes are generated. Push the authorized production branch, verify Actions and run the public verifier. Next work is manual cutscene caption announcements. The browser fixture cutscene-caption-announcement-check.cjs is prepared.
 
 ## Future expansion hooks
 
-Devserver5174 session64507 remains available. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1. Full previous release validator19908 terminalPASS3195tests at01:39UTC; previous deploymentActions42940689648/job130261502856 success.
+Production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public game, homepage, news and asset verifier is ../verify-current-release.ps1. Keep a website note with each release.

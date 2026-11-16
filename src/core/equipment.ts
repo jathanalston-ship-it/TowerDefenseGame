@@ -110,54 +110,6 @@ export function affixDef(id: string): AffixDef | undefined {
   return AFFIX_BY_ID.get(id);
 }
 
-/** Human labels for the RunModifier fields an affix touches — so the Details screen can EXPLAIN a
- *  stat in plain words ("+5% Tower Damage") instead of showing a raw field key. Unlisted fields fall
- *  back to a camelCase→words humanizer, so new content reads sensibly without a hand-edit. */
-const FIELD_LABEL: Record<string, string> = {
-  mawCleaveRadiusMult: 'Bite Reach', chrysalisFreezeDurationMult: 'Encasement Duration', effigyDreadDurationMult: 'Panic Duration',
-  towerDamageMult: 'Tower Damage', towerFireRateMult: 'Fire Rate', splashRadiusMult: 'Splash Radius',
-  fractureBonusStacks: 'max Fracture', heroDamageMult: 'Hero Damage', heroCooldownMult: 'Ability Cooldown',
-  heroMaxHpMult: 'Hero Health', integrityMult: 'Nucleus Integrity', reactorOverchargeBonus: 'Reactor Overcharge',
-  mortarPoolDurationMult: 'Acid Pool Duration', corrosionSlowBonus: 'Corrosion Slow', heroAggroRangeMult: 'Hunt Range',
-  heroRetreatThreshold: 'Retreat Caution', biomassMult: 'Biomass Income', startBiomassBonus: 'Starting Biomass',
-  poolDpsMult: 'Acid Pool Damage', reactorBiomassMult: 'Reactor Biomass', needleExtraProjectiles: 'extra Needles',
-  heroLifestealFrac: 'Lifesteal', heroAbilityRadiusMult: 'Ability Radius', heroSpeedMult: 'Move Speed',
-  heroThornsFrac: 'Thorns', heroTowerHasteAura: 'Tower Haste Aura', heroTowerDamageAura: 'Tower Damage Aura',
-  heroAuraRadius: 'Aura Radius', heroAnchor: 'Anchor Point',
-};
-function humanizeField(f: string): string {
-  return FIELD_LABEL[f] ?? f.replace(/(Mult|Frac|Bonus)$/, '').replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim();
-}
-
-/** A plain-language explanation of what an affix DOES (its rolled-tier magnitude + which stat it moves).
- *  Shown on the Details screen so a first-time player understands each roll at a glance. */
-export function affixEffectText(affix: RolledAffix): string {
-  const def = affixDef(affix.affixId);
-  const base = def?.effects[0];
-  if (!def || !base) return affix.affixId;
-  const e = scaleEffect(base, affixTierFactor(affix.tier));
-  switch (e.op) {
-    case 'mul': {
-      const pct = Number((Math.abs(e.value - 1) * 100).toFixed(2));
-      return `${e.value >= 1 ? '+' : '−'}${pct}% ${humanizeField(e.field)}`;
-    }
-    case 'add':
-      return `${e.value >= 0 ? '+' : '−'}${Number(Math.abs(e.value).toFixed(4))} ${humanizeField(e.field)}`;
-    case 'flag':
-      return humanizeField(e.field);
-    case 'set':
-      return `Sets ${humanizeField(e.field)} → ${e.value}`;
-    case 'grant':
-      return e.grant.kind === 'heroAttackStatus' ? `Hero attacks apply ${e.grant.status}`
-        : e.grant.kind === 'towerProjectileMutator' ? 'Shots pierce +1 host'
-        : 'Grants a run capability';
-    case 'hook':
-      return `On ${e.hook.on}: a battlefield rule`;
-    default:
-      return def.name;
-  }
-}
-
 /** Offense affixes → "prefix"; everything else is a utility "suffix". Data-driven classification
  *  for the Reforge affix view (Primary / Prefix / Suffix). One reviewable list; an AffixDef may
  *  override via its `kind` field, and any new affix defaults to a suffix unless listed here. */
@@ -644,6 +596,13 @@ function scaleEffect(e: CardEffect, tierFactor: number): CardEffect {
   return e; // flags don't scale
 }
 
+/** The resolved effects of one rolled affix, shared by simulation and its detail text. */
+export function affixEffects(affix: RolledAffix): CardEffect[] {
+  const def = affixDef(affix.affixId);
+  if (!def) return [];
+  return def.effects.map((effect) => scaleEffect(effect, affixTierFactor(affix.tier)));
+}
+
 /** All CardEffects an owned item contributes (base + signature + tier-scaled affixes). */
 export function itemEffects(item: OwnedItem): CardEffect[] {
   const def = itemDef(item.defId);
@@ -651,10 +610,7 @@ export function itemEffects(item: OwnedItem): CardEffect[] {
   const out: CardEffect[] = [...def.base];
   if (def.signature && (item.rarity === 'legendary' || item.rarity === 'exotic')) out.push(...def.signature.effects);
   for (const ra of item.affixes) {
-    const affix = AFFIX_BY_ID.get(ra.affixId);
-    if (!affix) continue;
-    const f = affixTierFactor(ra.tier);
-    for (const e of affix.effects) out.push(scaleEffect(e, f));
+    out.push(...affixEffects(ra));
   }
   return out;
 }

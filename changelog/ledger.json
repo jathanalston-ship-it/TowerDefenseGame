@@ -1,6 +1,6 @@
 {
-  "lastSha": "34bb252c88e7d653ea0012da174a1899a7d68224",
-  "commitsSinceDraft": 2,
+  "lastSha": "bc1b006cafbcdb88e30822caaca3915f7c43bd22",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4875,14 +4875,18 @@
       ]
     },
     {
-      "id": "v2026.11.11.2",
-      "date": "2026-11-11",
+      "id": "v2026.11.16",
+      "date": "2026-11-16",
       "title": "Clearer Affix Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
           "text": "Item Details now shows each affix randomization price with material names. Locked affixes explain how to enable the action, and unaffordable ones show the exact materials still needed. Screen readers receive the same guidance."
+        },
+        {
+          "cat": "UI",
+          "text": "Item Details now describes lifesteal, thorns and aura bonuses as percentages. Affix descriptions use the same vocabulary as the Equipment Codex and show small differences between tiers."
         }
       ]
     }
@@ -11317,6 +11321,14 @@
       "date": "2026-11-10",
       "cat": "Gameplay",
       "text": "Record verified equipment deployment",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bc1b006cafbcdb88e30822caaca3915f7c43bd22",
+      "date": "2026-11-10",
+      "cat": "UI",
+      "text": "Ui: explain affix randomize costs and availability",
       "internal": true,
       "needsReview": false
     }
