@@ -72,6 +72,7 @@ excepted), never over a draft. Showing a note archives its mechanic into Help (`
 { beat: false })` — outside the hub's budget), and `pendingAnnouncements` never queues a field-noted
 mechanic. A new in-run lesson is one row; `firstHour.test.ts` checks every anchor names a control the
 run view renders and that the notes fire on their moments (danger first).
+Focus holds a note open. Dismiss or Escape returns focus to Tower pads so keyboard players can keep building or inspecting.
 
 ## Coalescing + reuse
 

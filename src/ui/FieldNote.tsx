@@ -5,7 +5,7 @@
 // at least gapMs apart. Hover/focus holds the note for reading; Dismiss is keyboard-accessible.
 // Pointer-transparent except the bubble itself — the fight never pauses.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
 import { meta } from '../state/meta';
 import { FIELD_NOTE_PACE, dueFieldNote } from '../state/fieldNotes';
@@ -13,7 +13,12 @@ import type { FieldNoteDef } from '../state/fieldNotes';
 import { Callout } from './tutorial/primitives';
 import { useTargetRect } from './tutorial/useTargetRect';
 
-export function FieldNote({ hud, speed }: { hud: HudSnapshot; speed: number }): JSX.Element | null {
+export function FieldNote({ hud, speed, onDismissFocus }: {
+  hud: HudSnapshot;
+  speed: number;
+  onDismissFocus: () => void;
+}): JSX.Element | null {
+  const descriptionId = useId();
   const [note, setNote] = useState<FieldNoteDef | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -45,16 +50,25 @@ export function FieldNote({ hud, speed }: { hud: HudSnapshot; speed: number }): 
 
   if (!note) return null;
   return (
-    <div className="field-note" onClick={dismiss}
+    <div className="field-note" onClick={(event) => {
+      if (event.currentTarget.contains(document.activeElement)) onDismissFocus();
+      dismiss();
+    }}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        onDismissFocus();
+        dismiss();
+      }}
       onPointerEnter={() => setHovered(true)} onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false); }}>
-      <Callout rect={rect} side={note.side} avoid={avoid}>
+      <Callout rect={rect} side={note.side} avoid={avoid} label={`Field note on ${note.eyebrow.toLowerCase()}`} describedBy={descriptionId}>
         <div role="status">
           <div className="tut-callout-eyebrow">✦ FIELD NOTE · {note.eyebrow}</div>
-          <div className="tut-callout-text">{note.text}</div>
+          <div id={descriptionId} className="tut-callout-text">{note.text}</div>
         </div>
-        <button className="field-note-dismiss" aria-label="Dismiss field note">Dismiss</button>
+        <button type="button" className="field-note-dismiss" aria-label="Dismiss field note">Dismiss</button>
       </Callout>
     </div>
   );

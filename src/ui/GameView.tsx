@@ -545,6 +545,10 @@ export function GameView({
   const keyboardTargetRef = useRef<Pointer | null>(null);
   const showKeyboardTarget = useCallback((target: Pointer | null): void => { keyboardTargetRef.current = target; }, []);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
+  const focusBattlefieldControls = (): void => {
+    const pads = keyboardPadButtonRef.current;
+    if (pads?.tabIndex === 0) pads.focus({ preventScroll: true });
+  };
   const mutationPanelRef = useRef<HTMLElement>(null);
   const heroPanelRef = useRef<HTMLDivElement>(null);
   const heroInspectOrigin = useRef<HTMLElement | null>(null);
@@ -1395,16 +1399,13 @@ export function GameView({
           compact={drawers}
           tutorialLock={!!tutorial && !!tutSession}
           autoGeneLock={automation.allowed ? null : automation.reason}
-          onKeyboardLaunch={tutorial ? undefined : () => {
-            const pads = keyboardPadButtonRef.current;
-            if (pads?.tabIndex === 0) pads.focus({ preventScroll: true });
-          }}
+          onKeyboardLaunch={tutorial ? undefined : focusBattlefieldControls}
         />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
         {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
         {/* FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes): in-run controls teach themselves the first
             time their moment arrives — never in the tutorial (it has its own voice). */}
-        {!tutorial && <FieldNote hud={hud} speed={speed} />}
+        {!tutorial && <FieldNote hud={hud} speed={speed} onDismissFocus={focusBattlefieldControls} />}
         {/* RUN CONTROLS STRIP (docs/HUD.md §run-controls): speed · Hive Intelligence · Pause (+ the
             Hive ticker / speed note) share ONE flex row reserved at the top of the board, so they
             can never collide with each other, the wave briefing, or the boss bars below it. */}
