@@ -1539,6 +1539,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 }
 
 /* ── The briefing (left): wave header + named threat intel chips ── */
+.wb-intel { display: contents; }
 .wb-brief { display: flex; flex-direction: column; gap: 6px; min-width: 0; justify-content: center; }
 
 .wb-head { display: flex; align-items: baseline; gap: 7px; }
@@ -3226,9 +3227,13 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
   padding: 6px 8px;
 }
 
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-brief { flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-intel { display: flex; width: 100%; min-width: 0; max-width: 100%; align-items: stretch; gap: 4px; }
+
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-brief { flex: 1; flex-flow: row nowrap; align-items: center; justify-content: flex-start; gap: 8px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-brief::-webkit-scrollbar { display: none; }
+
+.wb-scroll { flex: 0 0 44px; min-width: 44px; min-height: 44px; padding: 0; font-size: 26px; line-height: 1; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .wb-head { flex: none; flex-wrap: nowrap; white-space: nowrap; }
 
@@ -3603,7 +3608,7 @@ html[data-layout='desktop'] .cv-slot { flex: 0 1 auto; width: 240px; min-width: 
 .wb-detail-head button { min-width: 44px; min-height: 44px; }
 .wb-detail p { margin: 4px 0; font-size: 13px; line-height: 1.5; color: var(--text); }
 /* Reading replaces the compact intel row, leaving launch controls available. */
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls.has-detail .wb-brief { display: none; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .build-controls.has-detail .wb-intel { display: none; }
 
 .run-conditions > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
 .run-conditions > summary::before { content: '▸'; margin-right: 8px; }

@@ -1246,7 +1246,7 @@ export function GameView({
             refresh();
           }}
         />
-        <BuildControls game={game} hud={hud} refresh={refresh} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
+        <BuildControls game={game} hud={hud} refresh={refresh} compact={drawers} tutorialLock={!!tutorial && !!tutSession} autoGeneLock={automation.allowed ? null : automation.reason} />
         {breachAt > 0 && <div className="wave-breach" key={`br${breachAt}`} aria-hidden />}
         {stageCard && hud.phase !== 'draft' && <CentreStage shown={stageCard} />}
         {/* FIELD NOTES (docs/GUIDED-UNLOCKS.md §field-notes): in-run controls teach themselves the first

@@ -340,3 +340,7 @@ Reward motion preferences (2026-11-10): RewardReveal resolves shared motion pref
 Opening an incoming enemy in the wave briefing explains its authored combat traits alongside its
 base stats. Hybrid enemies can list several traits. The main role also appears in the chip's
 accessible name, and the detail panel still shows elite counts and any adaptation probe.
+
+The compact briefing shows a scroll arrow when the enemy row overflows. At the end it returns to
+the wave summary. Closing an explanation restores the row position and its opener. Every new wave
+starts at the summary.
