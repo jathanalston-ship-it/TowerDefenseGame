@@ -33,6 +33,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Hub’s edge swipe follows the replay controls while a memory is open. Swipe once to see the final card and again to return to the same archive view."
+      },
+      {
+        "cat": "UI",
+        "text": "Recovered memories show the scene count and approximate autoplay time before you press Watch. The time includes the final card and is announced with the Watch button."
       }
     ]
   },

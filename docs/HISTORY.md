@@ -896,3 +896,6 @@
 - `847c927` **[Gene Cards]** Route Back through Memory Archive playback _(internal)_
 - `1eda2d1` **[Gene Cards]** Prepare memory archive Back note _(internal)_
 - `c832852` **[UI]** Ui: route hub edge gestures through the active dialog _(internal)_
+- `ada9fc5` **[Gene Cards]** Prepare archive edge swipe note _(internal)_
+- `9df9823` **[Gene Cards]** Record native Archive swipe verification _(internal)_
+- `a46965f` **[Gene Cards]** Show Memory Archive replay length _(internal)_

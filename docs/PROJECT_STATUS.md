@@ -2290,3 +2290,7 @@ A First Loop onboarding dialog explained the prior rejected Hub gesture. Native
 Chrome touch events traced through the Hub: replay to final card, final card to
 the same filtered Archive, then Archive to Home after completing the fixture's
 onboarding. Rechecked with all diagnostic code removed.
+
+## 2026-11-16 — replay length in the Memory Archive
+
+Recovered memories disclose scene count and approximate autoplay runtime including the final card. Chrome verified the runtime, Watch accessibility description, locked-card concealment and archive regression checks at 320px, 390px and desktop. All 21 focused tests passed. This is note seven for v2026.11.16.5.
