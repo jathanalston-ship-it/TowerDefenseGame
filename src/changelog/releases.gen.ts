@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The opening and Memory Archive follow your motion setting for captions, the letterbox, and the finale. Reduced motion removes the slide effects, and Allow motion restores them without restarting the caption or finale."
+      },
+      {
+        "cat": "UI",
+        "text": "Browser Back now works like Escape during Memory Archive replay. The first press opens the final card. The next returns to Watch in the same filtered archive."
       }
     ]
   },

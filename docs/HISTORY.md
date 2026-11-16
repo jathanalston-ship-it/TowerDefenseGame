@@ -892,3 +892,5 @@
 - `61f2ba0` **[UI]** Ui: show manual cinematic scene progress _(internal)_
 - `74b5083` **[UI]** Ui: prevent overlapping cinematic advances _(internal)_
 - `eeb5a4f` **[UI]** Ui: resolve film interface motion with projector _(internal)_
+- `8fad45d` **[Framework]** Release: prepare cinematic playback notes _(internal)_
+- `847c927` **[Gene Cards]** Route Back through Memory Archive playback _(internal)_

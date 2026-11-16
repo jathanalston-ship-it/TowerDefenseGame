@@ -2275,3 +2275,7 @@ GitHub Actions run 43797843950 deployed 2f553a9b and passed the exact-commit gua
 ## 2026-11-16 — cinematic follow-up integrated
 
 Back to scene, manual progress, guarded transitions and resolved film motion are integrated on the release branch. Typecheck passed in the isolated checkout. v2026.11.16.5 has four generated News and game notes.
+
+## 2026-11-16 — browser Back in the Memory Archive
+
+Browser Back follows the replay Escape path through the final card and returns to the original Watch control. Browser probes verified the real history guard, preserved filters, menu music restoration and suppression of repeated Escape. All 22 focused tests passed. This is the fifth game and News note in v2026.11.16.5.

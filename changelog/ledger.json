@@ -1,6 +1,6 @@
 {
-  "lastSha": "eeb5a4fe32c1d3daab5077d2be91e5778d17a862",
-  "commitsSinceDraft": 0,
+  "lastSha": "847c927a5964c67018b49bff87187dc9e948481d",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -5019,6 +5019,10 @@
         {
           "cat": "UI",
           "text": "The opening and Memory Archive follow your motion setting for captions, the letterbox, and the finale. Reduced motion removes the slide effects, and Allow motion restores them without restarting the caption or finale."
+        },
+        {
+          "cat": "UI",
+          "text": "Browser Back now works like Escape during Memory Archive replay. The first press opens the final card. The next returns to Watch in the same filtered archive."
         }
       ]
     }
@@ -11789,6 +11793,22 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: resolve film interface motion with projector",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8fad45d69b1de59ff5f7f01c193549e4564d0d63",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare cinematic playback notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "847c927a5964c67018b49bff87187dc9e948481d",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Route Back through Memory Archive playback",
       "internal": true,
       "needsReview": false
     }
