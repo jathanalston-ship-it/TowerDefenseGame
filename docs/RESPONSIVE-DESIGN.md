@@ -332,3 +332,5 @@ verified at 4K/Deck/720p/iPad/phones with the board dominant and all chrome reac
 Purchase accessibility: usePressRepeat handles non-pointer click activation once (keyboard/assistive detail=0); pointer activation already fires on pointerdown and must not be charged again on click. Call sites composing onClick must forward the hook callback. Hero upgrades retain their DOM button through purchase feedback.
 
 Mobile gate drawer settling: the landscape walk waits for a closed drawer to lose its is-open class and reach computed visibility:hidden before auditing. Existing panel waits remain; all overflow/clipping/target assertions are unchanged. This avoids sampling a closing transition under browser load, and an unclosed drawer still times out.
+
+The mobile audit excludes completely clipped 1px accessibility boxes and their descendants. On a live board it presses B when the keyboard stop is available and checks that the focused control appears, fits its viewport, and keeps all of its text readable.

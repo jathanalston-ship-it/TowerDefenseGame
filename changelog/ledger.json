@@ -1,6 +1,6 @@
 {
-  "lastSha": "db7c63be5f8fa7d8b3ad52c8bfe96fa764112394",
-  "commitsSinceDraft": 0,
+  "lastSha": "e16e77c620fa092a4f85e77567bf64a24a01f1f5",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -5058,7 +5058,7 @@
       "id": "v2026.11.16.6",
       "date": "2026-11-16",
       "title": "Keyboard Battlefield Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -5087,6 +5087,18 @@
         {
           "cat": "UI",
           "text": "The Combat Tutorial now teaches the keyboard controls for the favorite tower, the conveyor, tower inspection, and hero abilities. Keyboard actions advance the same lessons as mouse and touch."
+        },
+        {
+          "cat": "UI",
+          "text": "The hero toolbar names the active ability, including the chosen fork. The targeting ring shows the outer edge of its ground effects, including the range changes that apply from gear and Hero Evolution."
+        },
+        {
+          "cat": "Audio",
+          "text": "A short two-note cue plays when your manually controlled hero ability finishes recharging. Pause, Auto-Cast and Hive Intelligence keep the cue quiet."
+        },
+        {
+          "cat": "UI",
+          "text": "The Combat Tutorial’s opening banner can be dismissed with Enter. Continue moves keyboard focus to the next prompt or battlefield control, and screen readers can hear the current lesson and step."
         }
       ]
     }
@@ -12137,6 +12149,46 @@
       "date": "2026-11-15",
       "cat": "UX",
       "text": "Teach keyboard controls in the combat tutorial",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "dc5a020a82e4d4a967772fcbe7714ad5bbb06bd5",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare keyboard battlefield controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f4cefd9d5aeaa16304b2887cdc460fd1a0f97cfa",
+      "date": "2026-11-15",
+      "cat": "Developer Tools",
+      "text": "Qa: audit keyboard controls when visible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3dde858346a97a9910f7abce840e5e1b7ee48845",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Show the actual hero cast footprint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "fce8a58d411751097b47ea1bca2ec74308fd26ed",
+      "date": "2026-11-15",
+      "cat": "Audio",
+      "text": "Signal the primary hero ability recharge",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e16e77c620fa092a4f85e77567bf64a24a01f1f5",
+      "date": "2026-11-15",
+      "cat": "UX",
+      "text": "Guide keyboard focus through tutorial lessons",
       "internal": true,
       "needsReview": false
     }

@@ -927,3 +927,8 @@
 - `b0e3ca3` **[Developer Tools]** Teach keyboard aiming in Help and Hero Guide _(internal)_
 - `2c9188b` **[Framework]** Docs: regenerate battlefield keyboard graph references _(internal)_
 - `db7c63b` **[UX]** Teach keyboard controls in the combat tutorial _(internal)_
+- `dc5a020` **[Framework]** Release: prepare keyboard battlefield controls _(internal)_
+- `f4cefd9` **[Developer Tools]** Qa: audit keyboard controls when visible _(internal)_
+- `3dde858` **[Heroes]** Show the actual hero cast footprint _(internal)_
+- `fce8a58` **[Audio]** Signal the primary hero ability recharge _(internal)_
+- `e16e77c` **[UX]** Guide keyboard focus through tutorial lessons _(internal)_

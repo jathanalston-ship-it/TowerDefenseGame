@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.16.6",
     "date": "2026-11-16",
     "title": "Keyboard Battlefield Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -37,6 +37,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Combat Tutorial now teaches the keyboard controls for the favorite tower, the conveyor, tower inspection, and hero abilities. Keyboard actions advance the same lessons as mouse and touch."
+      },
+      {
+        "cat": "UI",
+        "text": "The hero toolbar names the active ability, including the chosen fork. The targeting ring shows the outer edge of its ground effects, including the range changes that apply from gear and Hero Evolution."
+      },
+      {
+        "cat": "Audio",
+        "text": "A short two-note cue plays when your manually controlled hero ability finishes recharging. Pause, Auto-Cast and Hive Intelligence keep the cue quiet."
+      },
+      {
+        "cat": "UI",
+        "text": "The Combat Tutorial’s opening banner can be dismissed with Enter. Continue moves keyboard focus to the next prompt or battlefield control, and screen readers can hear the current lesson and step."
       }
     ]
   },

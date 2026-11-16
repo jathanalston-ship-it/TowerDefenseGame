@@ -2372,3 +2372,11 @@ The Combat Tutorial teaches the new keys and still advances from the live placem
 draft and ability events. Fresh Chrome playthroughs reached commissioning using
 keyboard input at desktop and 320 px. All 32 registry, graph, site and release-sync
 tests passed. Keyboard Battlefield Controls v2026.11.16.6 is open with seven notes.
+
+## 2026-11-16 — keyboard battlefield package sealed
+
+The candidate audit passed 3,194 tests and exposed a false mobile finding on the
+clipped keyboard stop. The gate now audits the focused stop after B. Accurate
+hero ground-effect previews, the manual recharge cue, and tutorial lesson focus
+and announcements are integrated. The public News page and the game briefing
+carry ten matching notes for the sealed v2026.11.16.6 candidate.
