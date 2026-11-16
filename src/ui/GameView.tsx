@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
@@ -519,6 +519,15 @@ export function GameView({
   const pointerRef = useRef<Pointer | null>(null);
   const keyboardPadRef = useRef<Pointer | null>(null);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
+  const mutationPanelRef = useRef<HTMLElement>(null);
+  const keyboardInspectorId = useRef<number | null>(null);
+  const pendingInspectorFocus = useRef(false);
+  const returnToTowerPads = useCallback((): void => {
+    if (keyboardInspectorId.current !== game.selectedPlacedId || keyboardInspectorId.current === null) return;
+    keyboardInspectorId.current = null;
+    const pads = keyboardPadButtonRef.current;
+    if (pads?.tabIndex === 0) pads.focus({ preventScroll: true });
+  }, [game]);
   const [padShortcutHint, setPadShortcutHint] = useState(false);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
@@ -1078,7 +1087,7 @@ export function GameView({
         return;
       }
       // Space belongs to a focused control, not to the board beneath it.
-      if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('button, a, [role="button"], [role="switch"]')) return;
+      if ((e.key === ' ' || e.key === 'Spacebar') && (target === mutationPanelRef.current || target?.closest('button, a, summary, [role="button"], [role="switch"]'))) return;
       audio.resume();
       const k = e.key;
       if (game.phase === 'draft') {
@@ -1137,6 +1146,7 @@ export function GameView({
         if (game.phase === 'wave') game.callWaveEarly();
         else game.startWave();
       } else if (k === 'Escape') {
+        if (mutationPanelRef.current?.contains(target)) returnToTowerPads();
         game.cancelInteractions(); // close inspect / cancel move / disarm placement
       } else {
         return;
@@ -1145,7 +1155,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed, tutorial]);
+  }, [game, togglePause, setSpeed, tutorial, returnToTowerPads]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -1166,7 +1176,15 @@ export function GameView({
   const sp = hud.selectedPlaced;
   const tutInspector = !!tutCue && [tutCue.spotlight, tutCue.arrow?.target, tutCue.callout?.target].some((t) => !!t && t.includes('.inspector'));
   const insShown = rightOpen || (drawers && ((!!sp && !sp.moving) || tutInspector));
+  useLayoutEffect(() => {
+    if (!pendingInspectorFocus.current) return;
+    pendingInspectorFocus.current = false;
+    if (sp?.id === keyboardInspectorId.current && document.activeElement === keyboardPadButtonRef.current) {
+      mutationPanelRef.current?.focus({ preventScroll: true });
+    }
+  }, [sp]);
   const closeRight = (): void => {
+    if (mutationPanelRef.current?.contains(document.activeElement)) returnToTowerPads();
     setRightOpen(false);
     if (drawers && sp) {
       game.selectPlacedTower(null);
@@ -1218,6 +1236,11 @@ export function GameView({
             buttonRef={keyboardPadButtonRef}
             shortcutHint={padShortcutHint}
             showPad={(slot) => { keyboardPadRef.current = slot ? { x: slot.x, y: slot.y, keyboardPad: true } : null; }}
+            onInspect={(towerId) => {
+              keyboardInspectorId.current = towerId;
+              pendingInspectorFocus.current = true;
+              if (!drawers) setRightOpen(true);
+            }}
             refresh={refresh}
           />
         )}
@@ -1245,6 +1268,7 @@ export function GameView({
             if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_SLOP) return;
             const p = toCoords(e.clientX, e.clientY);
             // Shift keeps the build tool armed for rapid placement (docs/TOWER-MANAGEMENT.md §4).
+            keyboardInspectorId.current = null;
             game.click(p.x, p.y, { shift: e.shiftKey });
             refresh();
           }}
@@ -1612,6 +1636,7 @@ export function GameView({
         </div>
         {insShown && (
           <Inspector
+            mutationPanelRef={mutationPanelRef}
             hud={hud}
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
@@ -1629,16 +1654,19 @@ export function GameView({
               refresh();
             }}
             onDeselect={() => {
+              returnToTowerPads();
               game.selectPlacedTower(null);
               refresh();
             }}
             onSell={(towerId) => {
               audio.resume();
+              returnToTowerPads();
               game.sellTower(towerId); // dissolve FX + refund; closes Inspect (selectedPlacedId cleared)
               refresh();
             }}
             onMove={(towerId) => {
               audio.resume();
+              if (game.phase === 'prep') returnToTowerPads();
               game.beginMove(towerId); // pick up → tap a valid slot on the board to relocate
               refresh();
             }}

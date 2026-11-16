@@ -14,12 +14,13 @@ const directions = new Map<string, [number, number]>([
   ['ArrowRight', [0, 1]],
 ]);
 
-export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showPad, refresh }: {
+export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showPad, onInspect, refresh }: {
   game: Game;
   enabled: boolean;
   shortcutHint: boolean;
   buttonRef: RefObject<HTMLButtonElement>;
   showPad: (slot: TowerSlot | null) => void;
+  onInspect: (towerId: number) => void;
   refresh: () => void;
 }): JSX.Element {
   const [slot, setSlot] = useState(towerSlots[0]);
@@ -84,8 +85,16 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
         onClick={(event) => {
           if (!enabled || game.armedAbility || slot.index >= game.unlockedSlots) return;
           audio.resume();
-          if (game.selectedTower || game.movingTowerId !== null) game.click(slot.x, slot.y, { shift: event.shiftKey });
-          else game.inspectAt(slot.x, slot.y);
+          const moving = game.movingTowerId;
+          if (moving !== null) {
+            game.click(slot.x, slot.y);
+            if (game.movingTowerId === null && game.selectedPlacedId === moving) onInspect(moving);
+          } else if (tower) {
+            game.inspectAt(slot.x, slot.y);
+            onInspect(tower.id);
+          } else if (game.selectedTower) {
+            game.click(slot.x, slot.y, { shift: event.shiftKey });
+          }
           refresh();
         }}
       >

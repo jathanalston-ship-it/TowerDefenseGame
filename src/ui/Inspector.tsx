@@ -5,7 +5,7 @@
 //   • otherwise → hero status + a live run summary so the panel is never dead space.
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode, Ref } from 'react';
 import { HERO_DEFS, TOWER_DEFS } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
@@ -53,9 +53,12 @@ function TowerConfirmation({ title, className = '', onClose, children }: {
   useEffect(() => {
     const previous = document.activeElement;
     const panel = previous instanceof HTMLElement ? previous.closest<HTMLElement>('.inspector') : null;
+    const dialog = dialogRef.current;
     const stopPause = runBus.onPause(() => closeRef.current());
     return () => {
       stopPause();
+      const active = document.activeElement;
+      if (active !== document.body && !dialog?.contains(active)) return;
       if (previous instanceof HTMLElement && previous.isConnected && !previous.matches(':disabled')) previous.focus();
       else if (panel?.isConnected) panel.focus();
     };
@@ -229,6 +232,7 @@ export function Inspector({
   hud,
   liveMastery,
   mulliganStates,
+  mutationPanelRef,
   onCollapse,
   onBranchBuy,
   onDeselect,
@@ -239,6 +243,7 @@ export function Inspector({
   hud: HudSnapshot;
   liveMastery?: Partial<Record<string, LiveMasteryView>>;
   mulliganStates?: Partial<Record<TowerKind, MulliganState>>; // this RUN's organisms (docs/MULLIGANS.md §inspect)
+  mutationPanelRef?: Ref<HTMLElement>;
   onCollapse?: () => void;
   onBranchBuy?: (towerId: number, branchId: string, tier: number) => void;
   onDeselect?: () => void;
@@ -272,7 +277,7 @@ export function Inspector({
     const hasBranches = tree.lanes.length > 0;
     const branchChanged = confirm !== null && (confirm.towerId !== sp.id || sp.tier !== 0);
     return (
-      <aside className="side-panel inspector is-mutate" aria-label="Tower mutation panel" tabIndex={-1}>
+      <aside ref={mutationPanelRef} className="side-panel inspector is-mutate" aria-label={`${sp.name} mutation panel`} tabIndex={-1}>
         <InsHead title="Mutate" onCollapse={onCollapse} />
         <div className="ins-title">
           <span className="ins-name" style={{ color: accent }}>{sp.name}</span>

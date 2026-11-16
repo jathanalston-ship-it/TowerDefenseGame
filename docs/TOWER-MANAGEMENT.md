@@ -169,7 +169,10 @@ ring tracks focus on the battlefield.
 Use 1–4 to arm the favorite or a conveyor pod. Enter on an open pad places the armed
 tower or completes a relocation. Enter on an occupied pad inspects it, or cancels a
 relocation when it is the tower's original pad. The normal prices and placement rules
-apply. Escape cancels the current targeting action.
+apply. Inspection moves keyboard focus to the selected tower's mutation panel. Move
+returns focus to the pads and drops it back in the panel when relocation ends. Done,
+Hide panel, and Escape return focus to the pads when closing a keyboard inspection.
+Escape also cancels targeting.
 
 For an open pad, the navigator names the live Biomass cost or the free starting gift.
 If the player cannot deploy, it explains a shortfall, a growing pod, or a selection
