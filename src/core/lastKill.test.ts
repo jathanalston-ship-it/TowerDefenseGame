@@ -119,6 +119,27 @@ describe('waveLastKill — the sim side of the last-kill beat', () => {
     expect(heard).toHaveLength(1); // never twice
   });
 
+  it('distinguishes enemies still arriving, a cleared wave and a raid on an empty field', () => {
+    const normal = new Game(9, NO_META);
+    normal.isolateEvents();
+    normal.startWave();
+    expect(normal.getSnapshot().waveEmptyHint).toBe('incoming');
+    normal.debugSkipWave();
+    normal.advance(SIM_DT);
+    expect(normal.getSnapshot().waveEmptyHint).toBe('cleared');
+
+    const raid = new Game(9, NO_META, undefined, 'ravager', undefined, { megaDaily: { defId: 'voraxis', tier: 1 } });
+    raid.isolateEvents();
+    raid.startWave();
+    expect(raid.getSnapshot().waveEmptyHint).toBe('boss');
+    raid.debugDamageMega(1e9);
+    for (let i = 0; i < 30 && raid.getSnapshot().waveEmptyHint !== 'boss-down'; i++) {
+      for (const enemy of raid.enemies) enemy.hp = 0;
+      raid.advance(SIM_DT);
+    }
+    expect(raid.getSnapshot().waveEmptyHint).toBe('boss-down');
+  });
+
   it('nobody listening ⇒ nothing emitted (hasListeners-gated)', () => {
     const g = new Game(2, NO_META);
     const bus = g.isolateEvents();

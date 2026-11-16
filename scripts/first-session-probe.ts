@@ -221,7 +221,7 @@ async function playRun(page: Page, o: RunOpts): Promise<void> {
     const text = await bodyText(page, 1800);
     if (await o.stopWhen(page, text)) return;
     if (o.onTick) await o.onTick(page, text);
-    if (!M.timeToFirstWave && /hostiles in the field/i.test(text)) { M.timeToFirstWave = +now().toFixed(1); log(`first wave in combat @ ${M.timeToFirstWave}s`); }
+    if (!M.timeToFirstWave && /hostiles? in the field|enemies incoming/i.test(text)) { M.timeToFirstWave = +now().toFixed(1); log(`first wave in combat @ ${M.timeToFirstWave}s`); }
     if (!M.timeToFirstReward && /Genome Cores/i.test(text) && /LINE HOLDS|VICTORY|STAGE CLEAR|\+\d+ Genome/i.test(text)) { M.timeToFirstReward = +now().toFixed(1); log(`first reward @ ${M.timeToFirstReward}s`); }
     // gene-card draft
     if (await page.$('.overlay .cards')) {

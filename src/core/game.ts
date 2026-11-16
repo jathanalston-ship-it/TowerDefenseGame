@@ -8721,6 +8721,11 @@ export class Game {
         abilityCdMax: this.heroAbilityCycleFor(h),
       },
       enemiesAlive: this.enemies.length,
+      waveEmptyHint: this.phase === 'wave' && this.enemies.length === 0
+        ? this.settleTimer > 0 ? 'cleared'
+          : this.megaHoldsWave ? (this.mega!.deathT > 0 ? 'boss-down' : 'boss')
+            : !this.spawnedAll || this.spawnQueue.length > 0 || this.rushPending.length > 0 ? 'incoming' : undefined
+        : undefined,
       // Banner rides the danger-camera STATE (deliberate entry + min-hold + smooth exit,
       // docs/CAMERA.md) — the targeting override keeps its own instantaneous in-zone list.
       emergency: this.dangerCam.phase === 'danger',

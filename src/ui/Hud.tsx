@@ -26,6 +26,13 @@ const PHASE_TITLE: Record<HudSnapshot['phase'], string> = {
   lost: 'DEFEAT',
 };
 
+const WAVE_STATUS = {
+  incoming: { full: 'Enemies incoming', compact: 'INCOMING' },
+  cleared: { full: 'Wave cleared', compact: 'WAVE CLEAR' },
+  boss: { full: 'Mega Boss still active', compact: 'BOSS ACTIVE' },
+  'boss-down': { full: 'Mega Boss defeated', compact: 'BOSS DOWN' },
+} as const;
+
 function integrityColor(pct: number): string {
   return pct > 0.5 ? 'var(--success)' : pct > 0.25 ? 'var(--warn)' : 'var(--danger)';
 }
@@ -79,6 +86,7 @@ function BiomassReadout({ biomass }: { biomass: number }): JSX.Element {
 
 export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = null, vows = [] }: { hud: HudSnapshot; power: number; onOpenConsole?: () => void; tutorial?: boolean; doctrine?: { icon: string; name: string } | null; vows?: { icon: string; name: string }[] }): JSX.Element {
   const layout = useLayoutProfile(); // touch copy: no space bar on a phone
+  const waveStatus = hud.waveEmptyHint && WAVE_STATUS[hud.waveEmptyHint];
   const displayWave =
     hud.phase === 'prep' ? Math.min(hud.totalWaves, hud.wave + 1) : Math.max(1, hud.wave);
   const intPct = hud.maxIntegrity > 0 ? hud.integrity / hud.maxIntegrity : 0;
@@ -213,7 +221,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
       {/* ── CENTER zone: the WAVE module — the one place the eye returns to ── */}
       <div className={`hz hz-c hud-wave-mod phase-${hud.phase}`}>
         <div className="wm-eyebrow">
-          {PHASE_TITLE[hud.phase]}
+          {layout.profile === 'portrait' && waveStatus ? waveStatus.compact : PHASE_TITLE[hud.phase]}
           {hud.endless && <span className="wm-endless">∞</span>}
           {hud.bossRush && <span className="wm-endless">☠</span>}
         </div>
@@ -246,7 +254,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
             : hud.phase === 'wave'
               ? hud.rushColumnIn !== null // Boss Rush §wall (docs/BOSS-RUSH.md): the countdown reads on every layout
                 ? `${hud.enemiesAlive} hostiles · next column in ${hud.rushColumnIn}s`
-                : `${hud.enemiesAlive} hostiles in the field`
+                : waveStatus?.full ?? `${hud.enemiesAlive} ${hud.enemiesAlive === 1 ? 'hostile' : 'hostiles'} in the field`
               : hud.phase === 'draft'
                 ? 'Choose a Gene Card'
                 : ' '}

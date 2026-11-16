@@ -344,3 +344,8 @@ accessible name, and the detail panel still shows elite counts and any adaptatio
 The compact briefing shows a scroll arrow when the enemy row overflows. At the end it returns to
 the wave summary. Closing an explanation restores the row position and its opener. Every new wave
 starts at the summary.
+
+When the combat field is empty, the wave HUD distinguishes enemies still
+arriving, a cleared wave, a Mega Boss still active, and a defeated Mega Boss
+finishing its collapse. The portrait heading uses short forms of these labels
+without increasing the HUD height.

@@ -760,6 +760,7 @@ export interface HudSnapshot {
     abilityCdMax: number;
   };
   enemiesAlive: number;
+  waveEmptyHint?: 'incoming' | 'cleared' | 'boss' | 'boss-down';
   emergency: boolean; // Emergency Defense Mode — an enemy is in the Final Defense Zone
   draft: CardOption[] | null;
   draftRerollCost: number; // §reroll: biomass price of the open draft's ONE re-deal; -1 = unavailable
