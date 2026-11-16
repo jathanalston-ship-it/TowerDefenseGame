@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { Game } from '../core/game';
 import { DEBRIEF, ENEMY_DEFS, SIM_DT } from '../core/config';
 import type { BossDef } from '../core/boss';
+import { MEGA_BOSS_DEFS } from '../core/megaboss';
 import type { MetaModifiers, RunStats } from '../core/types';
 import { defaultSave } from '../save/saveStore';
 import { achievementById, checkAchievements } from './achievements';
@@ -78,6 +79,22 @@ describe('defeat debrief — how close, what got through, one next step', () => 
     expect(d.threats.map((t) => t.name)).toEqual(['Viral Matriarch', ENEMY_DEFS.runner.name, ENEMY_DEFS.flea.name]);
     expect(d.threats[0].share).toBeCloseTo(0.6, 5);
     expect(d.tip).toMatch(/boss/i);
+  });
+
+  it('features the surviving Mega Boss and gives raid-specific advice', () => {
+    const stats: RunStats = {
+      ...base(),
+      bossHpAtDefeat: [{ name: 'Viral Matriarch', hpFrac: 0.234 }, { name: MEGA_BOSS_DEFS.voraxis.name, hpFrac: 0.7 }],
+      megaHunt: { defId: 'voraxis', tier: 1, hpTorn: 0.3, organs: 0 },
+    };
+    const opts = { power: 1100, rec: 1103, canOpen: () => true };
+    const read = defeatDebrief({ won: false, wave: 3, stats }, opts)!;
+    expect(read.bosses[0]).toEqual({ name: MEGA_BOSS_DEFS.voraxis.name, hpPct: 70 });
+    expect(read.tip).toContain('dashed rings');
+    stats.megaHunt!.organs = 1;
+    expect(defeatDebrief({ won: false, wave: 3, stats }, opts)?.tip).toContain('pause its weak-point timers');
+    const gap = defeatDebrief({ won: false, wave: 3, stats }, { ...opts, power: 10 });
+    expect(gap?.tipNav).toBe('towers');
   });
 
   it('a genuine Power gap points at the first OPEN spend wing — never a sealed one', () => {

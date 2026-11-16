@@ -97,10 +97,13 @@ export function defeatDebrief(
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([key, dmg]) => ({ key, ...threatOf(key), dmg, share: total > 0 ? dmg / total : 0 }));
+  const raid = s.megaHunt;
+  const activeMega = raid && raid.hpTorn < 1 ? megaBossDef(raid.defId) : undefined;
   const bosses = (s.bossHpAtDefeat ?? []).map((b) => ({ name: b.name, hpPct: Math.max(1, Math.round(b.hpFrac * 100)) }));
+  if (activeMega) bosses.sort((a, b) => Number(b.name === activeMega.name) - Number(a.name === activeMega.name));
 
   // ONE suggestion, most actionable first: a genuine Power gap → the open wing that closes it;
-  // a boss that broke through → the boss-wave plan; otherwise the top leaker's counter-play.
+  // an active raid or a boss threat → its encounter guidance; otherwise the top leaker's counter-play.
   let tip = 'Spread your strains so every lane is covered before the Hive — and spend biomass every build phase.';
   let tipNav: string | undefined;
   const top = threats[0];
@@ -118,8 +121,12 @@ export function defeatDebrief(
     tip = `You fought ${Math.round(opts.rec - opts.power).toLocaleString()} Power under the recommendation — replay a cleared stage to bank samples and Mastery, then try again.`;
   } else if (thin && board) {
     tip = `Your board was thin — ${board.towers} ${board.towers === 1 ? 'tower' : 'towers'} where winning runs field ~${board.typical}. Deploy every build phase: fill the open slots before wave 3.`;
+  } else if (activeMega || top?.key.startsWith('mega:')) {
+    tip = (raid?.organs ?? 0) > 0
+      ? 'Rupture open organs in quick succession to topple the Mega Boss and pause its weak-point timers.'
+      : 'Bring sustained single-target towers that can reach the Mega Boss’s open organs marked with dashed rings.';
   } else if (bosses.length > 0 || top?.boss) {
-    tip = 'The boss broke through — hold your hero ability and a biomass reserve for the final wave, and lean on single-target damage.';
+    tip = 'For boss waves, lean on single-target damage and keep your hero ability ready for a vulnerable window.';
   } else if (top) {
     const def = ENEMY_DEFS[top.key as EnemyKind];
     const rule = def ? TRAIT_TIPS.find((t) => t.when(def)) : undefined;

@@ -131,7 +131,8 @@ rec, canOpen })`: **how close** ("Fell on wave 2 of 6", plus "Viral Matriarch ha
 on a boss wave), **what got through** (top 3 Nucleus-damage sources with their share) and **one
 concrete suggestion** — a genuine Power gap (< `READINESS.warnBelow`) points at the first OPEN
 spend wing (Tower Lab → Evolution HQ → Hero Hall, with a "Go ▸" door; replay advice when none
-is open), a boss break-through gets the boss-wave plan, otherwise the top leaker's counter is
+is open), a surviving Mega Boss gets the raid plan, a regular boss gets boss-wave advice, and
+the top leaker's counter is otherwise
 picked by its ROLE TRAITS (flying / siege / burst / armor / summoner / fast — a data table, no
 per-enemy ladder). The sim feeds it read-only ledgers (`RunStats.hiveDamageBy`, `bossesSlain`,
 `bossHpAtDefeat`, `totalWaves`; booked at every integrity-damage site, never read by the sim,
@@ -146,6 +147,10 @@ seconds the first flier took the field (and on which wave) / was first downed (`
 wave 1 · first downed 57s later", or "none downed"); a read in red means it is the problem (board under
 `thinBoardFrac` of a winning one, or anti-air later than `lateAntiAirSec`). A thin board leads the tip
 ("Your board was thin — … fill the open slots before wave 3") right after a genuine Power gap.
+
+On a raid loss, the surviving Mega Boss has priority in the remaining-health readout.
+The raid tip explains how to reach open organs if none were ruptured, or how to
+topple the boss and hold the timers by rupturing organs close together.
 
 **Layout contract:** the screen is TOP-anchored (`.menu` is a column flex — `justify-content:
 flex-start`), so expanding/collapsing a category grows the capsule downward and the verdict
