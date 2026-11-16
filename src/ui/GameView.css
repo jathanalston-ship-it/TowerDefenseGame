@@ -2313,7 +2313,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 .speed-btn.on:hover:not(:disabled) { color: #0c1119; background: var(--kinetic); }
 
-.speed-note { position: absolute; top: 52px; right: 12px; z-index: 45; display: flex; align-items: center; gap: 10px; max-width: min(340px, 90%); padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--kinetic) 45%, var(--line)); background: color-mix(in srgb, var(--kinetic) 10%, var(--panel)); box-shadow: var(--shadow-sm); font-size: 12px; line-height: 1.4; animation: ui-rise var(--dur-3) var(--ease-out) both; }
+.speed-note { position: absolute; top: 52px; right: 12px; z-index: 45; display: flex; align-items: center; gap: 10px; max-width: min(340px, 90%); padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--kinetic) 45%, var(--line)); background: color-mix(in srgb, var(--kinetic) 10%, var(--panel)); box-shadow: var(--shadow-sm); font-size: 12px; line-height: 1.4; animation: fade-in var(--dur-3) var(--ease-out) both; }
 
 /* HIVE INTELLIGENCE (docs/HIVE-MIND.md): the in-run executive. Lives beside the speed
    cluster in both prep and combat; the core LED breathes only while a worthwhile purchase
@@ -2356,7 +2356,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 @keyframes hive-ticker-out { to { opacity: 0; } }
 
 .game[data-motion="reduced"] .hive-mind-core,
-.game[data-motion="reduced"] .hive-ticker { animation: none; }
+.game[data-motion="reduced"] :is(.hive-ticker, .speed-note) { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
   /* Allow motion is an explicit override of the global reduced-motion duration rule. */
@@ -3046,9 +3046,11 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 .run-ctl .hive-ticker span + span::before { content: ' · '; color: var(--muted); }
 
-.run-ctl .speed-note { padding: 4px 6px 4px 10px; font-size: 11px; line-height: 1.25; }
+.run-ctl .speed-note { padding: 4px 6px 4px 10px; font-size: 11px; line-height: 1.25; pointer-events: none; }
 
-.run-ctl .speed-note button { min-height: 0; }
+.run-ctl .speed-note button { min-height: 0; pointer-events: auto; }
+
+html[data-coarse='1'] .run-ctl .speed-note button { min-width: 44px; min-height: 44px; }
 
 html[data-coarse='1'] .run-ctl .speed-ctl { padding: 0; }
 

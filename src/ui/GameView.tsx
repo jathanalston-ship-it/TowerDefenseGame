@@ -364,6 +364,15 @@ export function GameView({
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
   const [speedNote, setSpeedNote] = useState<string | null>(null);
+  const speedStatusId = useId();
+  const speedControlsRef = useRef<HTMLDivElement>(null);
+  const speedDismissRef = useRef<HTMLButtonElement>(null);
+  const dismissSpeedNote = useCallback((activeSpeed: number): void => {
+    if (document.activeElement === speedDismissRef.current) {
+      speedControlsRef.current?.querySelector<HTMLButtonElement>(`[data-speed="${activeSpeed}"]`)?.focus({ preventScroll: true });
+    }
+    setSpeedNote(null);
+  }, []);
   // Keep the latest purchase report for Pause. The on-board receipt expires independently
   // of its animation, so changing the motion preference cannot bring back an old receipt.
   const [hiveTicker, setHiveTicker] = useState<Game['hiveReport'] | null>(null);
@@ -377,7 +386,8 @@ export function GameView({
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
     setSpeedState(x);
-  }, [game]);
+    if (x > 1) dismissSpeedNote(x);
+  }, [game, dismissSpeedNote]);
   // The Combat Console AUTO-PAUSES the battlefield: upgrading is a decision moment, not a
   // dexterity test. Closing restores the player's own pause state (a manual pause survives).
   useEffect(() => {
@@ -1411,18 +1421,20 @@ export function GameView({
             can never collide with each other, the wave briefing, or the boss bars below it. */}
         <div className="run-ctl">
         {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
-          <div className="speed-ctl" role="group" aria-label="Game speed (F)">
+          <div ref={speedControlsRef} className="speed-ctl" role="group" aria-label="Game speed (F)">
             {[1, 2, 5].map((x) => (
-              <button key={x} className={`speed-btn${speed === x ? ' on' : ''}`} aria-pressed={speed === x} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
+              <button key={x} type="button" data-speed={x} className={`speed-btn${speed === x ? ' on' : ''}`} aria-pressed={speed === x} onClick={() => setSpeed(x)} title={`${x}× simulation speed (F cycles)`}>
                 {x}×
               </button>
             ))}
           </div>
         )}
+        <span id={speedStatusId} className="a11y-only" role="status">{speedNote}</span>
         {speedNote && (
-          <div className="speed-note" role="status">
-            <span>⏱ {speedNote}</span>
-            <button onClick={() => setSpeedNote(null)}>OK</button>
+          <div className="speed-note">
+            <span aria-hidden="true">⏱ {speedNote}</span>
+            <button ref={speedDismissRef} type="button" aria-label="Dismiss speed notice" aria-describedby={speedStatusId}
+              onClick={() => dismissSpeedNote(speed)}>OK</button>
           </div>
         )}
         {/* EARLY CALL (docs/EARLY-CALL.md): the Start Wave control's in-fight form — call the next

@@ -271,8 +271,9 @@ bug exists by construction; Power/Mastery accrue identically.
 
 AUTO-SLOW (once per run each): the FINAL Campaign/Stage wave beginning, or reaching ~95% of
 your Infinite record (best ≥ 12), pulls the throttle back to 1× and posts an explanatory
-notice ("Final wave — speed returned to 1×…"). Acknowledge with OK; the chips stay free to
-re-raise immediately. Controller support rides the same button group (documented seam).
+notice ("Final wave — speed returned to 1×…"). Acknowledge with OK to return focus to the
+active speed control. Choosing a faster speed also clears the notice. The notice text lets
+board clicks through, while its OK button stays tappable.
 
 
 ## Hive Intelligence continuous toggle
