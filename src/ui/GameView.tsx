@@ -1688,14 +1688,22 @@ export function GameView({
             </div>
             {!hud.megaBanner.dormant && hud.megaBanner.weakPoints.length > 0 && (
               <div className="mega-wps">
-                {hud.megaBanner.weakPoints.map((w) => (
-                  <span key={w.kind} className="mega-wp" title={w.note}>
-                    ⊙ {w.name} <i className="mega-wp-hp" role="progressbar" aria-label={`${w.name} health`}
-                      aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamp01(w.hpPct) * 100)}>
-                      <b style={{ width: `${w.hpPct * 100}%` }} />
-                    </i>
-                  </span>
-                ))}
+                {hud.megaBanner.weakPoints.map((w) => {
+                  const held = megaBoss?.staggered;
+                  const windowText = w.openSeconds === null
+                    ? 'Open until ruptured.'
+                    : `${w.openSeconds} ${w.openSeconds === 1 ? 'second' : 'seconds'} left open.${held ? ' The window is paused while the boss is toppled.' : ''}`;
+                  return (
+                    <span key={w.spec} className="mega-wp" title={`${w.note}. ${windowText}`}>
+                      ⊙ {w.name} <i className="mega-wp-hp" role="progressbar" aria-label={`${w.name} health`}
+                        aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamp01(w.hpPct) * 100)}
+                        aria-description={`${windowText} Effect on rupture. ${w.note}.`}>
+                        <b style={{ width: `${w.hpPct * 100}%` }} />
+                      </i>
+                      {w.openSeconds !== null && <span className="mega-wp-time" aria-hidden="true">{w.openSeconds}s{held ? ' held' : ''}</span>}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

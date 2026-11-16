@@ -8883,7 +8883,11 @@ export class Game {
       effects: view.effects,
       weakPoints: rt.weakPoints
         .filter((w) => w.state === 'open')
-        .map((w) => ({ kind: w.kind, name: WEAK_POINT_DEFS[w.kind].name, hpPct: Math.max(0, w.hp / w.maxHp), note: WEAK_POINT_DEFS[w.kind].hudNote })),
+        .map((w) => ({
+          spec: w.spec, kind: w.kind, name: WEAK_POINT_DEFS[w.kind].name,
+          hpPct: Math.max(0, w.hp / w.maxHp), note: WEAK_POINT_DEFS[w.kind].hudNote,
+          openSeconds: w.window > 0 ? Math.ceil(w.window) : null,
+        })),
       glow: def.palette.glow,
     };
   }

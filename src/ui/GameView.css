@@ -2882,6 +2882,8 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 .mega-wp { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; color: var(--mega, #ff5d73); letter-spacing: 0.04em; }
 
+.mega-wp-time { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 .mega-wp-hp { display: inline-block; width: 40px; height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
 
 .mega-wp-hp b { display: block; height: 100%; background: #fff; transition: width 0.15s linear; /* bespoke */ }

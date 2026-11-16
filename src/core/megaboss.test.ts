@@ -305,10 +305,14 @@ describe('§functional overhaul — stagger, cataclysm, gorge, adapt', () => {
     const w0 = heart.window;
     for (let i = 0; i < 60; i++) g.advance(SIM_DT); // one second, still toppled
     expect(heart.window).toBeCloseTo(w0, 5);
+    const banner = g.getSnapshot().megaBanner!;
+    expect(banner.weakPoints.find((w) => w.spec === heart.spec)?.openSeconds).toBe(Math.ceil(w0));
+    expect(banner.weakPoints.find((w) => w.kind === 'armored_growth')?.openSeconds).toBeNull();
     // …and the topple expires back into a standing fight.
     for (let i = 0; i < 60 * 7; i++) g.advance(SIM_DT);
     expect(g.getSnapshot().megaBanner!.staggered).toBe(false);
     expect(heart.window).toBeLessThan(w0);
+    expect(g.getSnapshot().megaBanner!.weakPoints.find((w) => w.spec === heart.spec)?.openSeconds).toBeLessThan(Math.ceil(w0));
   });
 
   it('a resolved CATACLYSM strikes Hive integrity; an interrupt during its windup prevents it', () => {

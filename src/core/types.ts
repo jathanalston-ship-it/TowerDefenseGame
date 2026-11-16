@@ -262,7 +262,7 @@ export interface MegaBannerSnapshot {
   /** Body armor is up — chips are blunted until an armor-break rupture. */
   armored: boolean;
   effects: string[]; // live manipulation chips (e.g. 'HASTE', 'LEECH'; '*' = passive)
-  weakPoints: { kind: string; name: string; hpPct: number; note: string }[]; // OPEN organs
+  weakPoints: { spec: number; kind: string; name: string; hpPct: number; note: string; openSeconds: number | null }[]; // OPEN organs; null stays open until destroyed
   glow: string; // palette glow hex (bar tinting)
 }
 

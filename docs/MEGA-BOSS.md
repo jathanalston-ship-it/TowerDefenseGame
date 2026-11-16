@@ -464,3 +464,8 @@ The raid bar exposes named health, stagger and open weak-point health meters.
 The active boss phase is announced on change. Cataclysm announces when the cast
 begins. Boss HUD motion stops under reduced motion, and disabling flashes
 stills the warning chips while preserving their text.
+
+Each timed weak point shows its remaining simulation seconds in the raid bar.
+The time is marked held when the boss is toppled and the window stops counting
+down. Permanent weak points stay open until ruptured. The health meter's
+accessible description includes the window and the consequence of rupturing it.
