@@ -1,6 +1,6 @@
 {
-  "lastSha": "e16e77c620fa092a4f85e77567bf64a24a01f1f5",
-  "commitsSinceDraft": 5,
+  "lastSha": "3e5a7fe5a714f7ea0241161ecb08e828a2e84a97",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -5099,6 +5099,34 @@
         {
           "cat": "UI",
           "text": "The Combat Tutorial’s opening banner can be dismissed with Enter. Continue moves keyboard focus to the next prompt or battlefield control, and screen readers can hear the current lesson and step."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.7",
+      "date": "2026-11-16",
+      "title": "Clearer Hero Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Press R to aim your hero’s rally point in regular runs. Use the arrows to select a location and Enter to confirm. Escape leaves your rally point in place."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero Ops and the selected-hero panel now show the active ability fork and its live cooldown."
+        },
+        {
+          "cat": "UI",
+          "text": "Press H to inspect and cycle through your fielded heroes. Shift+H goes backward, and closing the panel restores keyboard focus. The Deselect button is larger on touchscreens."
+        },
+        {
+          "cat": "UI",
+          "text": "A short rally marker confirms where you placed the hero’s rally point by mouse, touch, or keyboard. Reduced motion shows the same confirmation as a still marker."
+        },
+        {
+          "cat": "UI",
+          "text": "If Hive Intelligence or Auto-Cast uses the primary hero’s ability while you are aiming, the targeting reticle now closes and keyboard focus stays on the board."
         }
       ]
     }
@@ -12189,6 +12217,70 @@
       "date": "2026-11-15",
       "cat": "UX",
       "text": "Guide keyboard focus through tutorial lessons",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a6653ace195307d3dbf3179832156b544e9b57f4",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: seal keyboard battlefield controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f495ca8faec4b067693da623e4c42c711ec94f76",
+      "date": "2026-11-15",
+      "cat": "Developer Tools",
+      "text": "Release: record keyboard battlefield validation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9d4c1fef85d20e570f8aebc1b01d2323672d6eee",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Record live keyboard battlefield release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "d04ca6b75592d4562f1e7df6a426a3e4be6e5644",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Support keyboard hero rally targeting",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "31cbb1fc3d94a4f1a1838e6cb785363b8f9565c7",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Show active hero forks in both inspectors",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7ef5a519a9becf34e170b3b5e231559599c5a544",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Inspect fielded heroes from the keyboard",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c7c7ed74d77465402ec82ef10d268c9b6dad8c4b",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: confirm player rally points on the battlefield",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3e5a7fe5a714f7ea0241161ecb08e828a2e84a97",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Clear hero aim when Hive casts the ability",
       "internal": true,
       "needsReview": false
     }

@@ -2395,3 +2395,10 @@ native filesystem path.
 Production deploy f495ca8f passed Actions run 43808933401 and public exact-commit
 verification. The public domain serves v2026.11.16.6, game play-D9UbQ_W5.js,
 all ten News notes and both updated keyboard guides.
+
+## 2026-11-16 — clearer hero controls in the next package
+
+Integrated keyboard rally and hero inspection, live fork names across hero
+panels, the reduced-motion rally marker, and aim cleanup after automatic casts.
+Chrome verified targeting, cycling and focus at 320 px. v2026.11.16.7 is open
+with five synchronized notes. Production remains v2026.11.16.6.

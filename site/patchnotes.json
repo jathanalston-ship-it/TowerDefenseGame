@@ -1,6 +1,35 @@
 [
   {
     "date": "2026-11-16",
+    "title": "Clearer Hero Controls",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Press R to aim your hero’s rally point in regular runs. Use the arrows to select a location and Enter to confirm. Escape leaves your rally point in place."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero Ops and the selected-hero panel now show the active ability fork and its live cooldown."
+      },
+      {
+        "cat": "UI",
+        "text": "Press H to inspect and cycle through your fielded heroes. Shift+H goes backward, and closing the panel restores keyboard focus. The Deselect button is larger on touchscreens."
+      },
+      {
+        "cat": "UI",
+        "text": "A short rally marker confirms where you placed the hero’s rally point by mouse, touch, or keyboard. Reduced motion shows the same confirmation as a still marker."
+      },
+      {
+        "cat": "UI",
+        "text": "If Hive Intelligence or Auto-Cast uses the primary hero’s ability while you are aiming, the targeting reticle now closes and keyboard focus stays on the board."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-16",
     "title": "Keyboard Battlefield Controls",
     "categories": [
       "UI",

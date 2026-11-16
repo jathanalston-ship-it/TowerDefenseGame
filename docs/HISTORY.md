@@ -932,3 +932,11 @@
 - `3dde858` **[Heroes]** Show the actual hero cast footprint _(internal)_
 - `fce8a58` **[Audio]** Signal the primary hero ability recharge _(internal)_
 - `e16e77c` **[UX]** Guide keyboard focus through tutorial lessons _(internal)_
+- `a6653ac` **[Framework]** Release: seal keyboard battlefield controls _(internal)_
+- `f495ca8` **[Developer Tools]** Release: record keyboard battlefield validation _(internal)_
+- `9d4c1fe` **[Framework]** Record live keyboard battlefield release _(internal)_
+- `d04ca6b` **[Heroes]** Support keyboard hero rally targeting _(internal)_
+- `31cbb1f` **[Heroes]** Show active hero forks in both inspectors _(internal)_
+- `7ef5a51` **[Heroes]** Inspect fielded heroes from the keyboard _(internal)_
+- `c7c7ed7` **[UI]** Ui: confirm player rally points on the battlefield _(internal)_
+- `3e5a7fe` **[Heroes]** Clear hero aim when Hive casts the ability _(internal)_
