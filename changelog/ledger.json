@@ -1,6 +1,6 @@
 {
-  "lastSha": "e0c56fc85bfc9ae92aa4b9675af8f654329a0553",
-  "commitsSinceDraft": 6,
+  "lastSha": "e811e114b04dd1e300308772ae7b48c2595f5fc5",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4962,7 +4962,7 @@
       "id": "v2026.11.16.4",
       "date": "2026-11-16",
       "title": "Clearer Draft and Placement Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -11701,6 +11701,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Show compact wave briefing overflow",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e811e114b04dd1e300308772ae7b48c2595f5fc5",
+      "date": "2026-11-15",
+      "cat": "Gameplay",
+      "text": "Prepare compact wave briefing note",
       "internal": true,
       "needsReview": false
     }
