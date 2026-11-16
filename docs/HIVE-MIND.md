@@ -165,3 +165,7 @@ standalone Auto-Cast remains as the player left it. The planner skips that redun
 while the toggle is on. Upgrades, conveyor deployment/merges and extra Splice drafts already
 use the planner. Conveyor overflow already recycles automatically. No automatic selling,
 relocation, early-call overlaps, paid rerolls, hub spending or next-run launch is introduced.
+
+A successful Hive Intelligence pulse plays one quiet two-note confirmation for the batch.
+Individual placements and upgrades still play their own feedback. The confirmation uses
+the UI mix and leaves the score and camera steady.

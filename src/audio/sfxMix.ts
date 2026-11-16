@@ -198,6 +198,7 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   // ── UI: clean, dry, quiet — heard constantly in the hub ──
   select: c('ui', 10),
   ui: c('ui', 10),
+  hiveAction: c('ui'),
   hover: c('ui', 9.5, -15),
   launch: c('ui', -3, 4),
   tut_step: c('ui', 4, 1),

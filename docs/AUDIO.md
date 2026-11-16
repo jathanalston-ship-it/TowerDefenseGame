@@ -174,3 +174,7 @@ SFX control smoothing: mute and player-volume changes ramp the existing master o
 Conveyor recycle confirmation uses the simulation's successful `dissolve` queue event only. Toolbar resumes audio and submits the action but does not add a duplicate direct cue; GameView drains the existing queue normally. Failed/stale attempts emit no success cue. Verified in a mounted GameView by observing direct and queued dispatches.
 
 Cinematic sound cues in the opening and Memory Archive use visible scene time through audio/cinematicBeats.ts. The schedule works with stills and animated frames. Scene changes and exits cancel pending cues, and hidden tabs pause scene time. Audio volume and mute use the regular effects bus.
+
+Hive Intelligence confirms a successful batch with the two-note hiveAction cue on the UI bus.
+The Chrome offline audit measured -33.78 LUFS momentary and -19.17 dBFS peak, with zero
+clipped samples or hard stops.

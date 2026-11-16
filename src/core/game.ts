@@ -2914,7 +2914,7 @@ export class Game {
       if (this.phase === 'draft') break; // a SPLICE opened a draft — the pulse ends; the pick is the player's
     }
     if (actions.length > 0) {
-      this.pushSfx('splice');
+      this.pushSfx('hiveAction');
       this.hiveReport = { serial: this.hiveReport.serial + 1, spent, actions };
     }
     this.hiveReadyAt = -1; // the wallet moved — recompute the button glow immediately

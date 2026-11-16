@@ -51,12 +51,16 @@ describe('hive intelligence — pulse', () => {
     const g = boot(13);
     const powerBefore = effectsPower(g.powerEffects());
     const bioBefore = g.biomass;
+    g.drainSfx();
     const rep = g.hivePulse();
     expect(rep.actions.length).toBeGreaterThan(0);
     expect(rep.actions.length).toBeLessThanOrEqual(HIVE_MIND.maxActionsPerPulse);
     expect(bioBefore - g.biomass).toBe(rep.spent);
     expect(effectsPower(g.powerEffects())).toBeGreaterThan(powerBefore);
     expect(g.powerAuditWarnings).toHaveLength(0); // every buy rode an audited path
+    expect(g.drainSfx().filter((cue) => cue === 'hiveAction')).toHaveLength(1);
+    g.hivePulse({ maxActions: 0 });
+    expect(g.drainSfx()).not.toContain('hiveAction');
   });
 
   it('is deterministic: identical states pulse identical action sequences', () => {

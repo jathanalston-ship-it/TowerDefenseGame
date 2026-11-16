@@ -603,6 +603,10 @@ function sShardHero(): void { // Hero Shard — a brighter ASCENDING sparkle, a 
 function sSplice(): void { // wet, rising graft — the irreversible commitment
   tone(150, 0.22, 'sawtooth', 0.13, 360); tone(80, 0.26, 'sine', 0.12, 190); noise(0.2, 0.1, 1100, 3200);
 }
+function sHiveAction(): void {
+  tone(392, 0.09, 'triangle', 0.09);
+  tone(523.25, 0.15, 'sine', 0.08, undefined, 0.055);
+}
 function sDissolve(): void { // tower dissolves into biomass — a wet, DESCENDING melt (the inverse of splice)
   tone(360, 0.26, 'sawtooth', 0.12, 90); tone(190, 0.3, 'sine', 0.1, 70); noise(0.28, 0.12, 2600, 480);
 }
@@ -846,6 +850,7 @@ export const audio = {
         case 'rankup': sRankUp(); break;
         case 'biome': sBiome(); break;
         case 'splice': sSplice(); break;
+        case 'hiveAction': sHiveAction(); break;
         case 'flip': sFlip(d); break;
         case 'strandFound': sStrandFound(); break;
         case 'toast0': sToast0(); break;
