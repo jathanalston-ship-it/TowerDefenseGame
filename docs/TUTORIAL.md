@@ -332,3 +332,8 @@ keyboard board control as regular runs. Press B to focus the board, use the arro
 keys to select a tower pad or aim the armed ability, and press Enter to act. The
 lessons advance through the same deployment and ability events as pointer play.
 The director still starts both waves and opens the tutorial draft.
+
+Keyboard players can dismiss the trial’s opening banner with Enter. Continue
+keeps focus on the next reading prompt or moves it to the relevant battlefield
+control. Each lesson has a named callout, a complete accessible description, and
+a step announcement that stays available on compact layouts.

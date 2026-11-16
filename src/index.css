@@ -4687,7 +4687,10 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 }
 /* ── The tutorial's cinematic COLD OPEN — the film hands the trial to RELAY 7 (letterboxed, tap to
    dismiss). Rides over the live (god-mode) board so the world is already breathing beneath it. ── */
-.tut-cine-open { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(3, 5, 9, 0.6); cursor: pointer; animation: fade-in 0.5s ease both; }
+.tut-cine-open { position: fixed; inset: 0; width: 100%; border: 0; border-radius: 0; padding: 0; display: grid; place-items: center; background: rgba(3, 5, 9, 0.6); cursor: pointer; animation: fade-in 0.5s ease both; }
+.tut-cine-open:is(:hover, :active):not(:disabled) { background: rgba(3, 5, 9, 0.6); transform: none; }
+.tut-cine-open:focus-visible { outline: 2px solid var(--text); outline-offset: -4px; }
+.tut-cine-copy > span { display: block; }
 .tut-cine-bar { position: absolute; left: 0; right: 0; height: max(9vh, 54px); background: #000; }
 .tut-cine-bar-top { top: 0; animation: intro-bar-top 0.8s var(--ease-out) both; }
 .tut-cine-bar-bot { bottom: 0; animation: intro-bar-bot 0.8s var(--ease-out) both; }

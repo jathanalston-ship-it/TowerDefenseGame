@@ -9,7 +9,7 @@
 // banner — the film's RELAY 7 voice establishing the trial — then the lessons run as typed uplink
 // transmissions (Typewriter) with a soft `tut_step` blip on every completed checkpoint.
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { audio } from '../../audio/sound';
 import { tutorial } from '../../state/tutorial';
 import { meta } from '../../state/meta';
@@ -25,6 +25,10 @@ export function TutorialOverlay(): JSX.Element | null {
   const milestone = tutorial.useMilestone();
   const cp = session ? currentCheckpoint(session.progress, session.def) : null;
   const cue = cp?.cue;
+  const coldOpenRef = useRef<HTMLButtonElement>(null);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const lessonFocusRequested = useRef(false);
+  const lessonDescriptionId = useId();
 
   // Hooks are unconditional (selectors are null when idle → the hook returns null).
   const spotlightRect = useTargetRect(cue?.spotlight);
@@ -58,14 +62,24 @@ export function TutorialOverlay(): JSX.Element | null {
   // lands, so the player actually sees RELAY 7 take the handoff (docs/TUTORIAL.md §cinematic).
   const [openDone, setOpenDone] = useState(false);
   const introOn = useIntroPlaying();
+  const finishColdOpen = useCallback((): void => {
+    const active = document.activeElement;
+    lessonFocusRequested.current = active === document.body || active === coldOpenRef.current;
+    setOpenDone(true);
+  }, []);
+  useLayoutEffect(() => {
+    if (!introOn && !openDone && document.activeElement === document.body) {
+      coldOpenRef.current?.focus({ preventScroll: true });
+    }
+  }, [introOn, openDone]);
+  const checkpointIndex = session?.progress.checkpoint;
   useEffect(() => {
-    if (!session) { setOpenDone(false); return undefined; } // re-arm for the next session
-    if (openDone || session.progress.checkpoint > 0) { setOpenDone(true); return undefined; }
-    if (introOn) return undefined; // held under the film — armed the moment it lands
-    const t = setTimeout(() => setOpenDone(true), OPEN_MS);
+    if (checkpointIndex === undefined) { setOpenDone(false); return undefined; }
+    if (openDone || introOn) return undefined;
+    if (checkpointIndex > 0) { setOpenDone(true); return undefined; }
+    const t = setTimeout(finishColdOpen, OPEN_MS);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- armed once per session start (and on landing)
-  }, [session === null, introOn]);
+  }, [checkpointIndex, finishColdOpen, introOn, openDone]);
 
   // A soft uplink blip each time a checkpoint COMPLETES (the cursor moves forward — never on retry).
   const lastCpRef = useRef(0);
@@ -105,21 +119,33 @@ export function TutorialOverlay(): JSX.Element | null {
     return () => clearTimeout(t);
   }, [targetSel, cp?.id]);
 
+  useLayoutEffect(() => {
+    if (!openDone || introOn || paused || !lessonFocusRequested.current) return;
+    lessonFocusRequested.current = false;
+    const target = targetSel ? document.querySelector<HTMLElement>(targetSel) : null;
+    const action = target?.matches('button:not(:disabled)')
+      ? target
+      : target?.querySelector<HTMLButtonElement>('button:not(:disabled)');
+    (continueRef.current ?? action)?.focus({ preventScroll: true });
+  }, [cp?.id, introOn, openDone, paused, targetSel]);
+
   if (!session || !cp) return null;
 
   // ── The letterboxed cold open: RELAY 7 hands the film to the trial ──
   if (!openDone) {
     return (
       <div className="tut-overlay">
-        <div className="tut-cine-open" onClick={() => setOpenDone(true)}>
-          <div className="tut-cine-bar tut-cine-bar-top" aria-hidden />
-          <div className="tut-cine-bar tut-cine-bar-bot" aria-hidden />
-          <div className="tut-cine-copy">
-            <div className="tut-cine-eyebrow">DEEP CRUST RELAY 7 · UPLINK ESTABLISHED</div>
-            <div className="tut-cine-title">TRIAL ONE — HOLD THE LINE</div>
-            <div className="tut-cine-sub">The Core will guide your growth. Listen.</div>
-          </div>
-        </div>
+        <button ref={coldOpenRef} type="button" className="tut-cine-open" disabled={introOn}
+          aria-label="Continue to the Combat Tutorial" onClick={finishColdOpen}
+          onKeyDown={(event) => event.stopPropagation()}>
+          <span className="tut-cine-bar tut-cine-bar-top" aria-hidden />
+          <span className="tut-cine-bar tut-cine-bar-bot" aria-hidden />
+          <span className="tut-cine-copy">
+            <span className="tut-cine-eyebrow">DEEP CRUST RELAY 7 · UPLINK ESTABLISHED</span>
+            <span className="tut-cine-title">TRIAL ONE — HOLD THE LINE</span>
+            <span className="tut-cine-sub">The Core will guide your growth. Listen.</span>
+          </span>
+        </button>
       </div>
     );
   }
@@ -160,6 +186,7 @@ export function TutorialOverlay(): JSX.Element | null {
       {cue?.arrow && <TutorialArrow rect={arrowRect} from={cue.arrow.from} />}
 
       <ObjectiveTracker title={cp.title} step={step} total={total} />
+      <div className="a11y-only" role="status">Step {step} of {total}. {cp.title}.</div>
 
       {/* Milestone reward toast — pure CSS lifetime (animates in, holds, fades), keyed per grant. */}
       {milestone && (
@@ -175,6 +202,8 @@ export function TutorialOverlay(): JSX.Element | null {
       {/* An arrow on the SAME side of the SAME target gets clear air between it and the bubble. */}
       <Callout
         rect={calloutRect}
+        label={cp.title}
+        describedBy={lessonDescriptionId}
         side={cue?.callout?.side}
         avoid={avoidRect}
         gap={cue?.arrow && cue.callout?.target === cue.arrow.target && (cue.arrow.from ?? 'top') === (cue.callout.side ?? 'bottom') ? 44 : 14}
@@ -183,8 +212,13 @@ export function TutorialOverlay(): JSX.Element | null {
         {/* Narrow shells hide the floating objective pill (no room beside callouts/controls) —
             the counter rides inside the callout there instead. Desktop hides this line. */}
         <div className="tut-callout-step" aria-hidden>Step {step} of {total}</div>
-        <div className="tut-callout-text"><Typewriter text={calloutText} /></div>
-        {advanceKind === 'continue' && <ContinuePrompt onContinue={() => tutorial.advance()} />}
+        <div id={lessonDescriptionId} className="tut-callout-text"><Typewriter text={calloutText} /></div>
+        {advanceKind === 'continue' && (
+          <ContinuePrompt buttonRef={continueRef} describedBy={lessonDescriptionId} onContinue={(event) => {
+            lessonFocusRequested.current = event.detail === 0;
+            tutorial.advance();
+          }} />
+        )}
         {advanceKind === 'event' && <div className="tut-waiting">Complete the objective to continue…</div>}
       </Callout>
 

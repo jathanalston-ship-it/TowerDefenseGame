@@ -3,7 +3,7 @@
 // handled in CSS. These are the building blocks any future tutorial composes; none know anything
 // about combat or a specific lesson.
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEventHandler, type ReactNode, type Ref } from 'react';
 import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../../state/prefs';
 
 type Side = 'top' | 'bottom' | 'left' | 'right';
@@ -69,12 +69,16 @@ export function Callout({
   side = 'bottom',
   avoid = null,
   gap: gapProp = 14,
+  label,
+  describedBy,
   children,
 }: {
   rect: DOMRect | null;
   side?: Side;
   avoid?: DOMRect | null;
   gap?: number;
+  label?: string;
+  describedBy?: string;
   children: ReactNode;
 }): JSX.Element {
   // MEASURED-BOX POSITIONING (docs/RESPONSIVE-DESIGN.md §tutorial): the bubble's REAL width and
@@ -107,7 +111,7 @@ export function Callout({
   if (vw <= 700) {
     const anchorTop = !!rect && !offViewport(rect) && rect.top + rect.height / 2 < vh * 0.45;
     return (
-      <div ref={selfRef} className={`tut-callout is-docked ${anchorTop ? 'dock-bottom' : 'dock-top'}`} role="dialog">
+      <div ref={selfRef} className={`tut-callout is-docked ${anchorTop ? 'dock-bottom' : 'dock-top'}`} role="dialog" aria-label={label} aria-describedby={describedBy}>
         {children}
       </div>
     );
@@ -181,14 +185,14 @@ export function Callout({
   // whatever room exists below its computed top — airtight even while a measurement is one frame
   // stale (typewriter growth, font swaps). Taller lessons scroll INSIDE the bubble.
   const roomBelow = Math.max(96, vh - pad - (style.top as number));
-  return <div ref={selfRef} className={`tut-callout ${cls}`} style={{ ...style, maxHeight: roomBelow, overflowY: 'auto', transform: 'none' }} role="dialog">{children}</div>;
+  return <div ref={selfRef} className={`tut-callout ${cls}`} style={{ ...style, maxHeight: roomBelow, overflowY: 'auto', transform: 'none' }} role="dialog" aria-label={label} aria-describedby={describedBy}>{children}</div>;
 }
 
 /** The temporary objective tracker — "Step X of N" + the current objective title, over an animated
  * uplink progress fill (the lesson's place in the transmission at a glance). */
 export function ObjectiveTracker({ title, step, total }: { title: string; step: number; total: number }): JSX.Element {
   return (
-    <div className="tut-objective">
+    <div className="tut-objective" aria-hidden>
       <span className="tut-obj-step">Step {step} of {total}</span>
       <span className="tut-obj-title">{title}</span>
       <span className="tut-obj-bar" aria-hidden>
@@ -244,9 +248,14 @@ export function Typewriter({ text }: { text: string }): JSX.Element {
 }
 
 /** The continue-prompt affordance. */
-export function ContinuePrompt({ label = 'Continue', onContinue }: { label?: string; onContinue: () => void }): JSX.Element {
+export function ContinuePrompt({ label = 'Continue', onContinue, buttonRef, describedBy }: {
+  label?: string;
+  onContinue: MouseEventHandler<HTMLButtonElement>;
+  buttonRef?: Ref<HTMLButtonElement>;
+  describedBy?: string;
+}): JSX.Element {
   return (
-    <button className="tut-continue" onClick={onContinue}>
+    <button ref={buttonRef} className="tut-continue" aria-describedby={describedBy} onClick={onContinue}>
       {label} <span aria-hidden>▸</span>
     </button>
   );
