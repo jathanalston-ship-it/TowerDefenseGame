@@ -6,7 +6,7 @@
 // so the collectible moment always lands. Tap advances; Skip jumps to the coda; reduced
 // motion shows one hand-picked still per scene (CSS fades carry the copy).
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
@@ -37,6 +37,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
   const [manual, setManual] = useState(false);
+  const codaId = useId();
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -232,7 +233,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // transform animations on ancestors would otherwise capture position:fixed and cage the
   // film inside the hub column.
   return createPortal(
-    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={advance}
+    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={manual ? undefined : advance}
       onKeyDown={(e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
         if (e.key !== 'Tab') return;
@@ -262,12 +263,12 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         {coda && (
           <div className="intro-copy cutscene-coda" onClick={(e) => e.stopPropagation()}>
             <div className="intro-eyebrow">◈ MEMORY ARCHIVED</div>
-            <h2 className="cutscene-coda-title" style={{ color: def.palette.glow }}>{def.title}</h2>
-            <p className="cutscene-coda-sub">{def.subtitle}</p>
-            <p className="cutscene-coda-boost" style={{ ['--cs' as string]: def.palette.accent }}>
-              ✦ {def.boost.label} <small>· permanent</small>
+            <h2 id={`${codaId}-title`} className="cutscene-coda-title" style={{ color: def.palette.glow }}>{def.title}</h2>
+            <p id={`${codaId}-subtitle`} className="cutscene-coda-sub">{def.subtitle}</p>
+            <p id={`${codaId}-boost`} className="cutscene-coda-boost" style={{ ['--cs' as string]: def.palette.accent }}>
+              <span aria-hidden>✦ </span>{def.boost.label} <small><span aria-hidden>· </span>permanent</small>
             </p>
-            <button className="primary cutscene-coda-continue" onClick={finish}>Continue ▸</button>
+            <button className="primary cutscene-coda-continue" aria-describedby={`${codaId}-title ${codaId}-subtitle ${codaId}-boost`} onClick={finish}>Continue ▸</button>
           </div>
         )}
       </div>

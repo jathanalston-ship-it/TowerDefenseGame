@@ -392,7 +392,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     ? [WORDMARK, scene.eyebrow].filter(Boolean).join('. ')
     : [scene.eyebrow, ...scene.lines.map((line) => line.text)].filter(Boolean).join('. ');
   return (
-    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={advance}>
+    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={manual ? undefined : advance}>
       <div className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !diving ? `Scene ${idx + 1} of ${SCENES.length}. ${sceneCaption}` : ''}
       </div>

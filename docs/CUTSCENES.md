@@ -19,9 +19,9 @@ RULE) · `src/state/cutscenePremiere.test.ts` (the premiere lane).
 
 The story player and opening cinematic offer **Read at my pace**: all text in the current scene is revealed,
 and scenes and the final memory card wait for explicit advancement. Previous scene returns to an earlier caption. At the first scene the control stays focused and announces that it is unavailable. Auto-play restores
-the normal hold from its beginning. **Next scene** is a native keyboard/touch button;
+the normal hold from its beginning. Clicking the caption or backdrop advances in Auto-play; in Read at my pace, captions can be selected and navigation uses the controls. **Next scene** is a native keyboard/touch button;
 Escape skips to the memory card, then closes it; in the opening film it exits through the existing descent (immediately under reduced motion). Focus stays within the film and returns
-to the launching control when it closes. Controls have 44px minimum height. Reduced-motion
+to the launching control when it closes. The final memory card associates its title, subtitle and permanent reward with Continue, which receives focus when the card opens. Controls have 44px minimum height. Reduced-motion
 stills redraw after viewport changes so rotating a phone cannot clear the artwork. In manual mode, a polite live region announces the scene number and caption text on entry and on advancement. Auto-play clears the manual announcement, and the opening film includes its final title and triad.
 
 **Adding a `MEGA_BOSS_DEFS` entry REQUIRES adding its defeat cutscene** (`kind: 'mega'`,

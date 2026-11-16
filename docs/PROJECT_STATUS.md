@@ -2167,3 +2167,7 @@ The opening film and story replays expose manual captions, scene progress and th
 ## 2026-11-16 — previous scene in manual cinematics
 
 Both cinematics support going back to earlier captions in Read at my pace. Browser probes passed backward and forward navigation, focus retention, first-scene guarding and 44px controls at 320x568 and 844x390. The 31 focused tests passed. The next unsealed release has two prepared website and game notes.
+
+## 2026-11-16 — manual cinematic interaction and accessible memory card
+
+Manual caption selection and backdrop taps preserve the active scene. The final Continue button describes the memory and permanent reward. Both actual-component browser probes and all 31 focused tests passed. Unsealed Clearer Cinematic Controls has three website and game notes.

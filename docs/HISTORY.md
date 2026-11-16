@@ -854,3 +854,4 @@
 - `f89a9f8` **[Gameplay]** Release: publish clearer affix controls _(internal)_
 - `134b012` **[Framework]** Docs: record verified affix controls deployment _(internal)_
 - `1b20ea7` **[UI]** Announce manual cutscene captions _(internal)_
+- `8663b3a` **[UI]** Let players return to earlier cutscene captions _(internal)_

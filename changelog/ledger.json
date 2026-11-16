@@ -1,6 +1,6 @@
 {
-  "lastSha": "1b20ea708d85f270a8f2bbed40f47a96b69bd7c9",
-  "commitsSinceDraft": 6,
+  "lastSha": "8663b3a3b31fd407cfc96a00a9689d669b780087",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4893,7 +4893,7 @@
     {
       "id": "v2026.11.16.2",
       "date": "2026-11-16",
-      "title": "Accessible Cutscene Captions",
+      "title": "Clearer Cinematic Controls",
       "sealed": false,
       "entries": [
         {
@@ -4903,6 +4903,10 @@
         {
           "cat": "UI",
           "text": "Use Previous scene in Read at my pace to go back and reread a caption in the opening cinematic or Memory Archive replay."
+        },
+        {
+          "cat": "UI",
+          "text": "In Read at my pace, you can tap or select captions without skipping ahead. The Memory Archive’s final Continue button also exposes the memory title and permanent reward to screen readers."
         }
       ]
     }
@@ -11369,6 +11373,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Announce manual cutscene captions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8663b3a3b31fd407cfc96a00a9689d669b780087",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Let players return to earlier cutscene captions",
       "internal": true,
       "needsReview": false
     }

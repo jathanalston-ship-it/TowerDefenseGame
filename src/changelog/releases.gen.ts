@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.16.2",
     "date": "2026-11-16",
-    "title": "Accessible Cutscene Captions",
+    "title": "Clearer Cinematic Controls",
     "sealed": false,
     "entries": [
       {
@@ -17,6 +17,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Use Previous scene in Read at my pace to go back and reread a caption in the opening cinematic or Memory Archive replay."
+      },
+      {
+        "cat": "UI",
+        "text": "In Read at my pace, you can tap or select captions without skipping ahead. The Memory Archive’s final Continue button also exposes the memory title and permanent reward to screen readers."
       }
     ]
   },
