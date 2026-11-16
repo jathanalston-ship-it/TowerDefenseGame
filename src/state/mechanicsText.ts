@@ -75,7 +75,7 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     media: 'GIF: an organism maturing on the conveyor',
     what: 'Only your FAVORITE tower (chosen in the Tower Lab) is always deployable. Every other organism grows on the Biomorph Conveyor: up to three wait ready at a time, each showing its kind, rarity and Strain level. A ready organism can be DEPLOYED (placed at its arrival Strain), consumed to STRAIN an existing tower of the same kind one level, or DISCARDED into the Biomass Recycler.',
     why: 'The belt turns deployment into a rolling draft: every run offers a different build path, and duplicates become Strain fuel instead of dead weight.',
-    where: 'The bottom toolbar during a run, beside your favorite tower card.',
+    where: 'The bottom toolbar during a run, beside your favorite tower card. In regular runs, press 1 for your favorite or 2–4 for a pod. Press B to focus Tower pads, use the arrow keys to choose a pad, and press Enter to deploy or inspect.',
     next: 'If the belt fills, the newest organism auto-recycles into Biomass — nothing is wasted.',
     mistakes: 'Deployment cost COMPOUNDS with every tower you place this run (one universal curve — no per-tower prices), so a discarded organism is sometimes worth more than a fourth needle.',
   },

@@ -49,6 +49,7 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'The roster', body: [
         'Every tower is an organism with a combat class, a firing pattern and a role on the line. This table is generated from the live game data, so it is always current with the shipped build:',
+        'During a regular run, press <kbd>1</kbd> for your favorite tower or <kbd>2</kbd>–<kbd>4</kbd> for a conveyor pod. Press <kbd>B</kbd> to focus Tower pads, use the arrow keys to select a pad, then press <kbd>Enter</kbd> to deploy or inspect. The highlighted pad reports its status and the live Biomass cost. To relocate during Build Phase, choose Move in the Inspector and select an open pad.',
       ], dataTable: 'towers' },
       { h: 'Four evolution layers', body: [
         'A tower kind grows along four independent axes. <b>Stars</b> (permanent, bought with Tower Shards in the Lab) climb an authored ★-path of stat and behavior upgrades. <b>Branches</b> (in-run, per instance) lock a tower into one of two mutually exclusive mutations that re-author how it fires. <b>Strain</b> (in-run) is the evolution layer fed by consuming duplicate organisms from the Biomorph Conveyor. <b>Mastery</b> (permanent XP from kills) unlocks ranks, lore and cosmetic evolution.',
