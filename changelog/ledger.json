@@ -1,6 +1,6 @@
 {
-  "lastSha": "21b6a2151869947f8067495f743739ae8b7932ca",
-  "commitsSinceDraft": 6,
+  "lastSha": "3f797702a05ec89945e6ba4d19848510a7049599",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -5002,7 +5002,7 @@
       "id": "v2026.11.16.5",
       "date": "2026-11-16",
       "title": "Clearer Cinematic Playback",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -11957,6 +11957,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: make overflowing film captions keyboard scrollable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3f797702a05ec89945e6ba4d19848510a7049599",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare keyboard caption scroll note",
       "internal": true,
       "needsReview": false
     }

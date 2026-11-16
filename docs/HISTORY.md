@@ -909,3 +909,4 @@
 - `8a101c2` **[UI]** Ui: reset caption scroll between scenes _(internal)_
 - `5c056e6` **[Framework]** Release: prepare caption scroll note _(internal)_
 - `21b6a21` **[UI]** Ui: make overflowing film captions keyboard scrollable _(internal)_
+- `3f79770` **[Framework]** Release: prepare keyboard caption scroll note _(internal)_
