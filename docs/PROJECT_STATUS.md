@@ -2433,3 +2433,10 @@ between runs and reports paused drafts explicitly. The retry on the same
 production build completed the tutorial, both stages and the reward coach
 with zero page or console errors. First placement took 11.4 seconds and all
 six probe budgets passed.
+
+## 2026-11-16 — Clearer Hero Controls live
+
+v2026.11.16.7 is live at `040bb1b2`. Actions run 43815843044 passed its
+exact-commit check. The public game serves `/assets/play-BfeZNU-6.js`.
+The home page, all ten News notes, and the Beginner and Heroes guides
+were verified on the custom domain at about 06:20 UTC.
