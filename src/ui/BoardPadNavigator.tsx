@@ -64,8 +64,8 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, 
     ? 'Use the arrow keys to aim. Hold Shift to move farther. Enter casts and Escape cancels.'
     : rallyTargeting
       ? 'Use arrow keys to aim. Hold Shift to move farther. Enter sets the hero rally point and Escape cancels.'
-      : 'Use arrow keys to select a pad. Enter deploys, moves or inspects a tower. Arm with 1 through 4.' + (rallyShortcut ? ' Press R to set the hero rally point.' : '');
-  let action = rallyShortcut ? '1–4 arm a tower. R sets the rally.' : 'Arm a tower with 1–4.';
+      : 'Use arrow keys to select a pad. Enter deploys, moves or inspects a tower. Arm with 1 through 4.' + (rallyShortcut ? ' Press R to set the hero rally point. H opens hero status.' : '');
+  let action = rallyShortcut ? '1–4 arm a tower. R sets rally. H inspects heroes.' : 'Arm a tower with 1–4.';
   if (armedAbility) action = 'Enter casts. Escape cancels.';
   else if (rallyTargeting) action = 'Enter sets rally. Escape cancels.';
   else if (locked) action = 'Choose an unlocked pad.';
@@ -94,7 +94,7 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, 
         className="board-pad-key"
         tabIndex={enabled ? 0 : -1}
         aria-label={mode === 'ability' ? 'Hero ability target' : mode === 'rally' ? 'Hero rally target' : 'Tower pads'}
-        aria-keyshortcuts={rallyShortcut ? 'B R' : 'B'}
+        aria-keyshortcuts={rallyShortcut ? 'B R H' : 'B'}
         aria-describedby={helpId}
         onFocus={() => { if (enabled) setFocused(true); }}
         onBlur={() => {

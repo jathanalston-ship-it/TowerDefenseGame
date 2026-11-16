@@ -533,6 +533,19 @@ export function GameView({
   const showKeyboardTarget = useCallback((target: Pointer | null): void => { keyboardTargetRef.current = target; }, []);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
   const mutationPanelRef = useRef<HTMLElement>(null);
+  const heroPanelRef = useRef<HTMLDivElement>(null);
+  const heroInspectOrigin = useRef<HTMLElement | null>(null);
+  const pendingHeroFocus = useRef(false);
+  const returnFromHeroPanel = useCallback((): void => {
+    const origin = heroInspectOrigin.current;
+    heroInspectOrigin.current = null;
+    if (!origin) return;
+    if (origin.isConnected && origin !== document.body && !origin.matches(':disabled')) {
+      origin.focus({ preventScroll: true });
+    } else if (keyboardPadButtonRef.current?.tabIndex === 0) {
+      keyboardPadButtonRef.current.focus({ preventScroll: true });
+    }
+  }, []);
   const keyboardInspectorId = useRef<number | null>(null);
   const pendingInspectorFocus = useRef(false);
   const returnToTowerPads = useCallback((): boolean => {
@@ -1103,7 +1116,7 @@ export function GameView({
         return;
       }
       // Space belongs to a focused control, not to the board beneath it.
-      if ((e.key === ' ' || e.key === 'Spacebar') && (target === mutationPanelRef.current || target?.closest('button, a, summary, [role="button"], [role="switch"]'))) return;
+      if ((e.key === ' ' || e.key === 'Spacebar') && (target === mutationPanelRef.current || target === heroPanelRef.current || target?.closest('button, a, summary, [role="button"], [role="switch"]'))) return;
       audio.resume();
       const k = e.key;
       if (game.phase === 'draft') {
@@ -1149,6 +1162,8 @@ export function GameView({
           setPadShortcutHint(false);
           setRallyTargeting(aimRally);
           if (aimRally) game.cancelInteractions();
+          else game.selectHero(null);
+          heroInspectOrigin.current = null;
           if (drawers) {
             setLeftOpen(false);
             setRightOpen(false);
@@ -1157,6 +1172,18 @@ export function GameView({
           keyboardInspectorId.current = null;
           pads.focus({ preventScroll: true });
         }
+      } else if (!tutorial && k.toLowerCase() === 'h') {
+        const roster = game.heroes;
+        if (!roster.length) return;
+        e.preventDefault();
+        setRallyTargeting(false);
+        const selected = game.getSelectedHero();
+        const start = selected ? roster.indexOf(selected) : e.shiftKey ? 0 : roster.length - 1;
+        const next = roster[(start + (e.shiftKey ? -1 : 1) + roster.length) % roster.length];
+        if (!heroPanelRef.current?.contains(target)) heroInspectOrigin.current = target ?? document.body;
+        game.cancelInteractions();
+        game.selectHero(next.kind);
+        pendingHeroFocus.current = true;
       } else if (k === 'q' || k === 'Q') {
         setRallyTargeting(false);
         const wasArmed = game.armedAbility;
@@ -1175,6 +1202,7 @@ export function GameView({
       } else if (k === 'Escape') {
         setRallyTargeting(false);
         if (mutationPanelRef.current?.contains(target)) returnToTowerPads();
+        if (heroPanelRef.current?.contains(target)) returnFromHeroPanel();
         game.cancelInteractions(); // close inspection and cancel targeting
       } else {
         return;
@@ -1183,7 +1211,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed, tutorial, drawers, keyboardBoardEnabled, returnToTowerPads]);
+  }, [game, togglePause, setSpeed, tutorial, drawers, keyboardBoardEnabled, returnFromHeroPanel, returnToTowerPads]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -1211,6 +1239,11 @@ export function GameView({
       mutationPanelRef.current?.focus({ preventScroll: true });
     }
   }, [sp]);
+  useLayoutEffect(() => {
+    if (!pendingHeroFocus.current) return;
+    pendingHeroFocus.current = false;
+    if (hud.phase === 'prep' || hud.phase === 'wave') heroPanelRef.current?.focus({ preventScroll: true });
+  }, [hud.phase, hud.selectedHero]);
   const closeRight = (): void => {
     if (mutationPanelRef.current?.contains(document.activeElement)) returnToTowerPads();
     setRightOpen(false);
@@ -1300,6 +1333,7 @@ export function GameView({
             const p = toCoords(e.clientX, e.clientY);
             // Shift keeps the build tool armed for rapid placement (docs/TOWER-MANAGEMENT.md §4).
             keyboardInspectorId.current = null;
+            heroInspectOrigin.current = null;
             game.click(p.x, p.y, { shift: e.shiftKey });
             refresh();
           }}
@@ -1585,8 +1619,13 @@ export function GameView({
         )}
         {/* Hero selection readout — non-modal (the sim keeps running); dismiss deselects the hero. */}
         {hud.selectedHero && (
-          <HeroSelectPanel hero={hud.selectedHero} ability={game.heroAbilityDefinition(hud.selectedHero.kind)}
-            onClose={() => { game.selectHero(null); refresh(); }} />
+          <HeroSelectPanel key={hud.selectedHero.kind} panelRef={heroPanelRef} hero={hud.selectedHero} ability={game.heroAbilityDefinition(hud.selectedHero.kind)}
+            keyboardNavigation={!tutorial && game.heroes.length > 1}
+            onClose={() => {
+              returnFromHeroPanel();
+              game.selectHero(null);
+              refresh();
+            }} />
         )}
         {geneSplash.length > 0 && (
           // Starting Gene Loadout cinematic (docs/GENE-EVOLUTION.md §Loadouts): a brief splash naming

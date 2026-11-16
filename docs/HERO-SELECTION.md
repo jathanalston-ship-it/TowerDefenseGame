@@ -106,3 +106,8 @@ and participates in the existing replay log.
 Hero Ops and the selected-hero panel use the same live ability definition as
 the toolbar. A renamed fork appears in the ability name and details, alongside
 the existing live cooldown.
+
+Press H during a regular run to inspect the primary hero. Press it again to
+cycle forward, or use Shift+H to move backward. The panel receives keyboard
+focus and supports native scrolling. Escape or Deselect restores the previous
+control. Deselect measures 44px on touch screens.

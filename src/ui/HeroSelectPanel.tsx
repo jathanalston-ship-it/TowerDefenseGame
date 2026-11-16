@@ -7,7 +7,7 @@
 // Future abilities plug straight in: add to the sim's cooldowns/buffs arrays (live) or extend the
 // ability block below — no structural change needed.
 
-import { useMemo } from 'react';
+import { useMemo, type Ref } from 'react';
 import { meta } from '../state/meta';
 import { HERO_DEFS, type HeroAbilityDef } from '../core/config';
 import { itemDef, SLOT_LABELS } from '../core/equipment';
@@ -22,9 +22,11 @@ const STATE_LABEL: Record<string, string> = {
   idle: 'Holding', moving: 'Moving', attacking: 'Attacking', retreating: 'Retreating', downed: 'Downed',
 };
 
-export function HeroSelectPanel({ hero, ability, onClose }: {
+export function HeroSelectPanel({ hero, ability, panelRef, keyboardNavigation, onClose }: {
   hero: SelectedHeroView;
   ability: HeroAbilityDef;
+  panelRef: Ref<HTMLDivElement>;
+  keyboardNavigation: boolean;
   onClose: () => void;
 }): JSX.Element {
   const def = HERO_DEFS[hero.kind];
@@ -56,7 +58,8 @@ export function HeroSelectPanel({ hero, ability, onClose }: {
   for (const p of detail.perks) perm.push({ key: `perk-${p.at}-${p.name}`, label: p.name, detail: p.desc });
 
   return (
-    <div className="hero-panel" style={{ ['--hero' as string]: color }} role="dialog" aria-label={`${hero.name} status`}>
+    <div ref={panelRef} className="hero-panel" style={{ ['--hero' as string]: color }} role="dialog" tabIndex={-1}
+      aria-label={`${hero.name} status`} aria-keyshortcuts={keyboardNavigation ? 'H Shift+H' : undefined}>
       <div className="hp-head">
         <span className="hp-portrait-sm"><HeroPortrait def={def} size={44} rank={detail.mastery.rank} /></span>
         <span className="hp-id">
@@ -86,6 +89,7 @@ export function HeroSelectPanel({ hero, ability, onClose }: {
       </div>
 
       <div className="hp-target">Target <b>{hero.target ?? '—'}</b></div>
+      {keyboardNavigation && <p className="hp-shortcuts">H next hero · Shift+H previous hero</p>}
 
       {/* Cooldown gauges (live) */}
       <div className="hp-cds">

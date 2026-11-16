@@ -1783,8 +1783,10 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 .hp-state.st-downed { color: var(--danger); }
 
-.hp-close { width: 20px; height: 20px; border-radius: var(--r-xs); border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 11px; line-height: 1; display: grid; place-items: center; }
+.hp-close { flex: none; width: 28px; height: 28px; padding: 0; border-radius: var(--r-xs); border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 11px; line-height: 1; display: grid; place-items: center; }
 
+@media (pointer: coarse) { .hp-close { width: 44px; height: 44px; } }
+.hp-shortcuts { margin: 0; color: var(--muted); font-size: 11px; }
 .hp-close:hover { color: var(--text); border-color: var(--danger); }
 
 .hp-bar { position: relative; height: 16px; border-radius: var(--r-xs); background: rgba(0, 0, 0, 0.5); border: 1px solid var(--line); overflow: hidden; }
