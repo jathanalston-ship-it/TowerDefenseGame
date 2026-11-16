@@ -52,6 +52,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const codaRef = useRef(false);
   codaRef.current = coda;
   const scene = def.scenes[idx];
+  const sceneProgress = `Scene ${idx + 1} of ${def.scenes.length}`;
 
   useEffect(() => {
     const update = (): void => {
@@ -243,7 +244,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }}>
       <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
-        {manual && !coda ? `Scene ${idx + 1} of ${def.scenes.length}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
+        {manual && !coda ? `${sceneProgress}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
       </div>
       <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
@@ -276,11 +277,13 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         )}
       </div>
       <div className="intro-foot">
-        <span className="intro-timeline" aria-hidden>
-          {def.scenes.map((s, i) => (
-            <i key={s.id} className={coda || i < idx ? 'done' : i === idx ? 'on' : ''} />
-          ))}
-        </span>
+        {manual && !coda
+          ? <span className="intro-scene-progress" aria-hidden="true">{sceneProgress}</span>
+          : <span className="intro-timeline" aria-hidden>
+              {def.scenes.map((s, i) => (
+                <i key={s.id} className={coda || i < idx ? 'done' : i === idx ? 'on' : ''} />
+              ))}
+            </span>}
         {!coda && (
           <div className="cutscene-controls" onClick={(e) => e.stopPropagation()}>
           <button className="intro-skip" aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => {

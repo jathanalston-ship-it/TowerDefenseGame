@@ -161,3 +161,6 @@ Archive discovery controls: search matches only revealed copy (recovered title/s
 Manual Memory Archive playback adds Back to scene on the final card. It returns to the caption
 that was open before the final card and restores dialog focus. Continue performs the usual exit
 and returns focus to the replay control.
+
+Both players show the current scene number and total during Read at my pace. The
+visible counter and the existing live caption use the same scene position.

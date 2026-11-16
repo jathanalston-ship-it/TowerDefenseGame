@@ -378,13 +378,14 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   }
 
   const diving = phase === 'dive';
+  const sceneProgress = `Scene ${idx + 1} of ${SCENES.length}`;
   const sceneCaption = scene.id === 'title'
     ? [WORDMARK, scene.eyebrow].filter(Boolean).join('. ')
     : [scene.eyebrow, ...scene.lines.map((line) => line.text)].filter(Boolean).join('. ');
   return (
     <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" aria-describedby={manual && !diving ? captionId : undefined} onKeyDown={onKeyDown} onClick={manual ? undefined : advance}>
       <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
-        {manual && !diving ? `Scene ${idx + 1} of ${SCENES.length}. ${sceneCaption}` : ''}
+        {manual && !diving ? `${sceneProgress}. ${sceneCaption}` : ''}
       </div>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
@@ -431,11 +432,13 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         </div>
       </div>
       <div className={`intro-foot ${diving ? 'is-diving' : ''}`}>
-        <span className="intro-timeline" aria-hidden>
-          {SCENES.map((s, i) => (
-            <i key={s.id} className={i < idx ? 'done' : i === idx ? 'on' : ''} />
-          ))}
-        </span>
+        {manual && !diving
+          ? <span className="intro-scene-progress" aria-hidden="true">{sceneProgress}</span>
+          : <span className="intro-timeline" aria-hidden>
+              {SCENES.map((s, i) => (
+                <i key={s.id} className={i < idx ? 'done' : i === idx ? 'on' : ''} />
+              ))}
+            </span>}
         <div className="opening-controls" onClick={(e) => e.stopPropagation()}>
         <button className="intro-skip" disabled={diving} aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => {
           setCutsceneManualPref(!manual);

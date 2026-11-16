@@ -5556,6 +5556,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 }
 @keyframes intro-afterglow { from { opacity: 1; } to { opacity: 0; } }
 /* Film TIMELINE — segmented progress (replaces the dots): played beats fill, the current glows. */
+.intro-scene-progress { flex: none; color: var(--text); font-size: 13px; font-variant-numeric: tabular-nums; }
 .intro-timeline { display: flex; gap: 5px; }
 .intro-timeline i {
   width: 26px;
