@@ -554,6 +554,13 @@ export function GameView({
   };
   const keyboardTargetRef = useRef<Pointer | null>(null);
   const showKeyboardTarget = useCallback((target: Pointer | null): void => { keyboardTargetRef.current = target; }, []);
+  const [earlyCallStatus, setEarlyCallStatus] = useState('');
+  const callNextWaveEarly = useCallback((): boolean => {
+    const bonus = game.earlyCallBonus();
+    if (!game.callWaveEarly()) return false;
+    setEarlyCallStatus(`Called wave ${game.waveIndex} early. Earned ${bonus.toLocaleString()} Biomass.`);
+    return true;
+  }, [game]);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
   const focusBattlefieldControls = (): void => {
     const pads = keyboardPadButtonRef.current;
@@ -1236,7 +1243,7 @@ export function GameView({
         e.preventDefault();
         // Prep: launch. Mid-wave: EARLY CALL (docs/EARLY-CALL.md) — a no-op when unavailable, and
         // never in its first EARLY_CALL.minElapsed seconds, so a double-tapped launch can't stack.
-        if (game.phase === 'wave') game.callWaveEarly();
+        if (game.phase === 'wave') callNextWaveEarly();
         else game.startWave();
       } else if (k === 'Escape') {
         setRallyTargeting(false);
@@ -1250,7 +1257,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed, tutorial, drawers, keyboardBoardEnabled, returnFromHeroPanel, returnToTowerPads]);
+  }, [game, togglePause, setSpeed, tutorial, drawers, keyboardBoardEnabled, returnFromHeroPanel, returnToTowerPads, callNextWaveEarly]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -1439,13 +1446,16 @@ export function GameView({
         )}
         {/* EARLY CALL (docs/EARLY-CALL.md): the Start Wave control's in-fight form — call the next
             wave over the live field for Biomass that shrinks as the wait runs out (Space too). */}
+        <span className="a11y-only" role="status">{earlyCallStatus}</span>
         {hud.phase === 'wave' && hud.earlyCall >= 0 && (
           <button
+            type="button"
             className="early-call-btn"
+            aria-keyshortcuts="Space"
             aria-label={`Call wave ${hud.wave + 1} early, overlapping the current wave, for ${hud.earlyCall} Biomass`}
-            onClick={() => {
+            onClick={(event) => {
               audio.resume();
-              game.callWaveEarly(); // the sim cues the launch + the Biomass splice itself
+              if (callNextWaveEarly() && event.detail === 0) focusBattlefieldControls();
               refresh();
             }}
             title={`Call wave ${hud.wave + 1} now — the waves overlap; +${hud.earlyCall} Biomass for the skipped wait (Space)`}

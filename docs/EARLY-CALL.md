@@ -59,6 +59,8 @@ The risk of stacking waves is always the player's decision (Hive Intelligence do
 `⏩ Call early +N` — the Start Wave control's in-fight form, in the run-controls strip (left of
 the speed / Hive / Pause cluster, so its arrival never shifts them; the label collapses to
 `⏩ +N` on narrow boards). **Space** calls early mid-wave and starts the wave in prep.
+A successful Early Call announces the wave and exact Biomass earned. Activating the button
+from the keyboard returns focus to Tower pads.
 
 ## Measured (the G1 harness — the same 16 replay/frontier runs per account, with vs without a bot
 that calls whenever ≤ 2 enemies are alive and the wave hasn't cost integrity)
