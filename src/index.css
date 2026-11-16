@@ -1799,9 +1799,9 @@ canvas.board {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *)),
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *))::before,
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *))::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
@@ -5306,7 +5306,10 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
    stops; state changes remain instant and fully readable. The SIM itself is the
    game and is unaffected; this governs UI chrome only. ── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  /* Cinematic players resolve the player's explicit preference before opting into motion. */
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *)),
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *))::before,
+  :where(:not(.intro.motion-allowed, .intro.motion-allowed *))::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -5493,8 +5496,11 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
   text-shadow: 0 2px 22px rgba(0, 0, 0, 0.9), 0 0 46px rgba(0, 0, 0, 0.7);
   animation: intro-line 1.1s var(--ease-out) both;
 }
-@keyframes intro-rule { from { width: 0; opacity: 0; } to { width: 44px; opacity: 1; } }
-@keyframes intro-line { from { opacity: 0; transform: translateY(14px); letter-spacing: 0.2em; } to { opacity: 1; transform: none; } }
+@keyframes intro-rule { from { width: var(--intro-rule-start, 0px); opacity: 0; } to { width: 44px; opacity: 1; } }
+@keyframes intro-line {
+  from { opacity: 0; transform: var(--intro-copy-offset, translateY(14px)); letter-spacing: var(--intro-copy-spacing, 0.2em); }
+  to { opacity: 1; transform: none; }
+}
 /* Scene accents — the projector canvas (render/introScenes.ts) paints each world; CSS
    only keys the copy's accent hue to the scene so eyebrow/rule/dots ride the grade. */
 .intro-stage.is-signal { --intro-accent: #7ad1ff; }
@@ -5567,11 +5573,14 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 }
 .intro-timeline i.done { background: rgba(159, 176, 200, 0.6); }
 .intro-timeline i.on { background: var(--intro-accent, var(--gold)); box-shadow: 0 0 8px var(--intro-accent, var(--gold)); }
-@media (prefers-reduced-motion: reduce) {
-  .intro-stage, .intro-text { animation-duration: 0.3s; }
-  .intro-stage .intro-fx { animation: none; opacity: 0.8; }
-  .intro-bar { animation: none; }
+.intro.is-still {
+  --intro-copy-offset: none;
+  --intro-copy-spacing: normal;
+  --intro-rule-start: 44px;
+  --coda-copy-offset: none;
 }
+.intro.is-still .intro-fx { animation: none; opacity: 0.8; }
+.intro.is-still .intro-bar { animation: none; }
 /* A short stage (phone landscape: ~330px of picture under the foot) — the copy steps down a size so
    the tableau keeps its picture. */
 @media (max-height: 480px) {
@@ -5585,7 +5594,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 /* ── Story cutscenes (docs/CUTSCENES.md) — the intro's film chrome, reused; plus the CODA
       (the archive stamp) and the Memory Archive's collectible cards. ── */
 .cutscene .intro-eyebrow { letter-spacing: 0.28em; }
-@keyframes cs-coda-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes cs-coda-in { from { opacity: 0; transform: var(--coda-copy-offset, translateY(10px)); } to { opacity: 1; transform: none; } }
 .mem-body { display: flex; flex-direction: column; gap: 2px; padding: 9px 11px 10px; }
 
 /* ── Service-worker update toast (components/UpdateToast.tsx) ─────────────── */

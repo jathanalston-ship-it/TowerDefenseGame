@@ -168,3 +168,8 @@ visible counter and the existing live caption use the same scene position.
 Cinematic navigation applies each transition to the scene on which it was requested.
 A pending autoplay timer or a burst of activations cannot skip the newly opened scene.
 The opening gate, descent and Memory Archive final card enter once per transition.
+
+The opening and Memory Archive resolve the film's CSS motion using the same preference as
+the projector. Reduced motion stills the gate and letterbox bars and removes translation
+from captions and the archive finale. Allow motion restores the authored animations inside the
+film. Caption and finale animation timelines survive a live preference change.

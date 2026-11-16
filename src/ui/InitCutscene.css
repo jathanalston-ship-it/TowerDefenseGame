@@ -125,10 +125,7 @@
 
 .intro-gate-skip { margin-top: 22px; }
 
-@media (prefers-reduced-motion: reduce) {
-  .intro-title, .intro-begin { animation-duration: 0.3s; }
-  .intro-gate-glyph, .intro-receive { animation: none; }
-}
+.intro.is-still :is(.intro-gate-glyph, .intro-receive) { animation: none; }
 
 /* Reduced motion as RESOLVED for the film (the OS request unless Settings → Motion allows motion —
    InitCutscene's .is-still, the same resolution the canvas uses): the wordmark, triad and call to

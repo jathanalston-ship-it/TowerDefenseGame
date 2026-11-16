@@ -235,7 +235,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // transform animations on ancestors would otherwise capture position:fixed and cage the
   // film inside the hub column.
   return createPortal(
-    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} aria-describedby={manual && !coda ? captionId : undefined} onClick={manual ? undefined : advance}
+    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene ${reducedMotion ? 'is-still' : 'motion-allowed'}${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} aria-describedby={manual && !coda ? captionId : undefined} onClick={manual ? undefined : advance}
       onKeyDown={(e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
         if (e.key !== 'Tab') return;
