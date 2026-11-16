@@ -184,3 +184,8 @@ manual combat or preparation. It plays once per completed cooldown on the effect
 bus. It is suppressed during Pause, drafts, hidden tabs, Auto-Cast and Hive
 Intelligence. Chrome’s offline render measured a peak near −21.5 dBFS with no
 clipping.
+
+When a breach, final wave or record approach lowers gameplay speed, `autoSlow`
+plays a short descending interval on the effects bus. Overlapping triggers for
+the same speed change share one cue. Manual speed changes use their normal controls.
+The cue measured −33.8 LUFS-M and −19.2 dBFS peak in the offline audit.

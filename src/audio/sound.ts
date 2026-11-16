@@ -354,6 +354,10 @@ function sAbilityReady(): void {
   tone(587.33, 0.10, 'sine', 0.065);
   tone(880, 0.16, 'triangle', 0.07, undefined, 0.07);
 }
+function sAutoSlow(): void { // a short falling interval answers the slower speed
+  tone(659.25, 0.09, 'triangle', 0.07);
+  tone(440, 0.17, 'sine', 0.095, undefined, 0.065);
+}
 function sPlace(): void { thump(200, 0.17, 0.18); tone(330, 0.1, 'triangle', 0.08, 300); noise(0.05, 0.05, 1200, 300); } // the tower SEATS: a thunk into the ground
 function sSelect(): void { noise(0.008, 0.03, 4500, undefined, 0, 'highpass'); tone(520, 0.045, 'triangle', 0.05, 490); tone(520, 0.03, 'square', 0.014); } // a tactile click on the same 520 Hz blip, its square edge tamed
 function sHover(): void { tone(900, 0.02, 'sine', 0.012, 1200); } // a faint, premium tick as the pointer crosses a control
@@ -772,6 +776,7 @@ export const audio = {
         case 'heartbeat': sHeartbeat(); break;
         case 'ability': sAbility(); break;
         case 'abilityReady': sAbilityReady(); break;
+        case 'autoSlow': sAutoSlow(); break;
         case 'place': sPlace(); break;
         case 'select': sSelect(); break;
         case 'wave': sWave(); break;

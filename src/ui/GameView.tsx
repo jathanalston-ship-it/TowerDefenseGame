@@ -787,6 +787,12 @@ export function GameView({
       }
     };
 
+    const slowWithNotice = (reason: string): void => {
+      if (game.timeScale > 1) audio.cue('autoSlow');
+      setSpeed(1);
+      setSpeedNote(reason);
+    };
+
     const loop = (now: number): void => {
       try {
         // Paused: keep the loop alive (so resume is instant) but skip the sim + render. Advancing
@@ -1057,26 +1063,22 @@ export function GameView({
             // Hive — drop to 1× so the player can react. Independent of the finale/record triggers.
             if (!fired.danger && game.phase === 'wave' && (snap.emergency || snap.hiveAttackers > 0)) {
               fired.danger = true;
-              setSpeed(1);
-              setSpeedNote('Breach — speed returned to 1×.');
+              slowWithNotice('Breach — speed returned to 1×.');
             }
             if (!fired.finale && game.mode !== 'endless' && game.mode !== 'bossRush' && game.waveIndex >= game.totalWaves && game.phase === 'wave') {
               fired.finale = true;
-              setSpeed(1);
-              setSpeedNote('Final wave — speed returned to 1×. Raise it again if you dare.');
+              slowWithNotice('Final wave — speed returned to 1×. Raise it again if you dare.');
             } else if (!fired.record && game.mode === 'endless') {
               const best = meta.get().bestWave;
               if (best >= 12 && game.waveIndex >= Math.ceil(best * 0.95)) {
                 fired.record = true;
-                setSpeed(1);
-                setSpeedNote(`Approaching your record (wave ${best}) — speed returned to 1×.`);
+                slowWithNotice(`Approaching your record (wave ${best}) — speed returned to 1×.`);
               }
             } else if (!fired.record && game.mode === 'bossRush') {
               const best = meta.get().rushBestWave;
               if (best >= 4 && game.waveIndex >= Math.ceil(best * 0.95)) {
                 fired.record = true;
-                setSpeed(1);
-                setSpeedNote(`Approaching your Boss Rush record (wave ${best}) — speed returned to 1×.`);
+                slowWithNotice(`Approaching your Boss Rush record (wave ${best}) — speed returned to 1×.`);
               }
             }
           }
