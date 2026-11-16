@@ -910,3 +910,20 @@
 - `5c056e6` **[Framework]** Release: prepare caption scroll note _(internal)_
 - `21b6a21` **[UI]** Ui: make overflowing film captions keyboard scrollable _(internal)_
 - `3f79770` **[Framework]** Release: prepare keyboard caption scroll note _(internal)_
+- `a07b49d` **[Framework]** Release: seal cinematic playback update _(internal)_
+- `b85e2ae` **[Framework]** Docs: register the film caption viewport _(internal)_
+- `17a41f1` **[Framework]** Docs: regenerate design intelligence graph _(internal)_
+- `313a8b8` **[Framework]** Release: record cinematic playback verification _(internal)_
+- `dc44a87` **[Framework]** Record live cinematic playback release _(internal)_
+- `9e00347` **[Framework]** Release: record passing cinematic confirmation audit _(internal)_
+- `7c61603` **[Towers]** Make tower pads keyboard accessible _(internal)_
+- `aa4fa3e` **[UI]** Ui: make keyboard pad shortcut discoverable _(internal)_
+- `c782d5d` **[Towers]** Explain keyboard tower deployment costs _(internal)_
+- `5ecc4f9` **[Towers]** Register keyboard tower pad controls _(internal)_
+- `b4d86f3` **[Bug Fixes]** Route keyboard tower inspection focus
+- `bc9ee18` **[Bug Fixes]** Clear compact drawers for keyboard tower targeting
+- `74bdb18` **[Developer Tools]** Teach keyboard tower placement in Help and Tower Guide _(internal)_
+- `c072eb5` **[Heroes]** Add keyboard aiming for hero abilities _(internal)_
+- `b0e3ca3` **[Developer Tools]** Teach keyboard aiming in Help and Hero Guide _(internal)_
+- `2c9188b` **[Framework]** Docs: regenerate battlefield keyboard graph references _(internal)_
+- `db7c63b` **[UX]** Teach keyboard controls in the combat tutorial _(internal)_

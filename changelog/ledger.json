@@ -1,6 +1,6 @@
 {
-  "lastSha": "3f797702a05ec89945e6ba4d19848510a7049599",
-  "commitsSinceDraft": 7,
+  "lastSha": "db7c63be5f8fa7d8b3ad52c8bfe96fa764112394",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -5051,6 +5051,42 @@
         {
           "cat": "UI",
           "text": "When a film’s captions need scrolling, use Tab to focus the caption area. Page Up and Page Down scroll the text, and the film keeps its keyboard navigation in one loop."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.6",
+      "date": "2026-11-16",
+      "title": "Keyboard Battlefield Controls",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "In regular runs, Tab to Tower pads or press B. The arrow keys select a pad, a ring marks it on the battlefield, and Enter deploys, inspects, or finishes a move. Screen readers can announce the row, column, and pad status."
+        },
+        {
+          "cat": "UI",
+          "text": "Arming a tower with 1–4 shows the B shortcut. Focused open pads show the current Biomass cost, how much more you need, whether a deployment is free, or why a conveyor pod is unavailable."
+        },
+        {
+          "cat": "UI",
+          "text": "Keyboard inspection focuses the tower’s mutation panel. Move returns focus to the board for relocation, and closing the panel or confirming a sale returns focus to the pads. On compact layouts, B clears side drawers so you can see the selected pad."
+        },
+        {
+          "cat": "UI",
+          "text": "The Biomorph Conveyor topic in Help and the website Tower Guide now explain keyboard tower placement."
+        },
+        {
+          "cat": "UI",
+          "text": "Arm a ready hero ability with Q, then press B or Tab to Hero ability target. Aim with the arrows, hold Shift to move farther, and press Enter to cast. Help and the Hero Guide explain the controls."
+        },
+        {
+          "cat": "UI",
+          "text": "Escape and right-click now cancel a pending hero ability. Right-click leaves your hero’s rally point in place while cancelling the aim."
+        },
+        {
+          "cat": "UI",
+          "text": "The Combat Tutorial now teaches the keyboard controls for the favorite tower, the conveyor, tower inspection, and hero abilities. Keyboard actions advance the same lessons as mouse and touch."
         }
       ]
     }
@@ -11965,6 +12001,142 @@
       "date": "2026-11-15",
       "cat": "Framework",
       "text": "Release: prepare keyboard caption scroll note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a07b49d7e37dc7e43963b652183b73736463d768",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: seal cinematic playback update",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b85e2ae73d438e1528d943bedf0fb833a3f02a4a",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: register the film caption viewport",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "17a41f153d356f7b5ebfa9d5c9555c8c32ff7814",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: regenerate design intelligence graph",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "313a8b876d0fcf426839e50b837ae230d1e7fb32",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: record cinematic playback verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "dc44a8708d94b6396ab81f34435076669e9d6605",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Record live cinematic playback release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9e00347355c965409e637bca8a48aa6aa3255149",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: record passing cinematic confirmation audit",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "7c61603de5dcf8250ccc0f0df3bbe615805f6d46",
+      "date": "2026-11-15",
+      "cat": "Towers",
+      "text": "Make tower pads keyboard accessible",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "aa4fa3eb3fd32ff827022b3fd11941e336bac1f3",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: make keyboard pad shortcut discoverable",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c782d5d1b065526dd19653748a3b40be89326b7a",
+      "date": "2026-11-15",
+      "cat": "Towers",
+      "text": "Explain keyboard tower deployment costs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5ecc4f9096fcd291ac8d7c9c94b7f91bc0ddc6e0",
+      "date": "2026-11-15",
+      "cat": "Towers",
+      "text": "Register keyboard tower pad controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b4d86f3b1a7afe4d98557952ddca3dea599a6016",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Route keyboard tower inspection focus",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "bc9ee183c504374374141c8e3208dd3e4ba13678",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Clear compact drawers for keyboard tower targeting",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "74bdb18e8fd6c89dd37920f6aefc63583c3f9335",
+      "date": "2026-11-15",
+      "cat": "Developer Tools",
+      "text": "Teach keyboard tower placement in Help and Tower Guide",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c072eb5f4986a9875530c0c4e30fe7c7916b2d8a",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Add keyboard aiming for hero abilities",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b0e3ca382e2823a029cd6cbaaf866f14278bd62f",
+      "date": "2026-11-15",
+      "cat": "Developer Tools",
+      "text": "Teach keyboard aiming in Help and Hero Guide",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2c9188b66e04c9ee6bffb50802fb8f7214ba3737",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: regenerate battlefield keyboard graph references",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "db7c63be5f8fa7d8b3ad52c8bfe96fa764112394",
+      "date": "2026-11-15",
+      "cat": "UX",
+      "text": "Teach keyboard controls in the combat tutorial",
       "internal": true,
       "needsReview": false
     }

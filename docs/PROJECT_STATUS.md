@@ -2363,3 +2363,12 @@ public on News. Confirmation audit 18509 is still running against the release.
 
 Audit 18509 passed all 3,194 tests, typecheck, mobile layout checks, and both
 documentation checks at 04:34 UTC. Production remains v2026.11.16.5.
+
+## 2026-11-16 — keyboard battlefield controls prepared
+
+Integrated keyboard tower placement, live prices, Inspector focus, hero ability
+aiming and cancellation, and searchable Help plus the public Tower and Hero Guides.
+The Combat Tutorial teaches the new keys and still advances from the live placement,
+draft and ability events. Fresh Chrome playthroughs reached commissioning using
+keyboard input at desktop and 320 px. All 32 registry, graph, site and release-sync
+tests passed. Keyboard Battlefield Controls v2026.11.16.6 is open with seven notes.

@@ -5,6 +5,42 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.6",
+    "date": "2026-11-16",
+    "title": "Keyboard Battlefield Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "In regular runs, Tab to Tower pads or press B. The arrow keys select a pad, a ring marks it on the battlefield, and Enter deploys, inspects, or finishes a move. Screen readers can announce the row, column, and pad status."
+      },
+      {
+        "cat": "UI",
+        "text": "Arming a tower with 1–4 shows the B shortcut. Focused open pads show the current Biomass cost, how much more you need, whether a deployment is free, or why a conveyor pod is unavailable."
+      },
+      {
+        "cat": "UI",
+        "text": "Keyboard inspection focuses the tower’s mutation panel. Move returns focus to the board for relocation, and closing the panel or confirming a sale returns focus to the pads. On compact layouts, B clears side drawers so you can see the selected pad."
+      },
+      {
+        "cat": "UI",
+        "text": "The Biomorph Conveyor topic in Help and the website Tower Guide now explain keyboard tower placement."
+      },
+      {
+        "cat": "UI",
+        "text": "Arm a ready hero ability with Q, then press B or Tab to Hero ability target. Aim with the arrows, hold Shift to move farther, and press Enter to cast. Help and the Hero Guide explain the controls."
+      },
+      {
+        "cat": "UI",
+        "text": "Escape and right-click now cancel a pending hero ability. Right-click leaves your hero’s rally point in place while cancelling the aim."
+      },
+      {
+        "cat": "UI",
+        "text": "The Combat Tutorial now teaches the keyboard controls for the favorite tower, the conveyor, tower inspection, and hero abilities. Keyboard actions advance the same lessons as mouse and touch."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16.5",
     "date": "2026-11-16",
     "title": "Clearer Cinematic Playback",
