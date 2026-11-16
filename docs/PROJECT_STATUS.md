@@ -2215,3 +2215,7 @@ Chrome reproduced a pause resetting a draft countdown to ten seconds. Updated co
 ## 2026-11-16 — latest Hive actions report
 
 The pause menu exposes the most recent Hive purchase pulse with labels, reasons and Biomass costs. Browser probe at 320px verified exact report data, keyboard disclosure, pointer-safe ticker and persistence after resume. All 35 focused tests passed. Six game and website notes are prepared.
+
+## 2026-11-16 — gene draft dialog focus verified
+
+The draft now moves focus to its title and shortcut description, traps Tab, and restores the prior connected control. Browser accessibility and keyboard checks passed, including existing shortcuts, pause and reroll. All 57 focused tests passed. Seven website and game notes are prepared.

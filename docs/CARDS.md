@@ -747,3 +747,5 @@ and affected subject inside the scrollable drawer. Repeated picks label that des
 "Per copy" rather than implying an aggregate bonus. Counts and expanded readers survive
 live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape retains
 its normal handling. Draft choices, stacking math and effects are unchanged.
+
+Gene drafts expose a named dialog with keyboard instructions. Focus enters the dialog and Tab wraps across enabled draft buttons. Closing restores the prior control if it still exists. The pause sheet takes priority while the run is paused.

@@ -865,3 +865,4 @@
 - `a02d62b` **[UI]** Ui: explain locked Hive Intelligence runs _(internal)_
 - `2932697` **[UI]** Ui: retain Hive draft control focus _(internal)_
 - `32a6db9` **[UI]** Ui: preserve automatic draft reading time _(internal)_
+- `a8fc438` **[UI]** Ui: show the latest Hive purchases in pause _(internal)_

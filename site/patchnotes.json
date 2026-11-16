@@ -29,6 +29,10 @@
       {
         "cat": "UI",
         "text": "Open Latest Hive actions in the pause menu to review the latest purchases, the reasons Hive chose them, and their Biomass costs after the battlefield ticker fades."
+      },
+      {
+        "cat": "UI",
+        "text": "Gene drafts move keyboard focus into the draft when they open and keep Tab navigation on draft controls. Screen readers can read the draft title and shortcuts on entry, and focus returns to the previous control when it is still available."
       }
     ]
   },

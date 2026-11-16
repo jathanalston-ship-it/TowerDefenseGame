@@ -930,3 +930,5 @@ In-draft Hive Intelligence uses one Enable/Stop button so keyboard focus survive
 Automatic gene drafts count only visible, unpaused time. DraftModal retains the remaining time on pause/hide and resets it when automation is stopped. See HIVE-MIND.md.
 
 Pause offers a keyboard-accessible Latest Hive actions disclosure using the most recent pulse’s existing purchase labels, costs and reasons. See HIVE-MIND.md.
+
+DraftModal names its dialog, exposes keyboard instructions, and owns Tab focus while the cards are active. See CARDS.md.

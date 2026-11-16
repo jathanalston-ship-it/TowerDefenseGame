@@ -8,7 +8,7 @@
 // live in a DETAIL EXPANSION — hover a card (short delay) or hold Shift on desktop,
 // long-press on touch. Hierarchy: name → artwork → effect → keywords → tags → rarity.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import { audio } from '../audio/sound';
 import { autoGenePref } from '../state/prefs';
@@ -182,6 +182,25 @@ export function DraftModal({
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
   const remainingMs = useRef(AUTO_SECONDS * 1000);
   const hiveAction = autoOverride ? onStopAuto : onStartAuto;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const instructionsId = useId();
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    const previous = document.activeElement;
+    return () => {
+      // GameView may already have moved focus into the pause menu or the next draft.
+      const active = document.activeElement;
+      if (previous instanceof HTMLElement && previous.isConnected && (active === document.body || dialog?.contains(active))) {
+        previous.focus({ preventScroll: true });
+      }
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!paused && !dialog?.contains(document.activeElement)) dialog?.focus({ preventScroll: true });
+  }, [paused]);
 
   // Detail expansion state. Hover dwell + Shift are NON-blocking (a click still drafts);
   // a touch long-press BLOCKS the release-click and the next tap dismisses before picking —
@@ -333,15 +352,37 @@ export function DraftModal({
   }, [options, paused]);
 
   return (
-    <div className={`overlay${committed ? ' is-committing' : ''}`}>
+    <div
+      ref={dialogRef}
+      className={`overlay draft-dialog${committed ? ' is-committing' : ''}`}
+      role="dialog"
+      aria-modal={!paused}
+      aria-hidden={paused || undefined}
+      aria-labelledby={titleId}
+      aria-describedby={instructionsId}
+      tabIndex={-1}
+      onKeyDown={(event) => {
+        if (paused || event.key !== 'Tab') return;
+        const dialog = event.currentTarget;
+        const buttons = dialog.querySelectorAll<HTMLButtonElement>('button:not(:disabled)');
+        const first = buttons[0], last = buttons[buttons.length - 1];
+        if (!first || event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }}
+    >
       <div className="draft-head">
         {kind === 'opening'
           ? <div className="wave-cleared">◆ OPENING DRAFT ◆</div>
           : kind === 'splice'
             ? <div className="wave-cleared draft-splice-eyebrow">◆ SPLICE · EXTRA DRAFT ◆</div>
             : clearedWave ? <div className="wave-cleared">◆ WAVE {clearedWave} CLEARED ◆{owedAfter > 0 && <span className="draft-owed"> +{owedAfter} more owed — each arrives as its called wave falls</span>}</div> : null}
-        <h2>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
-        <p className="draft-sub">
+        <h2 id={titleId}>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
+        <p id={instructionsId} className="draft-sub">
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
           Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
         </p>
