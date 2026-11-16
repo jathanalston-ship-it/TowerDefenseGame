@@ -365,6 +365,7 @@ export interface RenderState {
   movingTowerId: number | null; // a placed tower picked up for relocation (move-mode highlight + holo)
   selectedHero: HeroKind | null; // the player-selected hero (draws the selection ring) — null = none
   armedAbility: boolean;
+  abilityAimRadius?: number;
   unlockedSlots: number;
   time: number; // sim seconds — drives presentation pulses/animation
   fxTime: number; // presentation clock: seconds STEPPED, settle beat included (where `time` freezes) — the wind-down's gore rides it
@@ -1899,6 +1900,23 @@ export class Game {
       idleName: IDLE_BEHAVIORS[t.kind].name,
       idleBlurb: IDLE_BEHAVIORS[t.kind].blurb,
     };
+  }
+
+  heroAbilityDefinition(kind: HeroKind): HeroAbilityDef {
+    return this.heroAbilityKits[kind]?.ult ?? HERO_DEFS[kind].ability;
+  }
+
+  /** The outer edge of the active ability's ground effects, using their executor ranges. */
+  private heroAbilityAimRadius(): number {
+    const hero = this.primaryHero;
+    const components = this.heroAbilityKits[hero.kind]?.ultComps ?? HERO_ULT[hero.kind];
+    const rangeMult = this.heroAbilityRadiusFor(hero);
+    let radius = 0;
+    for (const component of components) {
+      if (component.type === 'explosion' || component.type === 'pool') radius = Math.max(radius, component.radius * rangeMult);
+      if (component.type === 'debuff') radius = Math.max(radius, component.radius);
+    }
+    return radius;
   }
 
   armAbility(): void {
@@ -6967,7 +6985,7 @@ export class Game {
     if (h.down || h.abilityCd > 0) return;
     const def = HERO_DEFS[h.kind];
     const kit = this.heroAbilityKits[h.kind]; // fork-resolved abilities (absent ⇒ base kit)
-    const ab = kit?.ult ?? def.ability;
+    const ab = this.heroAbilityDefinition(h.kind);
     const fromX = h.x; // stance BEFORE the reposition — beams/lobs/lunges launch here (cast feed)
     const fromY = h.y;
     h.x = px;
@@ -8477,6 +8495,7 @@ export class Game {
       movingTowerId: this.movingTowerId,
       selectedHero: this.selectedHeroKind,
       armedAbility: this.armedAbility,
+      abilityAimRadius: this.armedAbility ? this.heroAbilityAimRadius() : undefined,
       unlockedSlots: this.unlockedSlots,
       time: this.time,
       fxTime: this.stepCount * SIM_DT,
@@ -8585,7 +8604,7 @@ export class Game {
     const def = HERO_DEFS[h.kind];
     const attackPeriod = this.heroAttackPeriods.get(h) ?? (def.behavior === 'siege' ? def.attackInterval : def.attackInterval / this.heroHaste(h));
     // Cooldowns — only the gauges that apply: ability always; attack for attackers; pulse for support.
-    const ultDef = this.heroAbilityKits[h.kind]?.ult ?? def.ability; // fork-resolved names read on the HUD
+    const ultDef = this.heroAbilityDefinition(h.kind);
     const cooldowns: HeroCooldownView[] = [{ id: 'ability', label: ultDef.name, remaining: Math.max(0, h.abilityCd), total: this.heroAbilityCycleFor(h) }];
     // Star-gated kit skills (HEROES.md) — surface a cooldown gauge for each UNLOCKED one (none at 0 stars).
     const unlockedSkills = this.heroProgress[h.kind].skillCount ?? 0;

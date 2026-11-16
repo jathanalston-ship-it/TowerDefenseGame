@@ -3109,11 +3109,15 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
 
   if (rs.armedAbility) {
     if (pointer.keyboardTarget === 'pad') return;
-    if (pointer.keyboardTarget === 'ability') {
+    const radius = rs.abilityAimRadius ?? 0;
+    if (pointer.keyboardTarget === 'ability' || radius === 0) {
       ring(ctx, pointer.x, pointer.y, 11, '#030509', 6);
       ring(ctx, pointer.x, pointer.y, 11, '#fff', 2);
     }
-    ring(ctx, pointer.x, pointer.y, 72, rgba(THEME.target.ability, 0.7), 2, [6, 4]);
+    if (radius > 0) {
+      ring(ctx, pointer.x, pointer.y, radius, '#030509', 5);
+      ring(ctx, pointer.x, pointer.y, radius, rgba(THEME.target.ability, 0.9), 2, [6, 4]);
+    }
     return;
   }
 

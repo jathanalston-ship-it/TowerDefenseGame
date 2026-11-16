@@ -10,7 +10,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Game } from './game';
-import { HERO_DEFS, HERO_ORDER, SIM_DT } from './config';
+import { HERO_DEFS, HERO_ORDER, SIM_DT, resolveHeroKit } from './config';
 import type { HeroKind, HeroProgress, MetaModifiers } from './types';
 
 const NO_META: MetaModifiers = { towerDamageMult: 1, biomassMult: 1, heroDamageMult: 1, integrityBonus: 0, bonusSlots: 0 };
@@ -128,5 +128,31 @@ describe('the cast feed — one seq\'d presentation event per cast', () => {
     const all = g.getRenderState().castEvents;
     expect(all.some((e) => e.slot === 'ult')).toBe(true);
     for (let i = 1; i < all.length; i++) expect(all[i].seq).toBeGreaterThan(all[i - 1].seq);
+  });
+});
+
+describe('ability targeting preview', () => {
+  const rangeGear = { op: 'mul', field: 'heroAbilityRadiusMult', value: 1.5 } as const;
+
+  it('shows the active fork and outermost ground effect after gear modifiers', () => {
+    const kit = resolveHeroKit('wyrm', 8, { '8': 'pyre' });
+    const g = new Game(5, NO_META, undefined, 'wyrm', undefined, {
+      heroAbilityKits: { wyrm: kit },
+      heroEquip: { wyrm: [rangeGear] },
+    });
+    expect(g.heroAbilityDefinition('wyrm').name).toBe('Cataclysm Breath');
+    expect(g.getRenderState().abilityAimRadius).toBeUndefined();
+    g.armAbility();
+    expect(g.getRenderState().abilityAimRadius).toBe(Math.max(kit.ult.radius, kit.ult.poolRadius ?? 0) * 1.5);
+    g.click(380, 300);
+    expect(g.getRenderState().abilityAimRadius).toBeUndefined();
+  });
+
+  it('uses the unscaled radius of the disruption executor', () => {
+    const g = new Game(5, NO_META, undefined, 'overseer', undefined, {
+      heroEquip: { overseer: [rangeGear] },
+    });
+    g.armAbility();
+    expect(g.getRenderState().abilityAimRadius).toBe(HERO_DEFS.overseer.ability.radius);
   });
 });

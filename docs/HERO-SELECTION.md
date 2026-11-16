@@ -89,3 +89,8 @@ Hero ability target. The reticle starts in the hero’s current grid cell. Use a
 keys to aim and hold Shift to move three cells at a time. The board control names
 the target row and column. Enter casts at that point through the same battlefield
 interaction as a pointer click. Escape or right-click cancels the aim.
+
+The toolbar names the active ability, including the selected fork, and explains
+mouse, touch and keyboard targeting. While armed, the board ring shows the outer
+edge of ground effects, using the same modifier math as their executors. A small
+reticle marks the cast point for keyboard aiming and effects without a radius.

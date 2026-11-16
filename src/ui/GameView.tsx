@@ -1695,7 +1695,7 @@ export function GameView({
           </button>
         )}
       </div>
-      <Toolbar game={game} hud={hud} refresh={refresh} />
+      <Toolbar game={game} hud={hud} keyboardTargeting={keyboardBoardEnabled} refresh={refresh} />
     </div>
   );
 }

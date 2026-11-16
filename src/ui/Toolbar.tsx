@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import type { Game } from '../core/game';
-import { HERO_DEFS, TOWER_DEFS } from '../core/config';
+import { TOWER_DEFS } from '../core/config';
 import { audio } from '../audio/sound';
 import { telemetry } from '../net/telemetry';
 import type { HudSnapshot } from '../core/types';
@@ -25,10 +25,12 @@ const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 export function Toolbar({
   game,
   hud,
+  keyboardTargeting,
   refresh,
 }: {
   game: Game;
   hud: HudSnapshot;
+  keyboardTargeting: boolean;
   refresh: () => void;
 }): JSX.Element {
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -45,11 +47,13 @@ export function Toolbar({
     next?.focus();
   });
   const playable = hud.phase === 'prep' || hud.phase === 'wave';
-  const heroDef = HERO_DEFS[hud.hero.kind];
+  const ability = game.heroAbilityDefinition(hud.hero.kind);
   const abilityStatus = hud.hero.down
     ? `Hero recovering — ${Math.ceil(hud.hero.respawn)}s`
-    : hud.armedAbility ? 'Armed — click the battlefield to cast.'
-      : hud.hero.abilityReady ? heroDef.ability.blurb : `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`;
+    : !hud.hero.abilityReady ? `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`
+      : hud.armedAbility
+        ? keyboardTargeting ? 'Click or tap the battlefield to cast. Press B to aim with the keyboard.' : 'Click or tap the battlefield to cast.'
+        : ability.blurb;
   const save = meta.use(); // stars + mastery ranks on the cards (permanent identity at a glance)
   // The tutorial rails the SAME conveyor model as every real run (docs/TUTORIAL.md §accuracy) —
   // teaching a full classic rail the player never sees again was the #1 playtest confusion.
@@ -219,7 +223,7 @@ export function Toolbar({
         <button
           className={`ability-btn tt ${hud.armedAbility ? 'is-armed' : ''}`}
           disabled={!hud.hero.abilityReady || !playable}
-          aria-label={`${heroDef.ability.name} — ${abilityStatus}`}
+          aria-label={`${ability.name} — ${abilityStatus}`}
           aria-pressed={hud.armedAbility}
           // Cooldown ring (--cd 0→1): the recharge is visible at a glance; the ring closes and
           // yields to the ready-glow the moment the ability comes back.
@@ -232,7 +236,7 @@ export function Toolbar({
             refresh();
           }}
         >
-          <BoltIcon /> {heroDef.ability.name}
+          <BoltIcon /> {ability.name}
           <span className="hotkey" title={abilityStatus}>{hud.hero.down ? `↻ ${Math.ceil(hud.hero.respawn)}s` : hud.hero.abilityReady ? 'Q' : `${Math.ceil(hud.hero.abilityCd)}s`}</span>
           <span className="tt-bubble">
             {abilityStatus}
