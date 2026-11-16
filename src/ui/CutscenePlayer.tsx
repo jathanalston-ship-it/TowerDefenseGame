@@ -13,7 +13,7 @@ import { music } from '../audio/music';
 import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
-import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -36,7 +36,8 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   }, []);
   const [idx, setIdx] = useState(0);
   const [coda, setCoda] = useState(false);
-  const [manual, setManual] = useState(false);
+  const [manual, setManual] = useState(cutsceneManualPref);
+  const captionId = useId();
   const codaId = useId();
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
@@ -233,7 +234,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // transform animations on ancestors would otherwise capture position:fixed and cage the
   // film inside the hub column.
   return createPortal(
-    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} onClick={manual ? undefined : advance}
+    <div ref={dialogRef} tabIndex={-1} className={`intro cutscene${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} aria-describedby={manual && !coda ? captionId : undefined} onClick={manual ? undefined : advance}
       onKeyDown={(e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
         if (e.key !== 'Tab') return;
@@ -242,7 +243,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last?.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }}>
-      <div className="a11y-only" aria-live="polite" aria-atomic="true">
+      <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !coda ? `Scene ${idx + 1} of ${def.scenes.length}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
       </div>
       <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
@@ -280,7 +281,10 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         </span>
         {!coda && (
           <div className="cutscene-controls" onClick={(e) => e.stopPropagation()}>
-          <button className="intro-skip" aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
+          <button className="intro-skip" aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => {
+            setCutsceneManualPref(!manual);
+            setManual(!manual);
+          }}>
             {manual ? 'Auto-play' : 'Read at my pace'}
           </button>
           {manual && (

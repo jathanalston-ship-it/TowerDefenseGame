@@ -915,3 +915,5 @@ Expedition receipt reading/focus (2026-11-11): removed the9-second auto-dismiss.
 Manual cinematic caption announcements: InitCutscene and CutscenePlayer expose scene progress and caption text via polite live regions in Read at my pace mode. Manual mode also offers Previous scene, which returns to earlier captions and preserves focus at the start of the film. See CUTSCENES.md.
 
 Manual cinematic reading lets players select captions without advancing. The focused memory Continue button describes the archived memory and permanent reward. See CUTSCENES.md.
+
+Opening and story cinematics share the browser-local cutsceneManualPref. Remembered manual mode attaches the initial caption as the dialog description. See CUTSCENES.md.

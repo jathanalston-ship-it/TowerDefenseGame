@@ -17,12 +17,12 @@ RULE) · `src/state/cutscenePremiere.test.ts` (the premiere lane).
 
 ### Reading and keyboard access
 
-The story player and opening cinematic offer **Read at my pace**: all text in the current scene is revealed,
+The story player and opening cinematic share a device preference for **Read at my pace**. Both remember the last selected pace across reloads. A new device starts with Auto-play. In manual mode all text in the current scene is revealed,
 and scenes and the final memory card wait for explicit advancement. Previous scene returns to an earlier caption. At the first scene the control stays focused and announces that it is unavailable. Auto-play restores
 the normal hold from its beginning. Clicking the caption or backdrop advances in Auto-play; in Read at my pace, captions can be selected and navigation uses the controls. **Next scene** is a native keyboard/touch button;
 Escape skips to the memory card, then closes it; in the opening film it exits through the existing descent (immediately under reduced motion). Focus stays within the film and returns
 to the launching control when it closes. The final memory card associates its title, subtitle and permanent reward with Continue, which receives focus when the card opens. Controls have 44px minimum height. Reduced-motion
-stills redraw after viewport changes so rotating a phone cannot clear the artwork. In manual mode, a polite live region announces the scene number and caption text on entry and on advancement. Auto-play clears the manual announcement, and the opening film includes its final title and triad.
+stills redraw after viewport changes so rotating a phone cannot clear the artwork. A film opened in manual mode describes its first scene when the dialog receives focus. A polite live region provides scene numbers and captions for subsequent changes. Auto-play clears the manual announcement, and the opening film includes its final title and triad.
 
 **Adding a `MEGA_BOSS_DEFS` entry REQUIRES adding its defeat cutscene** (`kind: 'mega'`,
 id `mega:<megaId>`) in `core/cutscenes.ts`. `cutscenes.test.ts` fails the build otherwise —

@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "In Read at my pace, you can tap or select captions without skipping ahead. The Memory Archive’s final Continue button also exposes the memory title and permanent reward to screen readers."
+      },
+      {
+        "cat": "UI",
+        "text": "Cinematics remember your playback pace on this device. Choose Read at my pace once and the next film opens in manual mode, with its first caption available to screen readers."
       }
     ]
   },

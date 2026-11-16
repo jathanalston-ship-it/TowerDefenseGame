@@ -64,6 +64,15 @@ export function setVaultSkipAnimsPref(on: boolean): void {
   }
 }
 
+// Cinematic reading pace is a device preference shared by the opening and story replays.
+const CUTSCENE_MANUAL_KEY = 'assimilate.cutscene.manual';
+export function cutsceneManualPref(): boolean {
+  try { return localStorage.getItem(CUTSCENE_MANUAL_KEY) === '1'; } catch { return false; }
+}
+export function setCutsceneManualPref(manual: boolean): void {
+  try { localStorage.setItem(CUTSCENE_MANUAL_KEY, manual ? '1' : '0'); } catch { /* storage unavailable */ }
+}
+
 // Per-mode difficulty — Campaign, Infinite and Boss Rush each remember their OWN choice,
 // independently (selection lives inside each mode, not the Main Menu). Default 'standard'
 // (identity/golden-safe).

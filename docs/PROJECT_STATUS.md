@@ -2171,3 +2171,7 @@ Both cinematics support going back to earlier captions in Read at my pace. Brows
 ## 2026-11-16 — manual cinematic interaction and accessible memory card
 
 Manual caption selection and backdrop taps preserve the active scene. The final Continue button describes the memory and permanent reward. Both actual-component browser probes and all 31 focused tests passed. Unsealed Clearer Cinematic Controls has three website and game notes.
+
+## 2026-11-16 — cinematic pace preference verified locally
+
+Both films remember the selected pace between openings and reloads. Manual first captions appear in the dialog description. Browser probe passed fresh defaults, cross-film preference sharing, reload persistence, dialog description, stable manual dwell and saved Auto-play. All 31 focused tests passed. Four website and game notes are prepared.

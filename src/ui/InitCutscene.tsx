@@ -22,14 +22,14 @@
 // Reduced motion (the OS request unless Settings → Motion overrides it) swaps the animation
 // for a hand-picked still per scene (gentle CSS fades only) and skips the dive.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { audio } from '../audio/sound';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
 import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
-import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
+import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import { markIntroSeen, setIntroPlaying } from './introState';
 import './InitCutscene.css';
 
@@ -157,7 +157,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     return () => { off(); mq?.removeEventListener('change', update); };
   }, []);
   const [idx, setIdx] = useState(0);
-  const [manual, setManual] = useState(false);
+  const [manual, setManual] = useState(cutsceneManualPref);
+  const captionId = useId();
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -392,8 +393,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     ? [WORDMARK, scene.eyebrow].filter(Boolean).join('. ')
     : [scene.eyebrow, ...scene.lines.map((line) => line.text)].filter(Boolean).join('. ');
   return (
-    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={manual ? undefined : advance}>
-      <div className="a11y-only" aria-live="polite" aria-atomic="true">
+    <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" aria-describedby={manual && !diving ? captionId : undefined} onKeyDown={onKeyDown} onClick={manual ? undefined : advance}>
+      <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !diving ? `Scene ${idx + 1} of ${SCENES.length}. ${sceneCaption}` : ''}
       </div>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
@@ -447,7 +448,10 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
           ))}
         </span>
         <div className="opening-controls" onClick={(e) => e.stopPropagation()}>
-        <button className="intro-skip" disabled={diving} aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
+        <button className="intro-skip" disabled={diving} aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => {
+          setCutsceneManualPref(!manual);
+          setManual(!manual);
+        }}>
           {manual ? 'Auto-play' : 'Read at my pace'}
         </button>
         {manual && (

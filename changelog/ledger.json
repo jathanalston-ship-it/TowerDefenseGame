@@ -1,6 +1,6 @@
 {
-  "lastSha": "8663b3a3b31fd407cfc96a00a9689d669b780087",
-  "commitsSinceDraft": 7,
+  "lastSha": "e444c6a1e84e070e03ec3b991da93800ced508ad",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4907,6 +4907,10 @@
         {
           "cat": "UI",
           "text": "In Read at my pace, you can tap or select captions without skipping ahead. The Memory Archive’s final Continue button also exposes the memory title and permanent reward to screen readers."
+        },
+        {
+          "cat": "UI",
+          "text": "Cinematics remember your playback pace on this device. Choose Read at my pace once and the next film opens in manual mode, with its first caption available to screen readers."
         }
       ]
     }
@@ -11381,6 +11385,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Let players return to earlier cutscene captions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e444c6a1e84e070e03ec3b991da93800ced508ad",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: make manual cinematic captions safe to select",
       "internal": true,
       "needsReview": false
     }
