@@ -5,6 +5,30 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.9",
+    "date": "2026-11-16",
+    "title": "Clearer Raid Openings",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "Audio",
+        "text": "A short descending sound marks automatic battle slowdowns. Overlapping slowdown triggers play one cue."
+      },
+      {
+        "cat": "UI",
+        "text": "Assistive technology can read boss health, stagger and weak-point meters. Boss phases and Cataclysm have distinct announcements, and visual warnings follow motion and flash settings."
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "The raid bar shows how long each timed weak point stays open. The timer shows held while the boss is toppled. Assistive technology also describes what rupturing the organ does."
+      },
+      {
+        "cat": "Visuals",
+        "text": "Open Mega Boss weak points have brighter dashed outlines with dark backing, so they are easier to spot in combat. The rings stay steady with reduced motion or flashes disabled."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16.8",
     "date": "2026-11-16",
     "title": "Battlefield Guidance",

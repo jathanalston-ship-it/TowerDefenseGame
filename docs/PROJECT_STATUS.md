@@ -2472,3 +2472,10 @@ v2026.11.16.8 is live at `9083fed5`. Actions run 43823070695 passed its
 exact-commit production check. The public game serves
 `/assets/play-C2y1Iskm.js`. Its homepage, seven News notes and revised
 Beginner Guide were verified on the custom domain around 07:21 UTC.
+
+## 2026-11-16 — Clearer Raid Openings underway
+
+The first checkpoint includes the automatic slowdown sound, accessible
+boss meters and warnings, timed weak-point windows and clearer raid
+markers. The Mega Boss Guide describes the new display. Four game and
+website notes are synchronized and 72 focused tests passed.

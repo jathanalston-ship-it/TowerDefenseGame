@@ -1,6 +1,6 @@
 {
-  "lastSha": "431e013b5e4bbbc91e29ddf171e82ee7e555e9f0",
-  "commitsSinceDraft": 7,
+  "lastSha": "e3c62f3ef56a95d8144e9f8cfc5c47072e7a5503",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -5183,6 +5183,30 @@
         {
           "cat": "UI",
           "text": "Hive Core warnings announce once when an attack begins. The readout shows incoming damage and gives a survival estimate when the damage is high enough. Warnings stay still when motion is reduced or flashes are disabled."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.9",
+      "date": "2026-11-16",
+      "title": "Clearer Raid Openings",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "Audio",
+          "text": "A short descending sound marks automatic battle slowdowns. Overlapping slowdown triggers play one cue."
+        },
+        {
+          "cat": "UI",
+          "text": "Assistive technology can read boss health, stagger and weak-point meters. Boss phases and Cataclysm have distinct announcements, and visual warnings follow motion and flash settings."
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "The raid bar shows how long each timed weak point stays open. The timer shows held while the boss is toppled. Assistive technology also describes what rupturing the organ does."
+        },
+        {
+          "cat": "Visuals",
+          "text": "Open Mega Boss weak points have brighter dashed outlines with dark backing, so they are easier to spot in combat. The rings stay steady with reduced motion or flashes disabled."
         }
       ]
     }
@@ -12505,6 +12529,62 @@
       "date": "2026-11-15",
       "cat": "Framework",
       "text": "Release: seal battlefield guidance",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9083fed50b861ddb6935e7cd1a3aa13c983fd194",
+      "date": "2026-11-16",
+      "cat": "Framework",
+      "text": "Release: verify battlefield guidance copy and build",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "651b3911375b40acdecf4e68ff72e2eb1d18f3fc",
+      "date": "2026-11-16",
+      "cat": "Developer Tools",
+      "text": "Record live battlefield guidance release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0dc94a57d3953ff06e896e3de58d1449ee411658",
+      "date": "2026-11-16",
+      "cat": "Audio",
+      "text": "Audio: signal automatic battle slowdown",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a5119bbf021cb06ca25cb48435419b112666365c",
+      "date": "2026-11-16",
+      "cat": "Bug Fixes",
+      "text": "Expose boss warnings and meters",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b826c820ff124439dcdc97bdf1dbffdc825922de",
+      "date": "2026-11-16",
+      "cat": "Mega Bosses",
+      "text": "Show Mega Boss weak-point windows",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "f8468c5a5a438b6d385ab1ee7d5210af7177be11",
+      "date": "2026-11-16",
+      "cat": "Visuals",
+      "text": "Visuals: clarify live raid weak-point markers",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "e3c62f3ef56a95d8144e9f8cfc5c47072e7a5503",
+      "date": "2026-11-16",
+      "cat": "Developer Tools",
+      "text": "Site: explain raid markers and organ timers",
       "internal": true,
       "needsReview": false
     }

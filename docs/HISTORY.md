@@ -961,3 +961,12 @@
 - `4718070` **[Bug Fixes]** Cinematics: hold autoplay while reading captions
 - `8d31e3e` **[Bug Fixes]** Ui: make Hive Core danger easier to read
 - `431e013` **[Framework]** Release: seal battlefield guidance _(internal)_
+## 2026-11-16
+
+- `9083fed` **[Framework]** Release: verify battlefield guidance copy and build _(internal)_
+- `651b391` **[Developer Tools]** Record live battlefield guidance release _(internal)_
+- `0dc94a5` **[Audio]** Audio: signal automatic battle slowdown
+- `a5119bb` **[Bug Fixes]** Expose boss warnings and meters
+- `b826c82` **[Mega Bosses]** Show Mega Boss weak-point windows
+- `f8468c5` **[Visuals]** Visuals: clarify live raid weak-point markers
+- `e3c62f3` **[Developer Tools]** Site: explain raid markers and organ timers _(internal)_
