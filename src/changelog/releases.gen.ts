@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Read at my pace now makes the current scene number and captions available for screen-reader announcements in the opening cinematic and Memory Archive cutscenes. Next scene keeps keyboard focus as you read."
+      },
+      {
+        "cat": "UI",
+        "text": "Use Previous scene in Read at my pace to go back and reread a caption in the opening cinematic or Memory Archive replay."
       }
     ]
   },

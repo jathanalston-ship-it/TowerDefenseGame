@@ -450,6 +450,11 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         <button className="intro-skip" disabled={diving} aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
           {manual ? 'Auto-play' : 'Read at my pace'}
         </button>
+        {manual && (
+          <button className="intro-skip" disabled={diving} aria-disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
+            ‹ Previous scene
+          </button>
+        )}
         {scene.id !== 'title' && <button className="intro-skip" disabled={diving} onClick={advance}>Next scene ▸</button>}
         <button
           className="intro-skip"

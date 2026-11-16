@@ -5514,6 +5514,7 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
   border: 1px solid var(--line);
   border-radius: var(--r-md);
 }
+.intro-skip[aria-disabled="true"] { opacity: 0.5; cursor: default; }
 /* Multi-line staged copy: each line rides its own animation-delay (the film's beat sheet). */
 .intro-text.is-em { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 0.02em; }
 .intro-text + .intro-text { margin-top: 10px; }

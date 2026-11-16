@@ -282,6 +282,11 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
           <button className="intro-skip" aria-label="Read at my pace" aria-pressed={manual} title="Show all scene text and advance only when you choose" onClick={() => setManual(!manual)}>
             {manual ? 'Auto-play' : 'Read at my pace'}
           </button>
+          {manual && (
+            <button className="intro-skip" aria-disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
+              ‹ Previous scene
+            </button>
+          )}
           <button className="intro-skip" onClick={advance}>Next scene ▸</button>
           <button className="intro-skip" onClick={(e) => { e.stopPropagation(); toCoda(); }}>
             Skip

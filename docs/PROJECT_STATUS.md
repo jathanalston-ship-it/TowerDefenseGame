@@ -2163,3 +2163,7 @@ Clearer Affix Controls v2026.11.16 is live. Commit f89a9f889783e867a4a8c0c829071
 ## 2026-11-16 — manual cutscene announcements verified locally
 
 The opening film and story replays expose manual captions, scene progress and the opening title to assistive technology while keeping keyboard controls focused. Both phone browser probes passed. 27 focused tests and 4 site sync tests passed. Unsealed v2026.11.16.2 has one game and website note. Typecheck session 95171 passed.
+
+## 2026-11-16 — previous scene in manual cinematics
+
+Both cinematics support going back to earlier captions in Read at my pace. Browser probes passed backward and forward navigation, focus retention, first-scene guarding and 44px controls at 320x568 and 844x390. The 31 focused tests passed. The next unsealed release has two prepared website and game notes.

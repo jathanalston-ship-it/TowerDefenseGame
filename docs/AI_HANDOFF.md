@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 01:22 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 134b012d
+- **Generated:** 2026-11-16 01:26 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 1b20ea70
 
 ## Summary of work completed
 
-Production v2026.11.16 Clearer Affix Controls verified on the public domain, including both website notes and the exact build asset. The next unsealed release v2026.11.16.2 Accessible Cutscene Captions includes a browser-verified manual caption announcement for both cinematics.
+Production v2026.11.16 Clearer Affix Controls remains verified. Unsealed v2026.11.16.2 Accessible Cutscene Captions now has two website and in-game notes covering manual caption announcements and Previous scene.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/CutscenePlayer.tsx`, `src/ui/InitCutscene.tsx`
+- Source (4): `src/changelog/releases.gen.ts`, `src/index.css`, `src/ui/CutscenePlayer.tsx`, `src/ui/InitCutscene.tsx`
 - Tests (0): —
 - Docs (5): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
@@ -26,15 +26,15 @@ Production v2026.11.16 Clearer Affix Controls verified on the public domain, inc
 
 ## Power Score changes
 
-None. Presentation code only.
+None. Cutscene navigation is presentation only.
 
 ## UI changes
 
-Stable polite live regions provide scene number and caption text during Read at my pace. The opening title exposes the wordmark and triad. Keyboard Next keeps focus on the control. Both actual-component Chrome probes passed at phone widths, including manual entry, advancement and auto-play clearing. The probes verify DOM announcements and focus, not synthesized screen reader output. 27 focused tests and four website sync tests passed.
+Read at my pace offers Previous scene in the opening and Memory Archive cinematics. The control retains focus and exposes its unavailable state at the first scene. Real Chrome probes passed both directions, caption restoration, manual first-scene guard and control sizes at 320x568 and 844x390. The probes verify DOM live region updates and focus. Actual spoken screen-reader output remains unverified. All 31 focused tests passed.
 
 ## Documentation changes
 
-CUTSCENES and PROJECT_MANIFEST record the manual reading behavior. One next-release note is generated for the game and website. Film timing, reward and renderer documentation need no further changes.
+CUTSCENES and PROJECT_MANIFEST describe the controls. Website and in-game notes generated, and site sync tests passed.
 
 ## Save changes
 
@@ -42,7 +42,7 @@ None — save layer untouched.
 
 ## Known edge cases
 
-The opening film title has a wordmark and triad rather than ordinary caption lines. Preserve both untracked devlog drafts.
+The opening title moves focus to Descend. Previous scene stays available from the title in manual mode. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
@@ -50,8 +50,8 @@ Chrome mobile gate requires the local executable and parent chrome-probe-compat.
 
 ## Recommended next tasks
 
-Typecheck session 95171 passed. Continue improvements for the next release around 02:21 UTC. Seal, regenerate, run the full validator, and verify public pages after deployment.
+Continue improvements toward the next deployment around 02:21 UTC. Reserve time for the production validation gate. Seal, regenerate, validate, push production and confirm the public asset plus all website notes.
 
 ## Future expansion hooks
 
-Dev server session 34078 on 5174. Parent probes cutscene-caption-announcement-check.cjs and intro-caption-announcement-check.cjs. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.
+Vite session 34078 on port 5174. Parent browser probes cutscene-previous-scene-check.cjs and intro-previous-scene-check.cjs. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.
