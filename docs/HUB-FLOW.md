@@ -104,6 +104,9 @@ causes real back-and-forth.)
 | Live run (the tutorial included) | opens the **Pause sheet** — never exits (`runBus.pause` → GameView) | the run's own hotkeys |
 | Deploy / Results / roulette / arena match | held | — |
 
+The Hub's edge swipe follows the same layer order. It gives the open dialog first use of
+the gesture, including the Memory Archive's replay and final card.
+
 **Mechanism:** ONE guard history entry with the SAME URL sits above the app's entry while Back
 has an in-game meaning (`wantsGuard`); Back consumes it → `popstate` → act (`backStep`) →
 re-arm. Same URL ⇒ `?replay`/`?daily`/`?checkout`/`?session_id` deep links, the PWA

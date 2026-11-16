@@ -84,7 +84,7 @@ import { lazyNamed } from './lazyNamed';
 import { ScreenFallback } from './components/ScreenFallback';
 import { ScreenBoundary } from './components/ScreenBoundary';
 import { HubScreen } from './components/AdviceLink';
-import { backPhase, hasOpenLayer, modalOnScreen, registerHubBack, syncBackGuard } from './browserBack';
+import { backPhase, dismissTop, hasOpenLayer, modalOnScreen, registerHubBack, syncBackGuard } from './browserBack';
 
 /** The lazily-split hub screens by nav key — the idle prefetch warms them through the SAME
  *  lazyNamed thunks the render uses (static/always-booted screens are simply absent). */
@@ -466,7 +466,10 @@ export function Hub({
     swipeRef.current = null;
     if (!s || !s.edge) return;
     const t = e.changedTouches[0];
-    if (t.clientX - s.x > 70 && Math.abs(t.clientY - s.y) < 48) goBack();
+    if (t.clientX - s.x <= 70 || Math.abs(t.clientY - s.y) >= 48) return;
+    // A portaled dialog's touch events still bubble through the Hub's React tree.
+    if (backPhase() !== 'menu' || dismissTop() || modalOnScreen()) return;
+    goBack();
   };
 
   // Portrait tab bar: HOME jumps straight to the Command Center; the rest open their index page.
