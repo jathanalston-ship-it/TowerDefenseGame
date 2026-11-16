@@ -2389,3 +2389,9 @@ and the updated Tower and Hero Guides. First-session probe 48188 passed the
 full fresh-account loop with zero errors, zero dialogs after the first run,
 and first deployment at 8.3 seconds. The Windows preview launch now uses a
 native filesystem path.
+
+## 2026-11-16 — Keyboard Battlefield Controls live
+
+Production deploy f495ca8f passed Actions run 43808933401 and public exact-commit
+verification. The public domain serves v2026.11.16.6, game play-D9UbQ_W5.js,
+all ten News notes and both updated keyboard guides.
