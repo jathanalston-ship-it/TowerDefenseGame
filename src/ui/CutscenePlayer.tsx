@@ -6,7 +6,7 @@
 // so the collectible moment always lands. Tap advances; Skip jumps to the coda; reduced
 // motion shows one hand-picked still per scene (CSS fades carry the copy).
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
 import { scheduleCinematicBeats } from '../audio/cinematicBeats';
@@ -16,6 +16,7 @@ import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cut
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import { useDismiss } from './browserBack';
+import { useFilmCaptionScroll } from './useFilmCaptionScroll';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -42,7 +43,6 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filmRef = useRef({
@@ -54,9 +54,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   codaRef.current = coda;
   const scene = def.scenes[idx];
   const sceneProgress = `Scene ${idx + 1} of ${def.scenes.length}`;
-  useLayoutEffect(() => {
-    if (stageRef.current) stageRef.current.scrollTop = 0;
-  }, [idx, coda]);
+  const { stageRef, scrollable } = useFilmCaptionScroll(coda ? 'final' : `scene:${scene.id}`);
 
   useEffect(() => {
     const update = (): void => {
@@ -252,15 +250,18 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
           if (!e.repeat) requestBack();
         }
         if (e.key !== 'Tab') return;
-        const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
-        const first = buttons[0], last = buttons[buttons.length - 1];
+        const controls = e.currentTarget.querySelectorAll<HTMLElement>('.intro-stage[tabindex="0"], button:not(:disabled)');
+        const first = controls[0], last = controls[controls.length - 1];
         if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last?.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }}>
       <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !coda ? `${sceneProgress}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
       </div>
-      <div ref={stageRef} className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
+      <div ref={stageRef} className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}
+        tabIndex={scrollable ? 0 : -1}
+        role={scrollable ? 'region' : undefined}
+        aria-label={scrollable ? (coda ? 'Final card' : 'Scene captions') : undefined}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
         <div className="intro-bar intro-bar-top" aria-hidden />

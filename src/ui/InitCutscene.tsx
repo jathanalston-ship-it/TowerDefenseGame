@@ -22,7 +22,7 @@
 // Reduced motion (the OS request unless Settings → Motion overrides it) swaps the animation
 // for a hand-picked still per scene (gentle CSS fades only) and skips the dive.
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { audio } from '../audio/sound';
 import { scheduleCinematicBeats } from '../audio/cinematicBeats';
@@ -32,6 +32,7 @@ import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import { markIntroSeen, setIntroPlaying } from './introState';
+import { useFilmCaptionScroll } from './useFilmCaptionScroll';
 import './InitCutscene.css';
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
@@ -162,7 +163,6 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // The cinematographer's clocks: current scene start, what it dissolved from, fired beats, dive start.
@@ -175,9 +175,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const idxRef = useRef(0);
   idxRef.current = idx;
   const scene = SCENES[idx];
-  useLayoutEffect(() => {
-    if (stageRef.current) stageRef.current.scrollTop = 0;
-  }, [idx]);
+  const { stageRef, scrollable } = useFilmCaptionScroll(`${phase}:${scene.id}`);
 
   useEffect(() => {
     const update = (): void => {
@@ -209,8 +207,8 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
     if (e.key === 'Escape' && phase !== 'dive') { e.preventDefault(); e.stopPropagation(); finish(); }
     if (e.key !== 'Tab') return;
-    const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
-    const first = buttons[0], last = buttons[buttons.length - 1];
+    const controls = e.currentTarget.querySelectorAll<HTMLElement>('.intro-stage[tabindex="0"], button:not(:disabled)');
+    const first = controls[0], last = controls[controls.length - 1];
     if (!first) { e.preventDefault(); return; }
     if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
@@ -396,7 +394,10 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !diving ? `${sceneProgress}. ${sceneCaption}` : ''}
       </div>
-      <div ref={stageRef} className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
+      <div ref={stageRef} className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}
+        tabIndex={scrollable ? 0 : -1}
+        role={scrollable ? 'region' : undefined}
+        aria-label={scrollable ? 'Scene captions' : undefined}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
         <div className="intro-bar intro-bar-top" aria-hidden />

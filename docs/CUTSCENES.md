@@ -186,3 +186,7 @@ that remains distinct over the artwork.
 
 Both film players reset caption scroll before painting a newly selected scene. This
 keeps the opening lines in view when text overflows at short heights or large sizes.
+
+When the caption is taller than its pane, Tab can reach the named caption region.
+Page Up, Page Down and the standard scrolling keys work while it has focus, which
+stays inside the film's Tab loop. The extra stop drops away when the text fits.
