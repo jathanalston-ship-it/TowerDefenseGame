@@ -7,7 +7,7 @@
 // inspect it. Pure presentation: the rewards are already decided + applied upstream. Each landing
 // category plucks the climbing `reveal` cue; a stat's own `cue` (the level-up) follows its row.
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useCountUp } from './components/useCountUp';
 import type { CSSProperties, ReactNode } from 'react';
 import { ACCOUNT_CURRENCY } from '../core/currencies';
@@ -58,7 +58,8 @@ export interface AchievementItem {
 function StatRow({ s, instant }: { s: RewardStat; instant: boolean }): JSX.Element {
   const base = s.from == null ? 0 : Math.min(s.from, s.value); // counts the GAIN on top of where it was
   const n = base + useCountUp(s.value - base, { ms: COUNT_MS, instant });
-  const text = s.format ? s.format(n) : n.toLocaleString();
+  const format = s.format ?? ((value: number) => value.toLocaleString());
+  const text = format(n);
   const fill = s.bar == null ? null : s.value > 0 ? (n / s.value) * s.bar : s.bar;
   return (
     <div className={`rr-stat${s.celebrate ? ' is-celebrate' : ''}`}>
@@ -71,7 +72,8 @@ function StatRow({ s, instant }: { s: RewardStat; instant: boolean }): JSX.Eleme
           <span className="rr-bar-fill" style={{ width: `${Math.round(fill * 100)}%`, background: s.accent }} />
         </span>
       )}
-      <span className="rr-stat-value" style={s.accent ? { color: s.accent } : undefined}>
+      <span className="a11y-only">{format(s.value)}</span>
+      <span className="rr-stat-value" aria-hidden style={s.accent ? { color: s.accent } : undefined}>
         {text}
         {s.icon}
       </span>
@@ -84,32 +86,40 @@ function CategoryView({
   expanded,
   revealed,
   instant,
+  onInspect,
   onToggle,
 }: {
   cat: RewardCategory;
   expanded: boolean;
   revealed: boolean;
   instant: boolean;
+  onInspect: () => void;
   onToggle: () => void;
 }): JSX.Element {
+  const id = useId();
+  const titleId = `${id}-title`;
+  const summaryId = `${id}-summary`;
+  const bodyId = `${id}-body`;
   return (
     <div className={`rr-cat${expanded ? ' is-open' : ''}${revealed ? ' is-in' : ''}`}>
-      <button type="button" className="rr-cat-head" onClick={(e) => { e.stopPropagation(); onToggle(); }} aria-expanded={expanded}>
-        <span className="rr-cat-icon" style={cat.accent ? { color: cat.accent } : undefined}>{cat.icon}</span>
-        <span className="rr-cat-title">{cat.title}</span>
-        <span className="rr-cat-summary">{cat.summary}</span>
+      <button type="button" className="rr-cat-head" onClick={(e) => { e.stopPropagation(); onToggle(); }}
+        onFocus={(event) => { if (expanded && event.currentTarget.matches(':focus-visible')) onInspect(); }}
+        aria-expanded={expanded} aria-controls={bodyId} aria-labelledby={titleId} aria-describedby={summaryId}>
+        <span className="rr-cat-icon" aria-hidden style={cat.accent ? { color: cat.accent } : undefined}>{cat.icon}</span>
+        <span id={titleId} className="rr-cat-title">{cat.title}</span>
+        <span id={summaryId} className="rr-cat-summary">{cat.summary}</span>
         <span className="rr-cat-chev" aria-hidden>{expanded ? '▾' : '▸'}</span>
       </button>
-      {expanded && (
-        <div className="rr-cat-body">
-          <div className="rr-stats">
-            {cat.stats.map((s) => (
-              <StatRow key={s.id} s={s} instant={instant} />
-            ))}
-          </div>
-          {cat.extra}
-        </div>
-      )}
+      <div id={bodyId} className="rr-cat-body" role="region" aria-labelledby={titleId} hidden={!expanded}>
+        {expanded && (
+          <>
+            <div className="rr-stats">
+              {cat.stats.map((s) => <StatRow key={s.id} s={s} instant={instant} />)}
+            </div>
+            {cat.extra}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -263,12 +273,11 @@ export function RewardReveal({
   const openId = manual === null ? autoOpen : manual === '' ? null : manual;
 
   return (
-    <div className={`rr-capsule${sequenceDone ? ' is-done' : ''}`} onClick={nudge}>
-      <div className="rr-cinematic">{title}</div>
-      {banner}
 
+    <div className={`rr-capsule${sequenceDone ? ' is-done' : ''}`} data-instant={instant || undefined} onClick={nudge}>
+      <div className="rr-cinematic">{title}</div>
       {!sequenceDone && (
-        <button type="button" className="rr-skip"
+        <button type="button" className="rr-skip" aria-label="Skip reward reveal"
           onFocus={() => { skipFocused.current = true; }}
           onBlur={() => { skipFocused.current = false; }}
           onClick={(e) => { e.stopPropagation(); revealAll(); }}>
@@ -276,6 +285,7 @@ export function RewardReveal({
         </button>
       )}
 
+      {banner}
       <div className="rr-cats">
         {categories.slice(0, Math.max(revealed, reduced ? categories.length : 0)).map((cat) => {
           const isOpen = openId === cat.id;
@@ -286,6 +296,7 @@ export function RewardReveal({
               expanded={isOpen}
               revealed
               instant={instant}
+              onInspect={() => setManual(cat.id)}
               onToggle={() => { setManual(isOpen ? '' : cat.id); }}
             />
           );

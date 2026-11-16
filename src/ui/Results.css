@@ -247,7 +247,8 @@
 .rr-title.lose .rr-headline { color: var(--danger); text-shadow: 0 0 24px rgba(255, 93, 115, 0.35); }
 
 .rr-skip {
-  position: absolute; top: 6px; right: 6px; z-index: 2;
+  align-self: flex-end;
+  min-height: 44px;
   font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
   padding: 5px 12px; color: var(--muted); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line);
 }
@@ -273,6 +274,8 @@
 .rr-cat-title { font-size: 14px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 
 .rr-cat.is-open .rr-cat-summary { display: none; }
+.rr-capsule[data-instant] :is(.rr-cat, .rr-cat-body, .rr-stat, .rr-achv, .rr-cat-body .ve-row) { animation: none; }
+.rr-capsule[data-instant] .rr-bar-fill { transition: none; }
 
 .rr-stats { display: flex; flex-direction: column; gap: 7px; }
 
@@ -410,7 +413,6 @@
 .rr-btn.rr-continue { min-width: 0; }
 
 @media (max-width: 480px) {
-  .rr-skip { top: 0; padding: 3px 10px; } /* clear of the verdict headline on a phone-width capsule */
   .rr-actions { gap: 8px; }
   .rr-next, .rr-continue { min-width: 0; flex: 1 1 auto; }
 }

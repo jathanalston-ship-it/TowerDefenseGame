@@ -209,3 +209,9 @@ Reward category headers only expand/collapse details; their clicks do not nudge 
 Wallet rolling counters retain their last rendered integer as the next animation start. Overlapping rewards/spending therefore never jump to an unrendered target. Reduced-motion/same-value snaps also clear the gaining state; currency accounting and the accessible true balance are unchanged.
 
 The shared useCountUp hook follows live device reduced-motion requests even when callers do not pass instant. Completed totals remain settled when motion is restored; zero-duration and nonpositive targets snap safely.
+
+Each reward category has a stable accessible name, a summary description and a
+linked detail region. Keyboard focus on the open category keeps it open while
+the remaining rewards arrive. Screen readers get the final formatted stat
+values during visual count-up. Skip sits in the layout with a 44px target and
+settles the reveal immediately. Its existing focus handoff remains in effect.
