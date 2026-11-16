@@ -241,6 +241,9 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) { e.preventDefault(); last?.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }}>
+      <div className="a11y-only" aria-live="polite" aria-atomic="true">
+        {manual && !coda ? `Scene ${idx + 1} of ${def.scenes.length}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
+      </div>
       <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />

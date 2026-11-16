@@ -22,7 +22,7 @@ and scenes and the final memory card wait for explicit advancement. Auto-play re
 the normal hold from its beginning. **Next scene** is a native keyboard/touch button;
 Escape skips to the memory card, then closes it; in the opening film it exits through the existing descent (immediately under reduced motion). Focus stays within the film and returns
 to the launching control when it closes. Controls have 44px minimum height. Reduced-motion
-stills redraw after viewport changes so rotating a phone cannot clear the artwork.
+stills redraw after viewport changes so rotating a phone cannot clear the artwork. In manual mode, a polite live region announces the scene number and caption text on entry and on advancement. Auto-play clears the manual announcement, and the opening film includes its final title and triad.
 
 **Adding a `MEGA_BOSS_DEFS` entry REQUIRES adding its defeat cutscene** (`kind: 'mega'`,
 id `mega:<megaId>`) in `core/cutscenes.ts`. `cutscenes.test.ts` fails the build otherwise —

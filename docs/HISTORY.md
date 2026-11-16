@@ -849,3 +849,7 @@
 - `59b261e` **[Gameplay]** Publish clearer equipment details _(internal)_
 - `34bb252` **[Gameplay]** Record verified equipment deployment _(internal)_
 - `bc1b006` **[UI]** Ui: explain affix randomize costs and availability _(internal)_
+## 2026-11-15
+
+- `f89a9f8` **[Gameplay]** Release: publish clearer affix controls _(internal)_
+- `134b012` **[Framework]** Docs: record verified affix controls deployment _(internal)_

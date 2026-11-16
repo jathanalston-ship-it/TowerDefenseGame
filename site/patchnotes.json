@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-16",
+    "title": "Accessible Cutscene Captions",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Read at my pace now makes the current scene number and captions available for screen-reader announcements in the opening cinematic and Memory Archive cutscenes. Next scene keeps keyboard focus as you read."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-16",
     "title": "Clearer Affix Controls",
     "categories": [
       "UI"

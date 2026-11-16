@@ -4,37 +4,37 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 00:49 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** bc1b006c
+- **Generated:** 2026-11-16 01:22 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 134b012d
 
 ## Summary of work completed
 
-The sealed v2026.11.16 Clearer Affix Controls release combines named randomize costs and shortages with shared effect descriptions for rolled affixes. Both notes are generated for the website and the in-game briefing. Production branch was verified at 59b261e56d48bc93e2f36006bae516be9bcc4f8b before release.
+Production v2026.11.16 Clearer Affix Controls verified on the public domain, including both website notes and the exact build asset. The next unsealed release v2026.11.16.2 Accessible Cutscene Captions includes a browser-verified manual caption announcement for both cinematics.
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/core/effectLanguage.ts`, `src/core/equipment.ts`, `src/ui/ItemDetails.tsx`
-- Tests (1): `src/core/equipment.test.ts`
-- Docs (5): `docs/EQUIPMENT.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/CutscenePlayer.tsx`, `src/ui/InitCutscene.tsx`
+- Tests (0): —
+- Docs (5): `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **equipment** — `src/core/equipment.ts`, `src/ui/ItemDetails.tsx`
-- **gene-cards** — `src/core/effectLanguage.ts`
-- Consumer ring (verify, unchanged): crafting, doctrines, engine
+- **cutscenes** — `src/ui/CutscenePlayer.tsx`
+- **onboarding** — `src/ui/InitCutscene.tsx`
+- Consumer ring (verify, unchanged): progression-gating, quests
 
 ## Power Score changes
 
-Equipment retains its existing scaling and aggregation. Focused equipment, combat behavior and shared effect-language tests passed (33).
+None. Presentation code only.
 
 ## UI changes
 
-Item Details describes rolled affix effects through the shared vocabulary, with up to two decimal places for percentages and scaled counts. The previous checkpoint verified named randomize costs, lock and shortage guidance, and the exact purchase debit in a 320px browser.
+Stable polite live regions provide scene number and caption text during Read at my pace. The opening title exposes the wordmark and triad. Keyboard Next keeps focus on the control. Both actual-component Chrome probes passed at phone widths, including manual entry, advancement and auto-play clearing. The probes verify DOM announcements and focus, not synthesized screen reader output. 27 focused tests and four website sync tests passed.
 
 ## Documentation changes
 
-EQUIPMENT and PROJECT_MANIFEST explain affix descriptions. Website notes and in-game notes come from the same sealed ledger. Other registry docs, Help and tutorials need no changes for this wording update.
+CUTSCENES and PROJECT_MANIFEST record the manual reading behavior. One next-release note is generated for the game and website. Film timing, reward and renderer documentation need no further changes.
 
 ## Save changes
 
@@ -42,16 +42,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Use the exact transformed ItemDetails meta import in browser fixtures to share save state with the screen. Preserve the two untracked devlog drafts.
+The opening film title has a wordmark and triad rather than ordinary caption lines. Preserve both untracked devlog drafts.
 
 ## Remaining technical debt
 
-Local Chrome needs MOBILECHECK_CHROMIUM and the parent chrome-probe-compat.cjs preload for the mobile gate.
+Chrome mobile gate requires the local executable and parent chrome-probe-compat.cjs preload.
 
 ## Recommended next tasks
 
-The sealed v2026.11.16 Clearer Affix Controls release passed release validation. The initial audit passed production build, mobile layout and documentation. The Threat assertion was corrected to compare the complete Power outcomes of matched runs. Final-tree typecheck passed and all 3,194 tests across 354 files passed in the full rerun. Production source and assets match the mobile-tested build /assets/play-BC-EWbxo.js. Both website and in-game notes are generated. Clearer Affix Controls v2026.11.16 is live. Commit f89a9f889783e867a4a8c0c829071a5666356235 passed GitHub Actions run 43785632332 and production job 133032503684, including the exact commit check. The normal public play URL serves the tested asset /assets/play-BC-EWbxo.js. Public homepage and both news notes verified. The initial public asset lag cleared on recheck. Next work is manual cutscene caption announcements. The browser fixture cutscene-caption-announcement-check.cjs is prepared.
+Typecheck session 95171 passed. Continue improvements for the next release around 02:21 UTC. Seal, regenerate, run the full validator, and verify public pages after deployment.
 
 ## Future expansion hooks
 
-Production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public game, homepage, news and asset verifier is ../verify-current-release.ps1. Keep a website note with each release.
+Dev server session 34078 on 5174. Parent probes cutscene-caption-announcement-check.cjs and intro-caption-announcement-check.cjs. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.

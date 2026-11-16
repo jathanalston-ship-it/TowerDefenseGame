@@ -2159,3 +2159,7 @@ The sealed v2026.11.16 Clearer Affix Controls release passed release validation.
 ## 2026-11-16 — production verified
 
 Clearer Affix Controls v2026.11.16 is live. Commit f89a9f889783e867a4a8c0c829071a5666356235 passed GitHub Actions run 43785632332 and production job 133032503684, including the exact commit check. The normal public play URL serves the tested asset /assets/play-BC-EWbxo.js. Public homepage and both news notes verified. The initial public asset lag cleared on recheck.
+
+## 2026-11-16 — manual cutscene announcements verified locally
+
+The opening film and story replays expose manual captions, scene progress and the opening title to assistive technology while keeping keyboard controls focused. Both phone browser probes passed. 27 focused tests and 4 site sync tests passed. Unsealed v2026.11.16.2 has one game and website note. Typecheck session 95171 passed.

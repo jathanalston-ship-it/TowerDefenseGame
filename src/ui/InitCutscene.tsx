@@ -388,8 +388,14 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   }
 
   const diving = phase === 'dive';
+  const sceneCaption = scene.id === 'title'
+    ? [WORDMARK, scene.eyebrow].filter(Boolean).join('. ')
+    : [scene.eyebrow, ...scene.lines.map((line) => line.text)].filter(Boolean).join('. ');
   return (
     <div ref={dialogRef} tabIndex={-1} className={`intro opening-film${reducedMotion ? ' is-still' : ''}${manual ? ' is-manual' : ''}${hidden ? ' opening-suspended' : ''}`} role="dialog" aria-modal="true" aria-label="Initialization sequence" onKeyDown={onKeyDown} onClick={advance}>
+      <div className="a11y-only" aria-live="polite" aria-atomic="true">
+        {manual && !diving ? `Scene ${idx + 1} of ${SCENES.length}. ${sceneCaption}` : ''}
+      </div>
       <div className={`intro-stage is-${scene.visual} is-copy-${scene.copyAt ?? 'center'} ${diving ? 'is-diving' : ''}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />

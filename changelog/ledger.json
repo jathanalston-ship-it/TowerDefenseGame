@@ -1,6 +1,6 @@
 {
-  "lastSha": "bc1b006cafbcdb88e30822caaca3915f7c43bd22",
-  "commitsSinceDraft": 3,
+  "lastSha": "134b012d018907abb17e17bd062bc56858e7c659",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4887,6 +4887,18 @@
         {
           "cat": "UI",
           "text": "Item Details now describes lifesteal, thorns and aura bonuses as percentages. Affix descriptions use the same vocabulary as the Equipment Codex and show small differences between tiers."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.2",
+      "date": "2026-11-16",
+      "title": "Accessible Cutscene Captions",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Read at my pace now makes the current scene number and captions available for screen-reader announcements in the opening cinematic and Memory Archive cutscenes. Next scene keeps keyboard focus as you read."
         }
       ]
     }
@@ -11329,6 +11341,22 @@
       "date": "2026-11-10",
       "cat": "UI",
       "text": "Ui: explain affix randomize costs and availability",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "f89a9f889783e867a4a8c0c829071a5666356235",
+      "date": "2026-11-15",
+      "cat": "Gameplay",
+      "text": "Release: publish clearer affix controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "134b012d018907abb17e17bd062bc56858e7c659",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: record verified affix controls deployment",
       "internal": true,
       "needsReview": false
     }

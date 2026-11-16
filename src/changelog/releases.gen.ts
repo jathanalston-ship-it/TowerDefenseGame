@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.2",
+    "date": "2026-11-16",
+    "title": "Accessible Cutscene Captions",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Read at my pace now makes the current scene number and captions available for screen-reader announcements in the opening cinematic and Memory Archive cutscenes. Next scene keeps keyboard focus as you read."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16",
     "date": "2026-11-16",
     "title": "Clearer Affix Controls",
