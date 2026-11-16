@@ -814,7 +814,7 @@ function drawDot(ctx: Ctx, x: number, y: number, r: number, style: string): void
 }
 
 // ── Weak-point organs (over enemies) ─────────────────────────────────────────
-export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
+export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number, raidMarkers = true): void {
   const glo = hexRgb(v.palette.glow);
   const body = hexRgb(v.palette.body);
   const collapse = collapseOf(v);
@@ -915,17 +915,29 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       const frac = Math.max(0, wp.hp / wp.maxHp);
       const urgent = frac < MEGA_TELL.urgentFrac;
       const per = urgent ? 0.35 : 0.9;
-      const ringR = 31 + pulse(now, per) * 5;
-      ctx.strokeStyle = urgent ? rgba('255, 120, 90', 0.6 + pulse(now, per) * 0.35) : rgba(glo, 0.5 + pulse(now, per) * 0.3);
-      ctx.lineWidth = 1.6;
-      ctx.setLineDash([6, 5]);
+      const stillMarker = raidMarkers && (viewFeel.motion === 0 || !viewFeel.flashes);
+      const beat = stillMarker ? 0 : pulse(now, per);
+      const ringR = 31 + beat * 5;
+      const start = stillMarker ? 0 : now % TAU;
+      ctx.setLineDash(raidMarkers ? [7, 5] : [6, 5]);
       ctx.beginPath();
-      ctx.arc(ox, oy, ringR, now % TAU, (now % TAU) + TAU);
+      ctx.arc(ox, oy, ringR, start, start + TAU);
+      if (raidMarkers) {
+        // A dark backing keeps the light dashes visible over the boss, particles and enemies.
+        ctx.strokeStyle = 'rgba(8, 11, 17, 0.95)';
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.strokeStyle = rgba(urgent ? '255, 179, 118' : '239, 245, 235', 0.88 + beat * 0.12);
+        ctx.lineWidth = 2.5;
+      } else {
+        ctx.strokeStyle = urgent ? rgba('255, 120, 90', 0.6 + beat * 0.35) : rgba(glo, 0.5 + beat * 0.3);
+        ctx.lineWidth = 1.6;
+      }
       ctx.stroke();
       ctx.setLineDash([]);
       // STAGGERED urgency: windows are frozen — every open organ burns gold, begging for it.
       if (v.staggered) {
-        ctx.strokeStyle = rgba('255, 210, 77', 0.45 + pulse(now, 0.3) * 0.4);
+        ctx.strokeStyle = rgba('255, 210, 77', stillMarker ? 0.85 : 0.45 + pulse(now, 0.3) * 0.4);
         ctx.lineWidth = 2.2;
         ctx.beginPath();
         ctx.arc(ox, oy, ringR + 6, 0, TAU);
@@ -947,7 +959,7 @@ export function drawMegaOrgans(ctx: Ctx, v: MegaView, now: number): void {
       ctx.beginPath();
       ctx.arc(ox, oy, 25, -Math.PI / 2, -Math.PI / 2 + TAU * frac);
       ctx.stroke();
-      if (wp.hitFlash > 0) glow(ctx, ox, oy, 29, `rgba(255,255,255,${Math.min(0.7, wp.hitFlash * 4)})`);
+      if (wp.hitFlash > 0 && (!raidMarkers || viewFeel.flashes)) glow(ctx, ox, oy, 29, `rgba(255,255,255,${Math.min(0.7, wp.hitFlash * 4)})`);
     }
   }
 
@@ -1368,7 +1380,7 @@ export function drawMegaPose(ctx: Ctx, defId: string, pose: MegaPose, now: numbe
   lastTele = false;
   castFlashT = -10;
   drawMegaBody(ctx, v, now);
-  drawMegaOrgans(ctx, v, now);
+  drawMegaOrgans(ctx, v, now, false);
   staggerEase = sStagger;
   lastTele = sTele;
   lastTeleKind = sKind;

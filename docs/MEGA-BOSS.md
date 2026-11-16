@@ -469,3 +469,8 @@ Each timed weak point shows its remaining simulation seconds in the raid bar.
 The time is marked held when the boss is toppled and the window stops counting
 down. Permanent weak points stay open until ruptured. The health meter's
 accessible description includes the window and the consequence of rupturing it.
+
+The live raid uses a light dashed ring with a dark backing around open weak
+points. Nearly ruptured organs use a warmer ring. The marker stays steady
+with reduced motion or disabled flashes. Story film poses keep their original
+art direction.
