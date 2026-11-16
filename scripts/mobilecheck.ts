@@ -131,6 +131,7 @@ async function main(): Promise<void> {
         if (await enterRunFromHome(page)) {
           violations.push(...(await audit(page, 'in-run', vp.name, touch)));
           violations.push(...(await phoneRunContract(page, vp.name, 'portrait')));
+          violations.push(...(await keyboardBoardContract(page, vp.name)));
         } else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
         if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
         await ctx.close();
@@ -156,6 +157,7 @@ async function main(): Promise<void> {
         violations.push(...(await audit(page, 'in-run', vp.name, touch)));
         if (profileOf(vp) === 'landscape') violations.push(...(await phoneRunContract(page, vp.name, 'landscape')));
         else violations.push(...(await runChromeContract(page, vp.name)));
+        violations.push(...(await keyboardBoardContract(page, vp.name)));
       } else violations.push({ screen: 'in-run', vp: vp.name, kind: 'unreachable', detail: 'could not enter a run from Home' });
       if (pageErrs.length) violations.push({ screen: '(any)', vp: vp.name, kind: 'pageerror', detail: pageErrs[0] });
       await ctx.close();
@@ -471,6 +473,25 @@ async function enterRunFromHome(page: import('playwright-core').Page): Promise<b
   return page.evaluate(() => !!document.querySelector('canvas.board'));
 }
 
+/** A hidden keyboard stop must become readable once a player actually focuses it. */
+async function keyboardBoardContract(page: import('playwright-core').Page, vp: string): Promise<Violation[]> {
+  const pads = page.locator('.board-pad-key');
+  if (await pads.getAttribute('tabindex', { timeout: 1000 }).catch(() => null) !== '0') return [];
+  await page.keyboard.press('b');
+  return pads.evaluate((el, vpName) => {
+    const r = el.getBoundingClientRect();
+    const issues: Violation[] = [];
+    if (document.activeElement !== el || !el.matches(':focus-visible') || r.height < 44 || r.width < 44) {
+      issues.push({ screen: 'in-run keyboard', vp: vpName, kind: 'keyboard-focus', detail: 'B did not expose the board control' });
+    }
+    if (r.left < -1 || r.right > window.innerWidth + 1 || r.top < -1 || r.bottom > window.innerHeight + 1
+      || el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2) {
+      issues.push({ screen: 'in-run keyboard', vp: vpName, kind: 'keyboard-clip', detail: 'the focused board control extends past its available space' });
+    }
+    return issues;
+  }, vp);
+}
+
 /** RUN CHROME (every profile, docs/RESPONSIVE-DESIGN.md §run): the in-run HUD pieces never
  *  overlap one another — HUD bar, run-controls strip (speed · Hive · Pause · ticker), wave
  *  briefing, boss bars, tower deck, hero pod, drawer toggles, side panels. */
@@ -575,6 +596,18 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string,
     const out: { screen: string; vp: string; kind: string; detail: string }[] = [];
     window.scrollTo(0, 0); // normalize probe state — focus-scroll during the walk skews rect math
     const doc = document.documentElement;
+    // Screen-reader text and the keyboard-only board stop are deliberately clipped. Ignore
+    // only completely clipped 1px boxes and their descendants, including outside this screen.
+    const clipped = new WeakSet<Element>();
+    for (const el of document.querySelectorAll<HTMLElement>('body *')) {
+      if (el.offsetWidth === 1 && el.offsetHeight === 1 && getComputedStyle(el).clipPath === 'inset(50%)') clipped.add(el);
+    }
+    const hasClippedAncestor = (el: Element): boolean => {
+      for (let ancestor: Element | null = el; ancestor; ancestor = ancestor.parentElement) {
+        if (clipped.has(ancestor)) return true;
+      }
+      return false;
+    };
     if (doc.scrollWidth > window.innerWidth + 2) {
       // Only VISIBLE geometry is a violation: closed drawers/tooltips keep layout via
       // the visibility pattern and body{overflow-x:hidden} already blocks panning.
@@ -590,7 +623,7 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string,
       };
       for (const el of document.querySelectorAll('body *')) {
         const cs = getComputedStyle(el);
-        if (cs.visibility === 'hidden' || cs.opacity === '0') continue;
+        if (cs.visibility === 'hidden' || cs.opacity === '0' || hasClippedAncestor(el)) continue;
         const r = el.getBoundingClientRect();
         if (r.right > worstRight + 2 && r.width > 40 && !contained(el)) { worstRight = r.right; worst = el; }
       }
@@ -599,7 +632,8 @@ function audit(page: import('playwright-core').Page, screen: string, vp: string,
         out.push({ screen, vp, kind: 'h-overflow', detail: `document ${doc.scrollWidth}px > viewport ${window.innerWidth}px — widest visible: <${w.tagName.toLowerCase()} class="${w.className}"> right=${Math.round(worstRight)}` });
       }
     }
-    const visible = (el: Element): boolean => ((el as HTMLElement).offsetParent !== null || el.tagName === 'CANVAS') && getComputedStyle(el).visibility !== 'hidden';
+    const visible = (el: Element): boolean => ((el as HTMLElement).offsetParent !== null || el.tagName === 'CANVAS')
+      && getComputedStyle(el).visibility !== 'hidden' && !hasClippedAncestor(el);
     for (const el of document.querySelectorAll('body *')) {
       if (!visible(el)) continue;
       const cs = getComputedStyle(el);
