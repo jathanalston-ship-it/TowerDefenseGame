@@ -725,7 +725,8 @@ monotonic; every numeric field covered.
 Hierarchy: name → procedural art + subject badge → effect lines (first = primary, larger)
 → synergy tag → quiet rarity. Detail expansion (exact values + "YOUR GENE STACK"
 before→after rows vs the run's drafted effects + Gene-stack Power diff + technical line):
-hover-dwell 550ms or hold Shift on desktop, long-press 450ms on touch (the release click
+the Exact values toggle opens labelled details on all cards. Hover-dwell 550ms or hold
+Shift on desktop, or long-press 450ms on touch (the release click
 is suppressed; the next tap dismisses before a pick can fire). Synergy chip ("Pairs with
 your X build ×n") appears only when ≥2 drafted cards share the category. Keyword bloom is
 a one-shot glow, `prefers-reduced-motion`-gated; short viewports drop the art.

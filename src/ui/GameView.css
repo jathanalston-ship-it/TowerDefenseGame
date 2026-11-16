@@ -1392,6 +1392,11 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 /* Auto Gene Selection countdown (DraftModal header). */
 .draft-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .draft-controls button { min-height: 44px; }
+.draft-controls button[aria-pressed="true"] {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}
 
 .draft-auto {
   display: flex;

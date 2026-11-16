@@ -100,7 +100,7 @@ function CardDetail({ o, chosen }: { o: CardOption; chosen?: CardOption[] }): JS
   const pAfter = effectsPower([...chosenFx, ...o.effects]);
   return (
     <span className="card-detail" role="note" aria-label={`${o.name} exact values`}>
-      <span className="card-detail-k">◆ EXACT VALUES</span>
+      <span className="card-detail-k">{o.name} · Exact values</span>
       {o.lines.map((l, i) => {
         const cat = EFFECT_CATEGORIES[l.cat];
         return (
@@ -212,6 +212,7 @@ export function DraftModal({
   const [hoverDetail, setHoverDetail] = useState<string | null>(null);
   const [heldDetail, setHeldDetail] = useState<string | null>(null);
   const [detailAll, setDetailAll] = useState(false);
+  const [exactValues, setExactValues] = useState(false);
   const hoverTimer = useRef(0);
   const holdTimer = useRef(0);
   const commitTimer = useRef(0);
@@ -343,14 +344,17 @@ export function DraftModal({
         pick(recIdRef.current);
       }
     };
+    const clearShift = (): void => setDetailAll(false);
     const onKeyUp = (e: KeyboardEvent): void => {
-      if (e.key === 'Shift') setDetailAll(false);
+      if (e.key === 'Shift') clearShift();
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', clearShift);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', clearShift);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, paused]);
@@ -388,22 +392,28 @@ export function DraftModal({
         <h2 id={titleId}>{kind === 'opening' ? 'CHOOSE YOUR OPENING GENE' : 'DRAFT A GENE CARD'}</h2>
         <p id={instructionsId} className="draft-sub">
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
-          Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
+          Use Exact values to compare the numbers.
         </p>
-        {(!forceManual && hiveAction || onPause) && (
-          <div className="draft-controls">
-            {!forceManual && hiveAction && (
-              <button type="button" disabled={paused} onClick={() => {
-                setStopped(!!autoOverride);
-                if (!autoOverride) setRemaining(AUTO_SECONDS);
-                hiveAction();
-              }}>
-                {autoOverride ? 'Stop Hive Intelligence' : 'Enable Hive Intelligence'}
-              </button>
-            )}
-            {onPause && <button type="button" onClick={onPause} disabled={paused} title="Pause (P)" aria-keyshortcuts="P">Pause</button>}
-          </div>
-        )}
+        <div className="draft-controls">
+          {!forceManual && hiveAction && (
+            <button type="button" disabled={paused} onClick={() => {
+              setStopped(!!autoOverride);
+              if (!autoOverride) setRemaining(AUTO_SECONDS);
+              hiveAction();
+            }}>
+              {autoOverride ? 'Stop Hive Intelligence' : 'Enable Hive Intelligence'}
+            </button>
+          )}
+          {onPause && <button type="button" onClick={onPause} disabled={paused} title="Pause (P)" aria-keyshortcuts="P">Pause</button>}
+          <button
+            type="button"
+            aria-pressed={exactValues}
+            disabled={paused || committed !== null}
+            onClick={() => setExactValues((open) => !open)}
+          >
+            Exact values
+          </button>
+        </div>
         {auto && (
           <div className="draft-auto" role="timer" aria-label="Time until automatic gene pick">
             <span className="draft-auto-k">◆ AUTO-DRAFT</span>
@@ -420,7 +430,7 @@ export function DraftModal({
       <div className="cards">
         {options.map((o, i) => {
           const aff = affectsOf(o.subject);
-          const detailOpen = !committed && (detailAll || hoverDetail === o.id || heldDetail === o.id);
+          const detailOpen = !committed && (exactValues || detailAll || hoverDetail === o.id || heldDetail === o.id);
           const fate = committed === null ? '' : committed === o.id ? ' is-chosen' : ' is-dismissed';
           return (
           <button
