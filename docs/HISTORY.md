@@ -970,3 +970,8 @@
 - `b826c82` **[Mega Bosses]** Show Mega Boss weak-point windows
 - `f8468c5` **[Visuals]** Visuals: clarify live raid weak-point markers
 - `e3c62f3` **[Developer Tools]** Site: explain raid markers and organ timers _(internal)_
+- `c4d1cc9` **[Framework]** Release: prepare clearer raid openings _(internal)_
+- `e89f88d` **[UI]** Ui: show Mega Hunt dossier progress
+- `fbaedeb` **[Bug Fixes]** Results: tailor defeat guidance to raids
+- `b537352` **[Bug Fixes]** Show the actual Mega Boss arrival wave
+- `3468199` **[Mega Bosses]** Brief players before a Mega Boss arrives

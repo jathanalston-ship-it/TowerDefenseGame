@@ -1,6 +1,6 @@
 {
-  "lastSha": "e3c62f3ef56a95d8144e9f8cfc5c47072e7a5503",
-  "commitsSinceDraft": 0,
+  "lastSha": "346819928038003638f6de56f09d916df1f6ca07",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -5190,7 +5190,7 @@
       "id": "v2026.11.16.9",
       "date": "2026-11-16",
       "title": "Clearer Raid Openings",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "Audio",
@@ -5207,6 +5207,22 @@
         {
           "cat": "Visuals",
           "text": "Open Mega Boss weak points have brighter dashed outlines with dark backing, so they are easier to spot in combat. The rings stay steady with reduced motion or flashes disabled."
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "The Mega Hunt results show how many organs you have identified and how to complete the dossier. The organ list and known effects are readable by assistive technology."
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "After a raid loss, Results prioritizes the surviving Mega Boss’s health and suggests a next step based on whether you ruptured any organs."
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "Campaign and Mission Control show when the Mega Boss arrives and identify the final-wave boss separately. The Wave 1 forecast lists the enemies and bosses that actually spawn then."
+        },
+        {
+          "cat": "Mega Bosses",
+          "text": "The in-run forecast calls out the upcoming campaign raid. Open the Raid chip in its arrival wave’s briefing to see where to focus your attacks."
         }
       ]
     }
@@ -12586,6 +12602,46 @@
       "cat": "Developer Tools",
       "text": "Site: explain raid markers and organ timers",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c4d1cc92c5d7027a7fd2373b857e0a17ee98ad7a",
+      "date": "2026-11-16",
+      "cat": "Framework",
+      "text": "Release: prepare clearer raid openings",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e89f88d3609aad0148eb84cae69e36aea0b88a62",
+      "date": "2026-11-16",
+      "cat": "UI",
+      "text": "Ui: show Mega Hunt dossier progress",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "fbaedeb96c997455fbafa881293b08f382b122b6",
+      "date": "2026-11-16",
+      "cat": "Bug Fixes",
+      "text": "Results: tailor defeat guidance to raids",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "b537352b31f99d8c3ef7d6820468a4eaeb5a5c7e",
+      "date": "2026-11-16",
+      "cat": "Bug Fixes",
+      "text": "Show the actual Mega Boss arrival wave",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "346819928038003638f6de56f09d916df1f6ca07",
+      "date": "2026-11-16",
+      "cat": "Mega Bosses",
+      "text": "Brief players before a Mega Boss arrives",
+      "internal": false,
       "needsReview": false
     }
   ]

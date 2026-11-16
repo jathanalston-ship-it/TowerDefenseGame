@@ -24,6 +24,22 @@
       {
         "cat": "Visuals",
         "text": "Open Mega Boss weak points have brighter dashed outlines with dark backing, so they are easier to spot in combat. The rings stay steady with reduced motion or flashes disabled."
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "The Mega Hunt results show how many organs you have identified and how to complete the dossier. The organ list and known effects are readable by assistive technology."
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "After a raid loss, Results prioritizes the surviving Mega Boss’s health and suggests a next step based on whether you ruptured any organs."
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "Campaign and Mission Control show when the Mega Boss arrives and identify the final-wave boss separately. The Wave 1 forecast lists the enemies and bosses that actually spawn then."
+      },
+      {
+        "cat": "Mega Bosses",
+        "text": "The in-run forecast calls out the upcoming campaign raid. Open the Raid chip in its arrival wave’s briefing to see where to focus your attacks."
       }
     ]
   },

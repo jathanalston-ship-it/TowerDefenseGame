@@ -2479,3 +2479,11 @@ The first checkpoint includes the automatic slowdown sound, accessible
 boss meters and warnings, timed weak-point windows and clearer raid
 markers. The Mega Boss Guide describes the new display. Four game and
 website notes are synchronized and 72 focused tests passed.
+
+## 2026-11-16 — Clearer Raid Openings sealed
+
+The checkpoint passed all 3,197 tests, typecheck, mobile and documents
+at 07:35 UTC. The eight-note candidate adds Mega Hunt dossier guidance,
+raid-loss advice, accurate arrival forecasts on Home and Campaign, and
+a Raid briefing in the arrival wave. The Campaign and Mega Boss guides
+are synchronized. All 22 final site and note checks passed.
