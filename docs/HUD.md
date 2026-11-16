@@ -336,3 +336,7 @@ On portrait screens up to380px wide, an available Early Call uses a second contr
 Post-run RewardReveal preserves keyboard position when its focused Skip button unmounts after skipping or natural completion: a layout effect restores focus to the persistent Continue control only if focus fell to body. Blur clears the pending handoff, so other controls/cinematics are not interrupted. Reward amounts, reveal timers, audio and Continue behavior are unchanged.
 
 Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.
+
+Opening an incoming enemy in the wave briefing explains its authored combat traits alongside its
+base stats. Hybrid enemies can list several traits. The main role also appears in the chip's
+accessible name, and the detail panel still shows elite counts and any adaptation probe.

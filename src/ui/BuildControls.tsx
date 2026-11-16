@@ -19,17 +19,19 @@ import type { HudSnapshot } from '../core/types';
 // threat tier (elite/boss ranked) and battlefield ROLE tag — the same role vocabulary the
 // enemies now wear on the field (docs/ENEMIES.md §8), so the briefing teaches the tells.
 
-/** The chip's role tag — derived from the def's mechanical traits (one, most-defining). */
-function roleTag(def: EnemyDef): string | null {
-  if (def.siege) return 'ARTILLERY';
-  if (def.explodeDamage) return 'SUICIDE';
-  if (def.summon) return 'SUMMONER';
-  if (def.auraRegenPerSec || def.auraShield) return 'SUPPORT';
-  if (def.shieldHp) return 'SHIELDED';
-  if (def.regenPerSec) return 'REGEN';
-  if (def.behavior.flying) return 'AIRBORNE';
-  if (def.behavior.burrowing) return 'BURROWER';
-  return null;
+/** The first trait names the chip. Its detail panel can explain several traits at once. */
+function enemyTraits(def: EnemyDef): { tag: string; description: string }[] {
+  const traits: { tag: string; description: string }[] = [];
+  if (def.siege) traits.push({ tag: 'ARTILLERY', description: 'Stops short of the Core and bombards it from range.' });
+  if (def.explodeDamage) traits.push({ tag: 'SUICIDE', description: 'Lights a fuse at the Core. The blast can also damage your hero nearby.' });
+  if (def.summon) traits.push({ tag: 'SUMMONER', description: `Periodically spawns ${ENEMY_DEFS[def.summon.kind].name} reinforcements.` });
+  if (def.auraRegenPerSec) traits.push({ tag: 'SUPPORT', description: 'Heals nearby enemies.' });
+  if (def.auraShield) traits.push({ tag: 'SUPPORT', description: 'Replenishes nearby enemies’ shields.' });
+  if (def.shieldHp) traits.push({ tag: 'SHIELDED', description: 'Starts with a shield that absorbs damage before its health.' });
+  if (def.regenPerSec) traits.push({ tag: 'REGEN', description: 'Recovers health over time while alive.' });
+  if (def.behavior.flying) traits.push({ tag: 'AIRBORNE', description: 'Flies over blockers. Use attacks that can hit air.' });
+  if (def.behavior.burrowing) traits.push({ tag: 'BURROWER', description: 'Tunnels past ground blockers.' });
+  return traits;
 }
 
 export function BuildControls({
@@ -160,11 +162,18 @@ export function BuildControls({
               {preview.map((e) => {
                 const def = ENEMY_DEFS[e.kind];
                 const tier = ENEMY_TIER[e.kind];
-                const role = roleTag(def);
-                const explanation = `${def.name} — ${def.hp} base HP${def.armor > 0 ? ` · ${def.armor} base armor` : ''}${role ? ` · ${role.toLowerCase()}` : ''}. Wave and run modifiers can change these stats.${(e.elite ?? 0) > 0 ? ` ${e.elite} of ${e.count} are ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage before other modifiers).` : ''}${e.probe ? ` The Hive’s PROBE (${e.probe.label.toLowerCase()}): your board lacks ${e.probe.lacks}.` : ''}`;
+                const traits = enemyTraits(def);
+                const role = traits[0]?.tag;
+                const elite = e.elite ?? 0;
+                const explanation = [
+                  `${def.hp} base HP${def.armor > 0 ? ` · ${def.armor} base armor` : ''}. Wave and run modifiers can change these stats.`,
+                  ...traits.map((trait) => trait.description),
+                  elite > 0 ? `${elite} of ${e.count} are ELITE (×${DIRECTOR.eliteHpMult} HP, ×${DIRECTOR.eliteDmgMult} damage before other modifiers).` : '',
+                  e.probe ? `The Hive’s PROBE (${e.probe.label.toLowerCase()}): your board lacks ${e.probe.lacks}.` : '',
+                ].filter(Boolean).join(' ');
                 return (
                   <button type="button" className={`wb-chip is-${tier}`} key={e.kind} tabIndex={visible ? 0 : -1} style={{ ['--ec' as string]: def.color }}
-                    aria-expanded={detail?.id === e.kind} aria-label={`${def.name}: ${e.count} incoming${(e.elite ?? 0) > 0 ? `, including ${e.elite} elites` : ''}. Show details`}
+                    aria-expanded={detail?.id === e.kind} aria-label={`${def.name}: ${e.count} incoming${elite > 0 ? `, including ${elite} elites` : ''}${role ? `, ${role.toLowerCase()}` : ''}. Show details`}
                     onClick={(event) => showDetail(event, e.kind, def.name, explanation)}>
                     <span className="wb-dot" aria-hidden />
                     <span className="wb-name">{def.name}</span>
