@@ -2328,3 +2328,26 @@ Chrome reproduced the modal Tab loop skipping an overflowing caption. Both films
 include the named scroll pane in the focus loop when the text needs it. Native key
 checks verified Page Down, Home and Shift+Tab. Resize removes the stop when unused;
 the existing scene reset still passes. All 26 focused tests passed. Note twelve is ready.
+
+## 2026-11-16 — cinematic playback release validation started
+
+Sealed v2026.11.16.5 at a07b49d7. Source home and News pages contain the release
+title and all twelve notes. Validator session 24507 uses --base 2f553a9b and writes
+cinematic-playback-release-validation.log. A separate checkout is available for
+keyboard access to tower pads while the main build is audited.
+
+## 2026-11-16 — caption helper registry correction and audit retry
+
+Initial audit 24507 passed typecheck, the mobile gate and doc checks. The suite caught
+the new shared caption helper missing from the system registry. Commit b85e2ae7
+records it and regenerates the graph; all nine focused registry tests pass.
+Full retry session 74445 writes cinematic-playback-release-validation-rerun.log.
+The next release worktree adds keyboard deployment costs and pod-state explanations.
+
+## 2026-11-16 — cinematic playback release checks
+
+Retry 74445 passed typecheck, the mobile layout gate and both documentation checks.
+The sole suite failure was stale DIL graph output after the registry fix. Docs-only
+commit 17a41f15 regenerates it, and all 32 focused graph, site and release-sync tests
+pass. The same production bundle contains the release title, all twelve News notes
+and play-Cusy4WDE.js. Confirmation audit 18509 is repeating the full checks.

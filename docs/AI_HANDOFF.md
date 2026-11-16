@@ -4,44 +4,46 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 03:10 UTC · **Diff scope:** a66dc998...HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 541df1d9
+- **Generated:** 2026-11-16 03:57 UTC · **Diff scope:** 2f553a9b...HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a07b49d7
 
 ## Summary of work completed
 
-Clearer Draft and Placement Controls v2026.11.16.4 is live from a66dc998 to 2f553a9b. The deployment and the public game, homepage, and all eight News notes are verified. Full validation passed with --base a66dc998, including 3194 tests, typecheck, documentation and the production mobile gate. Production verification is complete (see PROJECT_STATUS). The audited build contains play-B9gdmA9O.js, the homepage title and all eight News notes.
+Production v2026.11.16.4 is live at 2f553a9b. Clearer Cinematic Playback v2026.11.16.5 is sealed at a07b49d7 with twelve website and game notes. The full audit is running against the production baseline. Initial audit 24507 passed typecheck, documentation and the production mobile gate. Its sole suite failure was unregistered useFilmCaptionScroll.ts. Commit b85e2ae7 fixes it and regenerates the graph. All 9 registry tests pass. Full retry 74445 passed typecheck, mobile and doc checks. Its sole failure was the generated DIL graph, corrected by the docs-only 17a41f15. All 32 focused DIL, registry, site and release-sync tests pass. The complete confirmation audit is running again in 18509 with log cinematic-playback-release-validation-final.log. The previous production build contains play-Cusy4WDE.js and all twelve News notes. Keep main source and build fixed until public verification.
 
 ## Files modified
 
-- Source (8): `src/audio/music.ts`, `src/changelog/releases.gen.ts`, `src/render/renderer.ts`, `src/ui/App.tsx`, `src/ui/BuildControls.tsx`, `src/ui/DraftModal.tsx`, `src/ui/GameView.css`, `src/ui/GameView.tsx`
-- Tests (0): —
-- Docs (8): `docs/AI_HANDOFF.md`, `docs/CARDS.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/MUSIC.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-MANAGEMENT.md`, `docs/VALIDATION_REPORT.md`
+- Source (15): `src/audio/sfxMix.ts`, `src/audio/sound.ts`, `src/changelog/releases.gen.ts`, `src/core/cutscenes.ts`, `src/core/game.ts`, `src/index.css`, `src/render/renderer.ts`, `src/ui/CollectionPanel.css`, `src/ui/CollectionPanel.tsx`, `src/ui/CutscenePlayer.css`, `src/ui/CutscenePlayer.tsx`, `src/ui/Hub.tsx`, `src/ui/InitCutscene.css`, `src/ui/InitCutscene.tsx`, `src/ui/useFilmCaptionScroll.ts`
+- Tests (1): `src/core/hivemind.test.ts`
+- Docs (9): `docs/AI_HANDOFF.md`, `docs/AUDIO.md`, `docs/CUTSCENES.md`, `docs/HISTORY.md`, `docs/HIVE-MIND.md`, `docs/HIVE-SIEGE.md`, `docs/HUB-FLOW.md`, `docs/PROJECT_STATUS.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
-- **audio** — `src/audio/music.ts`
+- **audio** — `src/audio/sfxMix.ts`, `src/audio/sound.ts`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **gene-cards** — `src/ui/DraftModal.tsx`
-- **hub-shell** — `src/ui/App.tsx`
+- **collection** — `src/ui/CollectionPanel.tsx`
+- **cutscenes** — `src/core/cutscenes.ts`, `src/ui/CutscenePlayer.tsx`
+- **engine** — `src/core/game.ts`
+- **hub-shell** — `src/ui/Hub.tsx`
+- **onboarding** — `src/ui/InitCutscene.tsx`
 - **rendering** — `src/render/renderer.ts`
-- **run-ui** — `src/ui/BuildControls.tsx`, `src/ui/GameView.tsx`
-- Consumer ring (verify, unchanged): battle-pass, cosmetics, cutscenes, doctrines, engine, hero-cinematics, hive-construction, infestation, living-battlefield, profile, quests, reward-architecture
+- Consumer ring (verify, unchanged): arena, battle-pass, boss-rush, bosses, campaign, class-bonds, cosmetics, daily, daily-login, genome-rank, hero-cinematics, heroes, hive-construction, hive-mind, idle-harvest, infestation, infinite, living-battlefield, map-layouts, mega-bosses, nemesis, online-foundation, profile, progression-gating, quests, reward-architecture, run-ui
 
 ## Power Score changes
 
-No changes to the Power model. Draft comparisons still use the same authored inputs and math.
+No change to Power or the intermediate purchase flow. Only the successful Hive batch sound changed in the simulation.
 
 ## UI changes
 
-Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `GeneArchive`, `DraftModal`, `BuildPanel`, `gene splash`, `Splice pill`, `Hub`, `CommandCenter`, `ProgressDashboard`, `the battlefield itself`, `Results`, `ALL`
+Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `CollectionPanel`, `CutscenePlayer`, `CollectionPanel (Memory Archive)`, `GameView`, `Hud`, `Toolbar`, `BuildControls`, `Inspector`, `BuildPanel`, `Hub`, `CommandCenter`, `ProgressDashboard`, `HelpWiki`, `WhatsNew`, `HudTour`, `CommandCenter (tips)`, `TutorialOverlay`, `the battlefield itself`
 
-Gene drafts support Pause and show the automatic choice. Exact values opens inline comparison. Three draft cards fit in a row on compact landscape. Placement targets have text and line patterns. Wave briefing details explain authored traits and compact overflow has a scroll button. The menu score resumes via the first qualifying keyboard, mouse or touch input. Chrome probes checked each changed surface.
+The two film players have better manual navigation, caption reading and resolved motion. Archive replay supports browser Back and Hub swipe, restores Watch focus, and shows length and sharper thumbnails with a clear focus ring. Reduced motion uses an anchored siege windup arc. The measured Hive batch sound distinctively confirms purchases. Chrome and focused suites verified each surface.
 
 ## Documentation changes
 
-Registry says these move with the touched systems: `docs/MUSIC.md`, `docs/GAME-FEEL.md`, `docs/AUDIO.md`, `docs/CUTSCENES.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/GENE-EVOLUTION.md`, `docs/CARDS.md`, `docs/GENE-AUDIT-REPORT.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/EARLY-CALL.md`, `docs/DOCTRINES.md`, `docs/MODE-IDENTITY.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/HUD.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/INFESTATION.md`, `docs/COSMETICS.md`, `docs/BATTLEPASS.md`, `docs/QUESTS.md`, `docs/PROFILE.md`, `docs/REWARD-ARCHITECTURE.md`, `docs/REWARD-FREQUENCY.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`, `docs/HERO-CINEMATICS.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`
+Registry says these move with the touched systems: `docs/MUSIC.md`, `docs/GAME-FEEL.md`, `docs/AUDIO.md`, `docs/CUTSCENES.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/COLLECTION.md`, `docs/IDLE-HARVEST.md`, `docs/DAILY-LOGIN.md`, `docs/DAILY-RUN.md`, `docs/ECONOMY.md`, `docs/COSMETICS.md`, `docs/QUESTS.md`, `docs/PROFILE.md`, `docs/GENOME-RANK.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/EARLY-CALL.md`, `docs/HIVE-MIND.md`, `docs/CAMPAIGN.md`, `docs/CAMPAIGN-EVENTS.md`, `docs/MODE-IDENTITY.md`, `docs/STAGES.md`, `docs/ENDLESS-SCALING.md`, `docs/BOSS-RUSH.md`, `docs/ONLINE-FOUNDATION.md`, `docs/TRADING-PREP.md`, `docs/ARENA.md`, `docs/ARENA_MATCH_REPORT.md`, `docs/HEROES.md`, `docs/HERO-FRAMEWORK.md`, `docs/HERO-EVOLUTION.md`, `docs/HERO-SELECTION.md`, `docs/SLOTS.md`, `docs/HERO-CINEMATICS.md`, `docs/CLASS-BONDS.md`, `docs/NEMESIS.md`, `docs/TUTORIAL.md`, `docs/HELP.md`, `docs/TUTORIAL-AUDIT.md`, `docs/GUIDED-UNLOCKS.md`, `docs/HUD.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`, `docs/BOSS-DESIGN.md`, `docs/MEGA-BOSS.md`, `docs/MAP-LAYOUTS.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/INFESTATION.md`, `docs/BATTLEPASS.md`, `docs/REWARD-ARCHITECTURE.md`, `docs/REWARD-FREQUENCY.md`, `docs/PROGRESSION-GATING.md`, `docs/UNLOCK-TREE.md`
 
-CARDS, HUD, MUSIC and TOWER-MANAGEMENT describe the changed controls. Chronicle generated synchronized News, homepage and in-game data. Other registry docs retain their existing reference values and behavior descriptions.
+CUTSCENES, HUB-FLOW, HIVE-SIEGE, HIVE-MIND and AUDIO record the changed controls and presentation. Website and game notes are synchronized. Other registry references retain their existing settings and values.
 
 ## Save changes
 
@@ -49,16 +51,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-The compact briefing ref keeps the horizontal position while the reader temporarily hides the row. Keep all three untracked devlog drafts out of release commits.
+The Archive touch probe needs a returning-player fixture so the First Loop coach cannot open midway. The compact caption region is focusable only when its copy overflows. Keep three untracked devlog drafts outside release commits.
 
 ## Remaining technical debt
 
-Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and the parent chrome-probe-compat.cjs preload.
+The Chrome mobile gate uses MOBILECHECK_CHROMIUM and the parent chrome-probe-compat.cjs preload.
 
 ## Recommended next tasks
 
-Validator session 68047 passed. GitHub Actions run 43797843950 deployed 2f553a9b. Its exact-commit guard and custom-domain verification passed. Next release improvement is 42e68363 on codex/cutscene-review in the isolated worktree. It adds Back to scene in manual Memory Archive playback, with real keyboard and touch checks at 320x568 and 568x320 and 25 focused tests. Commit 95b9f9f2 on the same branch adds visible scene counts to both film players in manual mode. Chrome verified count synchronization with the live caption, Next and Previous, persisted pace, short landscape and the final-card return regression. All 22 focused tests passed. Commit 16e8009e scopes each advance to its displayed scene. Baseline Chrome reproduced Scene 1 jumping to Scene 3. Fixed probes cover both film players, the archive final card, a retired autoplay callback and background/resume clocks. All 15 focused tests passed. Commit e86e75de resolves motion consistently for the film interface and projector. Chrome verified gate, captions, bars and coda under both modes, persistent caption/coda animation timelines and no leakage outside the film. All 22 focused tests passed. The four follow-ups are integrated as 216b6314, 61f2ba09, 74b5083b and eeb5a4fe. Isolated typecheck passed. Open v2026.11.16.5 Clearer Cinematic Playback has twelve synchronized game and website notes. Commit 21b6a215 gives overflowing film captions a conditional Tab stop and a focus outline. Chrome verified both films, Page Down, Home, Tab wrap, viewport switching and prior scene scroll reset. All 26 focused tests passed. Commit 8a101c2e resets caption scroll on scene changes. Native Chrome with enlarged copy at 568x320 verified both films, Next/Previous and the Archive final-card return. All 36 focused tests passed. Commit 47c154b9 gives successful Hive batches a distinct UI confirmation. Chrome offline render measured -33.78 LUFS momentary and -19.17 dBFS peak with zero clipping or hard stops. All 39 focused tests passed, including one cue per successful pulse and no cue for empty pulses. Commit 3d0be3f3 replaces the reduced-motion siege lunge with an anchored charge arc. Chrome Canvas 2D verified progress, interruption and normal-vs-reduced translation. All 37 focused tests passed. Commit a7981b39 renders artwork at the Archive card size with 2x backing resolution and adds a two-tone Watch focus ring. Chrome verified DPR2 resizing and rendered pixels from 320px to desktop, keyboard focus and card layout. All 28 focused tests passed. Commit a46965f7 shows recovered-memory scene count and approximate autoplay length from the shared authored holds. Chrome verified the Watch description and hidden locked metadata at compact and desktop widths. All 21 focused tests passed. Commit c8328527 makes Hub edge gestures honor topmost dismissable layers and other modals. Chrome CDP native touch verified replay to final card, final card to the same filtered Archive, then Archive to Home. The earlier rejected third gesture was correctly held because an onboarding dialog opened during the gesture. The returning-player fixture completes onboarding before the test. All 26 focused tests passed. Commit 847c927a routes browser Back through Memory Archive replay, preserving the viewed filter and Watch focus. Chrome passes the history guard, Escape and held Escape paths. All 22 focused tests passed. Target the next deployment around 04:25 UTC after full validation against 2f553a9b.
+Publish the unchanged audited gameplay and site bundle after the focused generated-graph checks. Verify the GitHub exact-commit guard and the public game, homepage and all twelve News notes. Record the confirmation audit in session 18509. The separate codex/keyboard-pads worktree at a07b49d7 is ready for keyboard placement. Current 1–4 keyboard shortcuts arm a tower, and Game.click on the pad performs the current action, but the canvas does not let keyboard users target a pad. The isolated baseline ../keyboard-pad-baseline.cjs confirmed the gap. Follow-up 8d4cfe2f adds Tower pads, physical arrow navigation, screen-reader state and the same place/move/inspect paths. Chrome verified Tab, keyboard favorite and conveyor deployment, locked/occupied pads, relocation, Pause, 320px status layout and pointer placement. All 25 focused tests passed. Commit df813925 adds B to focus Tower pads and a visible hint when players use 1–4. The live Chrome probe verifies the hint, no focus steal from arming, B, full keyboard and pointer placement, and compact bounds. Isolated typecheck passed in session 57581. Commit d8ab1012 exposes live deploy cost, free pods, Biomass shortfall, and growing or consumed pod status. Chrome verified failed paid placement, actual free deployment at zero Biomass and status after concurrent consumption. After v.5 public verification, cherry-pick 8d4cfe2f, df813925, d8ab1012 and ed79f7aa and prepare the keyboard placement notes. ed79f7aa registers BoardPadNavigator and passed all 9 registry tests in the isolated checkout. The b85e2ae7 caption registration is already in main. Also cherry-pick 19e6e7aa and 363ee7c7 after the pad registry commit. They move focus into the selected tower Inspector, return it to the pads on close, keyboard relocation and sale, and clear compact drawers when B opens the pads. Chrome verified an armed shortcut inspecting an occupied pad, Space ownership, desktop Hide and Escape, Move and drop, compact Done and B from an open Status drawer, sale cancel/confirm, and ordinary pointer placement and inspection. Cherry-pick b2f16801 for the in-game Help and website Tower Guide keyboard instructions. All 35 focused registry, tower management, Help and site tests passed after regenerating static pages from the existing release metadata.
 
 ## Future expansion hooks
 
-Main production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Run ../verify-current-release.ps1 before preparing the next ledger release. Isolated Vite server session 51454 on port 5175 runs ../cutscene-coda-review-check.cjs.
+Main production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Run ../verify-current-release.ps1 before preparing the next ledger. For pad navigation, reuse core/map.ts towerSlots and the existing game.click path. The isolated Vite server is session 51454 on port 5175.
