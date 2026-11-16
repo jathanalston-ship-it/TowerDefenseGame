@@ -91,6 +91,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   /** Roll into the coda (the last cut, the archive stamp, the boost line). */
   const toCoda = (): void => {
     if (codaRef.current) return;
+    codaRef.current = true;
     audio.cue('cin_bloom');
     setCoda(true);
   };
@@ -102,9 +103,9 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     setCoda(false);
   };
   const advance = (): void => {
-    if (codaRef.current) return;
-    if (idxRef.current >= def.scenes.length - 1) toCoda();
-    else setIdx((i) => i + 1);
+    if (codaRef.current || idxRef.current !== idx) return;
+    if (idx >= def.scenes.length - 1) toCoda();
+    else setIdx((current) => current === idx ? idx + 1 : current);
   };
 
   // The score: the film owns 'cinema' while it runs; the caller re-arms its own music after.
@@ -144,7 +145,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     document.addEventListener('visibilitychange', update);
     update();
     return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- advance/finish are stable closures over refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- this timer belongs to the scene captured by idx
   }, [idx, coda, scene.durMs, manual]);
 
   // Scene change → film clocks + the cut whoosh.
@@ -293,7 +294,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
             {manual ? 'Auto-play' : 'Read at my pace'}
           </button>
           {manual && (
-            <button className="intro-skip" aria-disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
+            <button className="intro-skip" aria-disabled={idx === 0} onClick={() => setIdx((current) => current === idx ? Math.max(0, idx - 1) : current)}>
               ‹ Previous scene
             </button>
           )}

@@ -222,12 +222,15 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
       return;
     }
     filmRef.current.diveAt = performance.now();
+    phaseRef.current = 'dive';
     audio.cue('cin_dive');
     setPhase('dive');
   };
 
   /** The pre-roll tap: unlock audio, roll the score, start the film at t=0. */
   const receive = (): void => {
+    if (phaseRef.current !== 'gate') return;
+    phaseRef.current = 'film';
     audio.cue('cin_ping'); // the unlock gesture is itself the first contact
     music.play('cinema');
     music.setIntensity(0);
@@ -236,9 +239,9 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   };
 
   const advance = (): void => {
-    if (phaseRef.current !== 'film') return;
-    if (idxRef.current >= SCENES.length - 1) finish();
-    else setIdx((i) => i + 1);
+    if (phaseRef.current !== 'film' || idxRef.current !== idx) return;
+    if (idx >= SCENES.length - 1) finish();
+    else setIdx((current) => current === idx ? idx + 1 : current);
   };
 
   // Auto-advance each scene after its hold (a tap advances sooner; the title — durMs 0 — waits).
@@ -261,7 +264,9 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
           remaining = 0;
           if (document.hidden) return;
           fired = true;
-          setIdx(i => Math.min(i + 1, SCENES.length - 1));
+          if (phaseRef.current === 'film') {
+            setIdx((current) => current === idx ? Math.min(idx + 1, SCENES.length - 1) : current);
+          }
         }, remaining);
       }
     };
@@ -447,7 +452,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
           {manual ? 'Auto-play' : 'Read at my pace'}
         </button>
         {manual && (
-          <button className="intro-skip" disabled={diving} aria-disabled={idx === 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}>
+          <button className="intro-skip" disabled={diving} aria-disabled={idx === 0} onClick={() => setIdx((current) => current === idx ? Math.max(0, idx - 1) : current)}>
             ‹ Previous scene
           </button>
         )}

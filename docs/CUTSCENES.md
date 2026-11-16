@@ -164,3 +164,7 @@ and returns focus to the replay control.
 
 Both players show the current scene number and total during Read at my pace. The
 visible counter and the existing live caption use the same scene position.
+
+Cinematic navigation applies each transition to the scene on which it was requested.
+A pending autoplay timer or a burst of activations cannot skip the newly opened scene.
+The opening gate, descent and Memory Archive final card enter once per transition.
