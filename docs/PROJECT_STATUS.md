@@ -2271,3 +2271,7 @@ v2026.11.16.4 passed typecheck, 3194 tests, the production phone layout gate, an
 ## 2026-11-16 — Clearer Draft and Placement Controls is live
 
 GitHub Actions run 43797843950 deployed 2f553a9b and passed the exact-commit guard. The normal custom-domain game serves play-B9gdmA9O.js. The homepage release title and all eight v2026.11.16.4 News notes are verified.
+
+## 2026-11-16 — cinematic follow-up integrated
+
+Back to scene, manual progress, guarded transitions and resolved film motion are integrated on the release branch. Typecheck passed in the isolated checkout. v2026.11.16.5 has four generated News and game notes.

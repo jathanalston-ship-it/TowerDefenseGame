@@ -1,6 +1,6 @@
 {
-  "lastSha": "e811e114b04dd1e300308772ae7b48c2595f5fc5",
-  "commitsSinceDraft": 7,
+  "lastSha": "eeb5a4fe32c1d3daab5077d2be91e5778d17a862",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4995,6 +4995,30 @@
         {
           "cat": "UI",
           "text": "On compact screens, use the arrow beside the wave briefing to see more incoming enemies and return to the wave summary. Closing an enemy’s details returns you to the same place in the list."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.5",
+      "date": "2026-11-16",
+      "title": "Clearer Cinematic Playback",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "In the Memory Archive’s Read at my pace mode, use Back to scene on the final card to return to the caption you were reading."
+        },
+        {
+          "cat": "UI",
+          "text": "Read at my pace shows the current scene number and total in the opening film and Memory Archive."
+        },
+        {
+          "cat": "UI",
+          "text": "Overlapping Next presses or autoplay transitions keep to one scene at a time, so a caption can’t be skipped by two inputs arriving together."
+        },
+        {
+          "cat": "UI",
+          "text": "The opening and Memory Archive follow your motion setting for captions, the letterbox, and the finale. Reduced motion removes the slide effects, and Allow motion restores them without restarting the caption or finale."
         }
       ]
     }
@@ -11709,6 +11733,62 @@
       "date": "2026-11-15",
       "cat": "Gameplay",
       "text": "Prepare compact wave briefing note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "541df1d9a9456b509349704a4f0401f346379c6b",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: seal draft and placement update",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2f553a9b0870d21cc6d650cfbb995d3471663a6e",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: record draft and placement validation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "187c546e9a0ce3a299540ccc86fd2ac0c9c215f5",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: record live draft and placement release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "216b6314ac12be01c58e9c7519a06447c3cda5b6",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Let manual cutscenes revisit the last caption",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "61f2ba099a95fdd10866023c70a864ff07318333",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: show manual cinematic scene progress",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "74b5083b11df7eb3c03c3687d552025c3fbf2484",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: prevent overlapping cinematic advances",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eeb5a4fe32c1d3daab5077d2be91e5778d17a862",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: resolve film interface motion with projector",
       "internal": true,
       "needsReview": false
     }

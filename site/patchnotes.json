@@ -1,6 +1,31 @@
 [
   {
     "date": "2026-11-16",
+    "title": "Clearer Cinematic Playback",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "In the Memory Archive’s Read at my pace mode, use Back to scene on the final card to return to the caption you were reading."
+      },
+      {
+        "cat": "UI",
+        "text": "Read at my pace shows the current scene number and total in the opening film and Memory Archive."
+      },
+      {
+        "cat": "UI",
+        "text": "Overlapping Next presses or autoplay transitions keep to one scene at a time, so a caption can’t be skipped by two inputs arriving together."
+      },
+      {
+        "cat": "UI",
+        "text": "The opening and Memory Archive follow your motion setting for captions, the letterbox, and the finale. Reduced motion removes the slide effects, and Allow motion restores them without restarting the caption or finale."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-16",
     "title": "Clearer Draft and Placement Controls",
     "categories": [
       "UI",

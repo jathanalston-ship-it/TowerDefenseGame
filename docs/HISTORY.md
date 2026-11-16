@@ -885,3 +885,10 @@
 - `2d5b725` **[Enemies]** Prepare enemy briefing note _(internal)_
 - `e0c56fc` **[UI]** Show compact wave briefing overflow _(internal)_
 - `e811e11` **[Gameplay]** Prepare compact wave briefing note _(internal)_
+- `541df1d` **[Framework]** Release: seal draft and placement update _(internal)_
+- `2f553a9` **[Framework]** Release: record draft and placement validation _(internal)_
+- `187c546` **[Framework]** Docs: record live draft and placement release _(internal)_
+- `216b631` **[UI]** Let manual cutscenes revisit the last caption _(internal)_
+- `61f2ba0` **[UI]** Ui: show manual cinematic scene progress _(internal)_
+- `74b5083` **[UI]** Ui: prevent overlapping cinematic advances _(internal)_
+- `eeb5a4f` **[UI]** Ui: resolve film interface motion with projector _(internal)_
