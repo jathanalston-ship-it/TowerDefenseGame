@@ -260,6 +260,7 @@ describe('continuous Hive Intelligence', () => {
     expect(g.autoStart).toBe(false);
     expect(g.getSnapshot().autoStart).toBe(true);
     ticks(g, 16); expect(g.waveIndex).toBeGreaterThan(0);
+    expect(g.hiveDecisions.some(({ label }) => label === 'Started Wave 1')).toBe(true);
   });
   it('stops purchases and automatic launches when disabled, and freezes while paused', () => {
     const g = game(); g.setHiveActive(true); g.phase = 'draft'; ticks(g, 10);
@@ -293,6 +294,7 @@ describe('Hive hero combat', () => {
     g.setHiveActive(true); g.startWave(); g.advance(SIM_DT);
     expect(g.armedAbility).toBe(false);
     expect(g.heroes[0].abilityCd).toBeGreaterThan(0);
+    expect(g.hiveDecisions.map(({ label }) => label)).toEqual(['Cast Bloom']);
     expect(g.autocastUnlocked).toBe(false); expect(g.autocastOn).toBe(false);
     g.setHiveActive(false); g.heroes[0].abilityCd = 0; g.advance(SIM_DT);
     expect(g.heroes[0].abilityCd).toBe(0);

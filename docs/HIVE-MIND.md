@@ -14,7 +14,7 @@ seconds, starts waves after the normal setup countdown, and picks the recommende
 its visible ten-second countdown. Manual gene picks override the recommendation. Stop Hive
 Intelligence in the draft or toggle it off on the battlefield to take control. Pause freezes
 purchases and wave starts. Draft auto-pick counts visible, unpaused time and resumes from its remaining time after pausing or switching tabs. Standalone Auto Wave and Auto Gene
-preferences are preserved. Each purchase retains its normal effects and the action ticker. Open Latest Hive actions in the pause menu to review the most recent pulse’s labels, reasons, individual costs and total spend.
+preferences are preserved. Each purchase retains its normal effects and the action ticker. Open Latest Hive actions in the pause menu to review the most recent pulse’s labels, reasons, individual costs and total spend. Recent Hive decisions lists up to six recent automatic wave starts, lead hero casts and timed gene picks. Each line explains the trigger. The history remains available when you take control.
 The toggle ends with the run; it does not launch the next campaign stage or spend hub currencies.
 
 ## Architecture (the foundation rule: new systems join for free)

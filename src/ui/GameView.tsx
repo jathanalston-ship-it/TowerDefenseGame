@@ -1542,6 +1542,16 @@ export function GameView({
                       </ul>
                     </details>
                   )}
+                  {game.hiveDecisions.length > 0 && (
+                    <details className="pause-hive-report">
+                      <summary>Recent Hive decisions</summary>
+                      <ul>
+                        {game.hiveDecisions.map((decision, index) => (
+                          <li key={index}><strong>{decision.label}</strong><small>{decision.detail}</small></li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   <div className="pause-settings" onClick={(e) => e.stopPropagation()}>
                     <div className="pause-set-k">Settings</div>
                     <AudioToggles compact />
@@ -1698,9 +1708,10 @@ export function GameView({
             onReroll={() => {
               if (game.rerollDraft()) refresh();
             }}
-            onPick={(id) => {
+            onPick={(id, pickedByHive) => {
               draftPicks.current++;
-              game.chooseCard(id);
+              if (pickedByHive) game.chooseCard(id, true);
+              else game.chooseCard(id);
               refresh();
             }}
           />

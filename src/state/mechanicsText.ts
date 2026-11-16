@@ -25,7 +25,7 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     what: 'A run-local toggle that places organisms, buys upgrades, starts waves, directs the lead hero, casts abilities and picks recommended genes.',
     why: 'Let the hive handle repetitive setup while you watch its choices or take over.',
     where: 'Complete Campaign Stage ' + HIVE_MIND.unlockStage + ', then use HIVE INTELLIGENCE beside speed and Pause in Campaign or Infinite.',
-    next: 'Turn it off any time; choose a gene yourself to override its visible countdown.',
+    next: 'Turn it off any time or choose a gene yourself during the countdown. Open Recent Hive decisions in Pause to see the latest waves, abilities and genes it handled.',
     mistakes: 'It is a simple helper, not a guaranteed win. Daily, Boss Rush, Quick Skirmish, tutorials and uncleared Threat levels remain manual.',
   },
   "mission-control": {

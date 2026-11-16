@@ -597,7 +597,13 @@ export class Game {
   autoStart = false;
   hiveActive = false;
   private hivePulseIn = 0;
+  readonly hiveDecisions: { label: string; detail: string }[] = [];
   hiveReport: { serial: number; spent: number; actions: { label: string; detail: string; cost: number }[] } = { serial: 0, spent: 0, actions: [] };
+
+  private noteHiveDecision(label: string, detail: string): void {
+    this.hiveDecisions.unshift({ label, detail });
+    if (this.hiveDecisions.length > 6) this.hiveDecisions.length = 6;
+  }
 
   /** Run-local toggle; standalone Auto Wave preference is preserved. */
   setHiveActive(on: boolean): void {
@@ -2778,7 +2784,7 @@ export class Game {
     return true;
   }
 
-  chooseCard(id: string): void {
+  chooseCard(id: string, pickedByHive = false): void {
     if (this.phase !== 'draft' || !this.draft) return;
     const card = this.draft.find((c) => c.id === id);
     if (card) {
@@ -2796,6 +2802,9 @@ export class Game {
       this.chosenCardEffects.push(...effects); // retain for the live run-Power (temporary bucket)
       if (scored) this.auditTempPower(powerBefore, `Gene Card ${card.name}`);
       this.pushSfx('draft');
+      if (pickedByHive && this.automationAllowed) {
+        this.noteHiveDecision(`Drafted ${card.name}`, 'Hive Intelligence took the recommended gene after the draft countdown.');
+      }
       if (this.events.hasListeners('cardChosen')) this.events.emit('cardChosen', { id: card.id, rarity: card.rarity });
     }
     this.draft = null;
@@ -3153,7 +3162,13 @@ export class Game {
         // prep auto-start burns the same WALL time at 1×/2×/5×. timeScale is 1 on the golden path (and
         // no combat runs in prep) ⇒ byte-identical. See docs/GAME-SPEED / AUTO_START_DELAY.
         this.prepCountdown -= dt / this.timeScale;
-        if (this.prepCountdown <= 0) this.startWave();
+        if (this.prepCountdown <= 0) {
+          const previousWave = this.waveIndex;
+          this.startWave();
+          if (this.hiveActive && this.waveIndex > previousWave) {
+            this.noteHiveDecision(`Started Wave ${this.waveIndex}`, 'The automatic setup countdown ended.');
+          }
+        }
       }
     }
   }
@@ -6378,13 +6393,22 @@ export class Game {
     for (let i = 1; i < this.heroes.length; i++) this.autoCastHero(this.heroes[i]);
     // Primary hero: purchased Auto-Cast OR the active Hive assistant uses the same
     // decision + code path as the autonomous roster. Off by default ⇒ byte-identical golden run.
-    if ((this.autocastOn || (this.hiveActive && this.phase === 'wave' && this.settleTimer <= 0)) && this.heroes.length > 0) this.autoCastHero(this.heroes[0]);
+    const hiveCast = this.hiveActive && this.phase === 'wave' && this.settleTimer <= 0;
+    if ((this.autocastOn || hiveCast) && this.heroes.length > 0) {
+      const target = this.autoCastHero(this.primaryHero);
+      if (hiveCast && target) {
+        const reason = target === 'enemy'
+          ? 'A threat was in range of the lead hero.'
+          : 'The lead hero’s support ability was ready.';
+        this.noteHiveDecision(`Cast ${this.heroAbilityDefinition(this.primaryHero.kind).name}`, reason);
+      }
+    }
   }
 
   /** Autonomous ability cast for a non-primary hero: fire the signature ability the moment it's
    *  ready, aimed at the deepest enemy in aggro range (a support hero with no target self-casts). */
-  private autoCastHero(h: Hero): void {
-    if (h.down || h.abilityCd > 0) return;
+  private autoCastHero(h: Hero): 'enemy' | 'self' | undefined {
+    if (h.down || h.abilityCd > 0) return undefined;
     const def = HERO_DEFS[h.kind];
     const r2 = (def.aggroRange * this.hmods(h).heroAggroRangeMult) ** 2;
     let target: Enemy | null = null;
@@ -6394,8 +6418,15 @@ export class Game {
       const gd = this.nav.goalDistanceAt(e.x, e.y);
       if (gd < best) { best = gd; target = e; }
     }
-    if (target) this.castHeroAbility(h, target.x, target.y);
-    else if (def.behavior === 'guard') this.castHeroAbility(h, h.x, h.y); // support self-casts (heal / shield / mend)
+    if (target) {
+      this.castHeroAbility(h, target.x, target.y);
+      return 'enemy';
+    }
+    if (def.behavior === 'guard') {
+      this.castHeroAbility(h, h.x, h.y);
+      return 'self';
+    }
+    return undefined;
   }
 
   /** The star-gated ability KIT (HEROES.md) — each UNLOCKED skill auto-casts on its own cooldown, so a

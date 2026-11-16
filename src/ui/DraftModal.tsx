@@ -154,7 +154,7 @@ export function DraftModal({
   kind?: 'wave' | 'opening' | 'splice';
   /** EARLY CALL: drafts still owed after this one (called-over waves' cards, dealt back to back). */
   owedAfter?: number;
-  onPick: (id: string) => void;
+  onPick: (id: string, pickedByHive: boolean) => void;
   /** Tutorial: the draft lesson must be a confirmed player choice — never the auto countdown. */
   forceManual?: boolean;
   autoOverride?: boolean;
@@ -233,10 +233,12 @@ export function DraftModal({
   const armed = useRef(false); // input ignored until the open settles (anti click-through)
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+  const hiveAutoRef = useRef(false);
+  hiveAutoRef.current = autoOverride === true && !!onStopAuto;
   const recIdRef = useRef(options[best].id);
   recIdRef.current = options[best].id;
 
-  const pick = (id: string): void => {
+  const pick = (id: string, pickedByHive = false): void => {
     if (paused || !armed.current || picked.current) return; // ignore paused/pre-arm clicks; one pick only
     picked.current = true;
     window.clearTimeout(hoverTimer.current);
@@ -247,7 +249,7 @@ export function DraftModal({
     // The commit voice: a thunk + a riser that grows with rarity ('@tier' depth, sound.ts).
     const rarity = options.find((o) => o.id === id)?.rarity ?? 'common';
     audio.cue(`draftPick@${1 + (RARITY_RANK[rarity] ?? 0)}`);
-    commitTimer.current = window.setTimeout(() => onPickRef.current(id), PICK_COMMIT_MS);
+    commitTimer.current = window.setTimeout(() => onPickRef.current(id, pickedByHive), PICK_COMMIT_MS);
   };
 
   /** True once the pointer has genuinely moved inside the modal (not a mount under a still cursor). */
@@ -306,7 +308,7 @@ export function DraftModal({
       setRemaining(left / 1000);
       if (left === 0) {
         stopClock();
-        pick(recIdRef.current);
+        pick(recIdRef.current, hiveAutoRef.current);
       }
     };
     const visibilityChanged = (): void => {
