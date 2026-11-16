@@ -78,6 +78,7 @@ export function Toolbar({
               data-tut={i === 0 ? 'tower-card-first' : undefined}
               className={`tcard ${def.combatClass.toLowerCase()} tt ${sel ? 'is-sel' : ''}${afford && playable ? ' is-ready' : ''}`}
               aria-pressed={sel}
+              aria-keyshortcuts="1"
               disabled={(!afford && !sel) || !playable}
               onClick={() => {
                 audio.resume();
@@ -165,6 +166,7 @@ export function Toolbar({
                       <button
                         className={`cv-btn cv-deploy${armed ? ' is-on' : ''}${c.free ? ' is-free' : ''}`}
                         aria-pressed={armed}
+                        aria-keyshortcuts={idx < 3 ? String(idx + 2) : undefined}
                         aria-label={`${def.name} — ${c.free ? 'Deploy free' : `Deploy for ${hud.conveyor.deployCost} Biomass`}`}
                         disabled={!playable || (!c.free && hud.biomass < hud.conveyor.deployCost)}
                         title={c.free
@@ -225,6 +227,7 @@ export function Toolbar({
           disabled={!hud.hero.abilityReady || !playable}
           aria-label={`${ability.name} — ${abilityStatus}`}
           aria-pressed={hud.armedAbility}
+          aria-keyshortcuts="Q"
           // Cooldown ring (--cd 0→1): the recharge is visible at a glance; the ring closes and
           // yields to the ready-glow the moment the ability comes back.
           style={{ ['--cd' as string]: hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / Math.max(0.01, hud.hero.abilityCdMax))) }}

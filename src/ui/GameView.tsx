@@ -1492,6 +1492,7 @@ export function GameView({
             onClick={togglePause}
             title={paused ? 'Resume (P)' : 'Pause (P)'}
             aria-label={paused ? 'Resume' : 'Pause'}
+            aria-keyshortcuts="P"
           >
             {paused ? '▶ Resume' : '❚❚ Pause'}
           </button>
@@ -1541,7 +1542,7 @@ export function GameView({
                 <>
                   <button className="primary pause-resume" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
                   {hiveTicker && (
-                    <details className="pause-hive-report">
+                    <details className="pause-details">
                       <summary>Latest Hive actions</summary>
                       <p>{hiveTicker.spent.toLocaleString()} Biomass spent</p>
                       <ul>
@@ -1555,13 +1556,30 @@ export function GameView({
                     </details>
                   )}
                   {game.hiveDecisions.length > 0 && (
-                    <details className="pause-hive-report">
+                    <details className="pause-details">
                       <summary>Recent Hive decisions</summary>
                       <ul>
                         {game.hiveDecisions.map((decision, index) => (
                           <li key={index}><strong>{decision.label}</strong><small>{decision.detail}</small></li>
                         ))}
                       </ul>
+                    </details>
+                  )}
+                  {!tutorial && (
+                    <details className="pause-details">
+                      <summary>Keyboard controls</summary>
+                      <dl className="pause-shortcuts">
+                        <dt><kbd>1–4</kbd></dt><dd>Arm the favorite tower or a conveyor pod</dd>
+                        <dt><kbd>B</kbd></dt><dd>Choose a tower pad with the arrows and Enter</dd>
+                        <dt><kbd>Q</kbd> then <kbd>B</kbd></dt><dd>Aim a ready hero ability</dd>
+                        <dt><kbd>R</kbd></dt><dd>Aim and place a hero rally point</dd>
+                        <dt><kbd>H</kbd></dt><dd>Inspect or cycle through your heroes</dd>
+                        <dt><kbd>E</kbd></dt><dd>Open the Hero Combat Console</dd>
+                        <dt><kbd>Space</kbd></dt><dd>Start a wave or call it early when available</dd>
+                        <dt><kbd>F</kbd></dt><dd>Cycle game speed</dd>
+                        <dt><kbd>P</kbd></dt><dd>Pause or resume</dd>
+                        <dt><kbd>Escape</kbd></dt><dd>Cancel targeting or close an open panel</dd>
+                      </dl>
                     </details>
                   )}
                   <div className="pause-settings" onClick={(e) => e.stopPropagation()}>

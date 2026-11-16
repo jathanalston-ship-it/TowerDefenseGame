@@ -349,3 +349,8 @@ When the combat field is empty, the wave HUD distinguishes enemies still
 arriving, a cleared wave, a Mega Boss still active, and a defeated Mega Boss
 finishing its collapse. The portrait heading uses short forms of these labels
 without increasing the HUD height.
+
+Pause has a Keyboard controls disclosure for regular runs. It lists the keys
+for tower placement, the hero, waves and speed on one scrollable card. The
+Pause, favorite tower, conveyor pod and ability controls also expose shortcut
+metadata to assistive technology.
