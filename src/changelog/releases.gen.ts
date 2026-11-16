@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.16.3",
     "date": "2026-11-16",
     "title": "Clearer Hive Controls and Sound",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",

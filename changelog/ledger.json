@@ -1,6 +1,6 @@
 {
-  "lastSha": "9be216124bcc3826cccd721353bfd99bfa951070",
-  "commitsSinceDraft": 9,
+  "lastSha": "ec9535b484934c7ca7e5d8e5864fc1e44964b568",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -4922,7 +4922,7 @@
       "id": "v2026.11.16.3",
       "date": "2026-11-16",
       "title": "Clearer Hive Controls and Sound",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -11525,6 +11525,14 @@
       "date": "2026-11-15",
       "cat": "Gene Cards",
       "text": "Give gene drafts keyboard dialog focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ec9535b484934c7ca7e5d8e5864fc1e44964b568",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: honor motion preferences in Hive feedback",
       "internal": true,
       "needsReview": false
     }
