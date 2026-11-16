@@ -49,6 +49,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "Audio",
         "text": "Hive Intelligence plays a quiet two-note confirmation after a successful batch of purchases. Each placement or upgrade still has its own sound."
+      },
+      {
+        "cat": "UI",
+        "text": "When captions scroll on a short screen or at a large text size, changing scenes starts at the first line in the opening film and Memory Archive."
       }
     ]
   },

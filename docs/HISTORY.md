@@ -905,3 +905,5 @@
 - `3d0be3f` **[Visuals]** Render: show reduced-motion siege windups _(internal)_
 - `e834c2c` **[Framework]** Release: prepare reduced-motion siege note _(internal)_
 - `47c154b` **[Audio]** Audio: give Hive purchases a distinct confirmation _(internal)_
+- `70e9172` **[Framework]** Release: prepare Hive confirmation note _(internal)_
+- `8a101c2` **[UI]** Ui: reset caption scroll between scenes _(internal)_

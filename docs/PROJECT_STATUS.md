@@ -2314,3 +2314,10 @@ Each successful Hive batch adds a light two-note UI cue. Purchases retain their 
 sounds. Chrome offline audit of hiveAction, place and splice measured the new cue at
 -33.78 momentary LUFS and -19.17 dBFS peak, with no clipping or hard stops. All 39
 focused tests passed. This is note ten for v2026.11.16.5.
+
+## 2026-11-16 — new scenes start at the top of the caption
+
+Chrome reproduced the previous scene offset carrying over 126px on short screens with
+enlarged text. Both players reset caption scroll on scene changes. Real Chrome verified
+Next, Previous and the Archive final-card return. All 36 focused tests passed. This is
+note eleven for v2026.11.16.5.

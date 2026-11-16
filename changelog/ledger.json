@@ -1,6 +1,6 @@
 {
-  "lastSha": "47c154b962faefe984f83b7efd721ac63a758388",
-  "commitsSinceDraft": 2,
+  "lastSha": "8a101c2e89536b770ff2a49f08e75e23df16b5b8",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -5043,6 +5043,10 @@
         {
           "cat": "Audio",
           "text": "Hive Intelligence plays a quiet two-note confirmation after a successful batch of purchases. Each placement or upgrade still has its own sound."
+        },
+        {
+          "cat": "UI",
+          "text": "When captions scroll on a short screen or at a large text size, changing scenes starts at the first line in the opening film and Memory Archive."
         }
       ]
     }
@@ -11917,6 +11921,22 @@
       "date": "2026-11-15",
       "cat": "Audio",
       "text": "Audio: give Hive purchases a distinct confirmation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "70e91722d0c170f2d923241119ff33637739bcf5",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare Hive confirmation note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "8a101c2e89536b770ff2a49f08e75e23df16b5b8",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: reset caption scroll between scenes",
       "internal": true,
       "needsReview": false
     }
