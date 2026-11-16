@@ -127,6 +127,7 @@ export const GUIDES: Guide[] = [
       ] },
       { h: 'Weak-point surgery', body: [
         'Weak points descend into reach and each destroyed organ removes a threat or triggers a consequence — the raid is a sequence of surgical decisions under pressure. Killing efficiency (speed, integrity kept, organs burned, casts interrupted) grades the reward payout.',
+        'Look for the bright dashed rings around open organs. A warmer ring means the organ is close to rupturing. The raid bar shows how many seconds each timed organ stays open. A timer marked <b>held</b> stays frozen while the boss is toppled, giving you more time to break the organ.',
       ] },
       { h: 'The hunt pays even when the raid fails', body: [
         'Every raid leaves a wound — Marked, Wounded, Crippled or Felled — and every organ you burst counts toward your <b>Mega Hunt</b> rank, win or lose. Each new rank pays Genome Cores once, and Results shows an organ dossier of what you have learned about the beast. Mega stages also ask far less extra Power than they used to, so a raid is a wall you climb in a session, not a day.',
