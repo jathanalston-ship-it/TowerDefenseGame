@@ -2251,3 +2251,7 @@ Normal and Exact values drafts keep three cards in one row on landscape phones a
 ## 2026-11-16 — keyboard soundtrack startup
 
 Chrome reproduced a suspended menu soundtrack after the first trusted Enter. The hub now resumes the existing soundtrack on the first qualifying keyboard, mouse or touch interaction. The browser probe verified all three paths, Escape and Music Off. All 47 focused audio tests passed. The sixth game and News note is generated for v2026.11.16.4.
+
+## 2026-11-16 — wave briefing explains enemy behavior
+
+Enemy details describe their authored combat roles and several traits for hybrids. Browser probes verified six enemy kinds including armored artillery, airborne support and a burrowing regenerator. Layout, focus restoration and reading key isolation passed on portrait and landscape phones and desktop. All 36 focused tests passed. The seventh game and News note is generated for v2026.11.16.4.

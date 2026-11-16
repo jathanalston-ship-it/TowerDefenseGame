@@ -1,6 +1,6 @@
 {
-  "lastSha": "74656cb08a1fc8a7b4ccf2166e62b20acadf2d27",
-  "commitsSinceDraft": 2,
+  "lastSha": "25db6700355c2021975f45f8d699804c986b42de",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4987,6 +4987,10 @@
         {
           "cat": "Audio",
           "text": "The menu soundtrack can start from your first keyboard interaction as well as a click or tap. The game resumes the queued music and respects your Music setting."
+        },
+        {
+          "cat": "UI",
+          "text": "Open an enemy in the wave briefing to see how it fights. The details explain traits such as shelling the Core from range, shielding nearby enemies, and flying over blockers. Enemies with several traits show them together."
         }
       ]
     }
@@ -11661,6 +11665,22 @@
       "date": "2026-11-15",
       "cat": "Music",
       "text": "Unlock menu music from keyboard input",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "32cdfad035f5ca72446f49fe50beb04901412247",
+      "date": "2026-11-15",
+      "cat": "Music",
+      "text": "Prepare keyboard soundtrack note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "25db6700355c2021975f45f8d699804c986b42de",
+      "date": "2026-11-15",
+      "cat": "Enemies",
+      "text": "Explain incoming enemy traits",
       "internal": true,
       "needsReview": false
     }

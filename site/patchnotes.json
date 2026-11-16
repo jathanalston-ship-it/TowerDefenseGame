@@ -30,6 +30,10 @@
       {
         "cat": "Audio",
         "text": "The menu soundtrack can start from your first keyboard interaction as well as a click or tap. The game resumes the queued music and respects your Music setting."
+      },
+      {
+        "cat": "UI",
+        "text": "Open an enemy in the wave briefing to see how it fights. The details explain traits such as shelling the Core from range, shielding nearby enemies, and flying over blockers. Enemies with several traits show them together."
       }
     ]
   },

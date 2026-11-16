@@ -880,3 +880,5 @@
 - `a53e060` **[Gene Cards]** Fit gene comparisons on landscape phones _(internal)_
 - `a159300` **[Gene Cards]** Prepare landscape gene comparison note _(internal)_
 - `74656cb` **[Music]** Unlock menu music from keyboard input _(internal)_
+- `32cdfad` **[Music]** Prepare keyboard soundtrack note _(internal)_
+- `25db670` **[Enemies]** Explain incoming enemy traits _(internal)_
