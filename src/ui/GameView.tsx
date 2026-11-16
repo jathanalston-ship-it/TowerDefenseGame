@@ -1076,9 +1076,16 @@ export function GameView({
       // Space belongs to a focused control, not to the board beneath it.
       if ((e.key === ' ' || e.key === 'Spacebar') && target?.closest('button, a, [role="button"], [role="switch"]')) return;
       audio.resume();
+      const k = e.key;
+      if (game.phase === 'draft') {
+        if (!tutorial && (k === 'p' || k === 'P')) {
+          e.preventDefault();
+          togglePause();
+        }
+        return;
+      }
       // Board hotkeys only during active play — the draft owns the keyboard while open.
       if (game.phase !== 'prep' && game.phase !== 'wave') return;
-      const k = e.key;
       if (evoOpenRef.current) {
         if (k === 'Escape' || k === 'e' || k === 'E') setEvoOpen(false);
         return;
@@ -1548,6 +1555,7 @@ export function GameView({
             paused={paused}
             onStartAuto={!tutorial && automation.allowed ? () => { game.setHiveActive(true); refresh(); } : undefined}
             onStopAuto={hud.hiveActive ? () => { game.setHiveActive(false); refresh(); } : undefined}
+            onPause={!tutorial ? togglePause : undefined}
             rerollCost={hud.draftRerollCost}
             biomass={hud.biomass}
             chosen={hud.cards}

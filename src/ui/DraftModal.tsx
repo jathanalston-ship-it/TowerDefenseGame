@@ -140,6 +140,7 @@ export function DraftModal({
   paused = false,
   onStopAuto,
   onStartAuto,
+  onPause,
   rerollCost = -1,
   biomass = 0,
   onReroll,
@@ -160,6 +161,7 @@ export function DraftModal({
   paused?: boolean;
   onStopAuto?: () => void;
   onStartAuto?: () => void;
+  onPause?: () => void;
   /** §reroll: biomass price of the draft's ONE re-deal; -1 hides the button (used / tutorial). */
   rerollCost?: number;
   biomass?: number;
@@ -386,14 +388,19 @@ export function DraftModal({
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
           Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
         </p>
-        {!forceManual && hiveAction && (
-          <button type="button" className="draft-hive-toggle" onClick={() => {
-            setStopped(!!autoOverride);
-            if (!autoOverride) setRemaining(AUTO_SECONDS);
-            hiveAction();
-          }}>
-            {autoOverride ? 'Stop Hive Intelligence' : 'Enable Hive Intelligence'}
-          </button>
+        {(!forceManual && hiveAction || onPause) && (
+          <div className="draft-controls">
+            {!forceManual && hiveAction && (
+              <button type="button" disabled={paused} onClick={() => {
+                setStopped(!!autoOverride);
+                if (!autoOverride) setRemaining(AUTO_SECONDS);
+                hiveAction();
+              }}>
+                {autoOverride ? 'Stop Hive Intelligence' : 'Enable Hive Intelligence'}
+              </button>
+            )}
+            {onPause && <button type="button" onClick={onPause} disabled={paused} title="Pause (P)" aria-keyshortcuts="P">Pause</button>}
+          </div>
         )}
         {auto && (
           <div className="draft-auto" role="timer">
