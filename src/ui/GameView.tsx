@@ -316,7 +316,10 @@ export function GameView({
   const tutSession = tutorialStore.use();
   const tutPausedRef = useRef(false);
   tutPausedRef.current = !!(tutorial && tutSession?.progress.status === 'paused');
-  const tutCue = tutorial && tutSession ? currentCheckpoint(tutSession.progress, tutSession.def)?.cue : undefined;
+  const tutCheckpoint = tutorial && tutSession ? currentCheckpoint(tutSession.progress, tutSession.def) : undefined;
+  const tutCue = tutCheckpoint?.cue;
+  const keyboardBoardEnabled = !tutorial || (tutSession?.progress.status === 'active'
+    && ['place-needle', 'second-tower', 'inspect', 'hero-ability'].includes(tutCheckpoint?.id ?? ''));
   const tutFocusRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
   tutFocusRef.current = tutCue?.canvasFocus ?? null;
   const tutCamRef = useRef({ x: WIDTH / 2, y: HEIGHT / 2, z: 1 }); // eased — never snaps
@@ -1127,7 +1130,7 @@ export function GameView({
           }
         }
         setPadShortcutHint(!!game.selectedTower);
-      } else if (!tutorial && (k === 'b' || k === 'B')) {
+      } else if (keyboardBoardEnabled && (k === 'b' || k === 'B')) {
         const pads = keyboardPadButtonRef.current;
         if (pads?.tabIndex === 0) {
           e.preventDefault();
@@ -1164,7 +1167,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed, tutorial, drawers, returnToTowerPads]);
+  }, [game, togglePause, setSpeed, tutorial, drawers, keyboardBoardEnabled, returnToTowerPads]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -1238,12 +1241,12 @@ export function GameView({
         <div className={`canvas-wrap ${outro ? 'is-ending' : ''}`}>
         {/* LIVING GUTTERS (docs/SIGNATURE-MOMENTS.md §4): the biome continues past the board edge — a static periphery bake behind the board; desktop only. */}
         <LivingGutters game={game} boardRef={canvasRef} />
-        {!tutorial && (
+        {keyboardBoardEnabled && (
           <BoardPadNavigator
             game={game}
             enabled={!paused && !evoOpen && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
             buttonRef={keyboardPadButtonRef}
-            shortcutHint={padShortcutHint}
+            shortcutHint={padShortcutHint || !!tutorial}
             showTarget={showKeyboardTarget}
             onInspect={(towerId) => {
               keyboardInspectorId.current = towerId;
