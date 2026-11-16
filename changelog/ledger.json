@@ -1,6 +1,6 @@
 {
-  "lastSha": "c8421591015c4f22ba8439a0d896239fa478d46a",
-  "commitsSinceDraft": 4,
+  "lastSha": "a02d62b21994ca2dc1a47518b70ac8c128460277",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -4935,6 +4935,10 @@
         {
           "cat": "UI",
           "text": "Tap the locked Hive Intelligence control to see why automation is unavailable in this run. The explanation also opens from the keyboard and shows the relevant Stage 5, mode, or Threat requirement."
+        },
+        {
+          "cat": "UI",
+          "text": "The Hive Intelligence control keeps keyboard focus when you stop or re-enable it during a gene draft. Re-enabling shows the full ten-second countdown immediately."
         }
       ]
     }
@@ -11465,6 +11469,14 @@
       "date": "2026-11-15",
       "cat": "Audio",
       "text": "Add a tower shot volume preview",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "a02d62b21994ca2dc1a47518b70ac8c128460277",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: explain locked Hive Intelligence runs",
       "internal": true,
       "needsReview": false
     }

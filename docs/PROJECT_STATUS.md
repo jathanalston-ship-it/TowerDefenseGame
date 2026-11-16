@@ -2203,3 +2203,7 @@ Preview effects plays an existing tower shot at the current effects level in Set
 ## 2026-11-16 — Hive Intelligence lock help verified locally
 
 Locked Hive opens the existing reason from touch or keyboard. Browser checks passed Stage 5, frontier Threat, Boss Rush, enabled toggle, phone layout and focus return. All 44 focused tests passed. Three website and game notes are prepared.
+
+## 2026-11-16 — Hive draft focus verified locally
+
+One Enable/Stop control retains focus and immediately displays the full countdown on re-enable. The browser reproduced the old focus loss, then passed repeated keyboard toggles, stop-and-wait, and existing draft keyboard shortcuts. All 57 focused tests passed. Four website and game notes are prepared.

@@ -924,3 +924,5 @@ Cinematic short-screen layout keeps controls visible and allows caption overflow
 Cinematic audio: audio/cinematicBeats.ts schedules authored cues on visible scene time for InitCutscene and CutscenePlayer. Animation and stills share their cue timeline. See CUTSCENES.md and AUDIO.md.
 
 Locked Hive Intelligence uses the shared ChipPopover in the run controls, giving touch and keyboard users the exact automation gate reason. See HIVE-MIND.md.
+
+In-draft Hive Intelligence uses one Enable/Stop button so keyboard focus survives taking over or restarting automation. See HIVE-MIND.md.

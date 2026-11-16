@@ -83,7 +83,7 @@ uses highestCampaignStage and passes the verdict as RunOptions.automationAllowed
 
 Game.setHiveActive controls a run-local toggle. The fixed-step loop calls hivePulse at the
 configured cadence; Auto Wave reads the toggle without overwriting the standalone preference.
-DraftModal uses a live override of its existing countdown, with a Stop button and pause handling.
+DraftModal uses a live override of its existing countdown. A single Enable/Stop button retains keyboard focus while the draft moves between automatic and manual selection. Enabling Hive updates the displayed countdown immediately.
 No save-schema migration is needed. The input recorder includes setHiveActive.
 
 ## §opening — the first Biomass goes into towers (Batch G, 2026-11)

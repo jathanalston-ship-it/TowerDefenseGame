@@ -4,36 +4,36 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 02:06 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** c8421591
+- **Generated:** 2026-11-16 02:10 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** a02d62b2
 
 ## Summary of work completed
 
-Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v2026.11.16.3 Cinematic Sound and Accessibility now has three synced notes including a touch and keyboard explanation for the locked Hive Intelligence button.
+Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v2026.11.16.3 Cinematic Sound and Accessibility has four synced notes including reliable keyboard focus on the Hive draft control.
 
 ## Files modified
 
-- Source (4): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/GameView.tsx`, `src/ui/components/ChipPopover.tsx`
+- Source (3): `src/changelog/releases.gen.ts`, `src/ui/DraftModal.tsx`, `src/ui/GameView.css`
 - Tests (0): —
 - Docs (6): `docs/HISTORY.md`, `docs/HIVE-MIND.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`, `docs/devlog/DRAFT-2026-11-15.md`
 
 ## Systems affected (from the dependency registry)
 
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/GameView.tsx`
-- **ui-kit** — `src/ui/components/ChipPopover.tsx`
+- **gene-cards** — `src/ui/DraftModal.tsx`
+- Consumer ring (verify, unchanged): doctrines, engine
 
 ## Power Score changes
 
-None. Automation rules and run model are unchanged.
+None. Draft recommendation, automation gate and run mechanics are unchanged.
 
 ## UI changes
 
-Eligible Hive Intelligence retains its toggle with a stable accessible name and pressed state. On locked runs the compact button opens the existing ChipPopover with the gate reason. The focused dialog’s name includes the reason, and Escape or Close returns focus. GameView browser checks passed at 320, 390, 844 and desktop widths. Additional checks verified frontier Threat, Boss Rush and an eligible run turning Hive on/off. All 44 focused tests passed.
+DraftModal keeps one Enable/Stop Hive button mounted while it changes action. Re-enabling displays ten seconds immediately. Chrome reproduced the old lost focus then confirmed three successive keyboard toggles, no auto pick after stopping and the countdown reset. Existing card, reroll, pause, text-input and recommended Enter keyboard checks passed. All 57 focused tests passed across the draft, Hive, UI and website suites.
 
 ## Documentation changes
 
-HIVE-MIND and PROJECT_MANIFEST describe lock help. Website and game notes are synchronized.
+HIVE-MIND and PROJECT_MANIFEST describe the single control. Website and game notes synchronized.
 
 ## Save changes
 
@@ -41,16 +41,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-The mobile audit selector follows the Hive button inside the locked popover wrapper. Browser fixture imports the transformed GameView meta module for unlocked test state. Preserve all three untracked devlog drafts.
+A paused draft still uses the existing pause behavior. The parent browser fixture models GameView’s changing Hive state and stable callbacks. Preserve all three untracked devlog drafts.
 
 ## Remaining technical debt
 
-Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
+Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
 
 ## Recommended next tasks
 
-Continue toward the next release near 02:58 UTC. Seal, regenerate, run full validator, push production and verify game, homepage and website notes.
+Continue toward the next deployment around 02:58 UTC. Seal and regenerate, run full validator, push production and verify normal public game, homepage and website notes.
 
 ## Future expansion hooks
 
-Parent hive-lock-explanation-check.cjs and hive-other-gates-check.cjs use local port 5174. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.
+Parent draft-hive-focus-check.cjs and draft-keyboard-current-check.cjs use Vite port 5174. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.

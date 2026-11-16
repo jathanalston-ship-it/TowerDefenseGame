@@ -180,6 +180,7 @@ export function DraftModal({
   const [stopped, setStopped] = useState(false);
   const auto = !stopped && !forceManual && (autoOverride ?? standaloneAuto);
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
+  const hiveAction = autoOverride ? onStopAuto : onStartAuto;
 
   // Detail expansion state. Hover dwell + Shift are NON-blocking (a click still drafts);
   // a touch long-press BLOCKS the release-click and the next tap dismisses before picking —
@@ -314,7 +315,15 @@ export function DraftModal({
           {kind === 'opening' ? 'Pick the gene this run builds around — ' : 'Powers this run only — '}press <kbd>1</kbd>–<kbd>{options.length}</kbd> or <kbd>Enter</kbd> for the pick.
           Hold <kbd>Shift</kbd> (or long-press) for exact numbers.
         </p>
-        {!autoOverride && onStartAuto && <button onClick={() => { setStopped(false); onStartAuto(); }}>Enable Hive Intelligence</button>}
+        {!forceManual && hiveAction && (
+          <button type="button" className="draft-hive-toggle" onClick={() => {
+            setStopped(!!autoOverride);
+            if (!autoOverride) setRemaining(AUTO_SECONDS);
+            hiveAction();
+          }}>
+            {autoOverride ? 'Stop Hive Intelligence' : 'Enable Hive Intelligence'}
+          </button>
+        )}
         {auto && (
           <div className="draft-auto" role="timer">
             <span className="draft-auto-k">◆ AUTO-DRAFT</span>
@@ -323,7 +332,6 @@ export function DraftModal({
             </span>
             <span className="draft-auto-n">{Math.ceil(remaining)}s</span>
             <span className="draft-auto-hint">pick any card to override</span>
-            {onStopAuto && <button onClick={() => { setStopped(true); onStopAuto(); }}>Stop Hive Intelligence</button>}
           </div>
         )}
       </div>

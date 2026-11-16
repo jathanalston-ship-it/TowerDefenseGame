@@ -21,6 +21,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Tap the locked Hive Intelligence control to see why automation is unavailable in this run. The explanation also opens from the keyboard and shows the relevant Stage 5, mode, or Threat requirement."
+      },
+      {
+        "cat": "UI",
+        "text": "The Hive Intelligence control keeps keyboard focus when you stop or re-enable it during a gene draft. Re-enabling shows the full ten-second countdown immediately."
       }
     ]
   },
