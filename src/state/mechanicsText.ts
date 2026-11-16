@@ -317,7 +317,7 @@ export const MECHANIC_TEXT: Readonly<Record<string, MechanicText>> = {
     media: 'GIF: the hero fighting',
     what: 'Your Hero patrols the field autonomously, attacks, and has a powerful Active Ability you trigger. Buy AUTO-CAST in a run (the AUTO chip by the ability button) and the Hero fires that ability itself, on cooldown — toggle it off anytime.',
     why: 'A Hero is mobile burst + control the static towers can’t provide.',
-    where: 'On the battlefield; developed in the Hero Lab.',
+    where: 'On the battlefield. In regular runs, press Q to arm the ready ability, then B to aim. Aim with the arrow keys. Press Enter to cast or Escape to cancel. Develop heroes in the Hero Lab.',
     next: 'Open the Hero Combat Console in a run (E, or tap the hero chip) to spend Biomass. Gear the Hero in the Armory and unlock more Hero Slots.',
     mistakes: 'An ability saved forever is an ability wasted — it recharges. Spend it on any real push, not just emergencies.',
   },
