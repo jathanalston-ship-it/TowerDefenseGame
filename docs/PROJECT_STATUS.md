@@ -2259,3 +2259,11 @@ Enemy details describe their authored combat roles and several traits for hybrid
 ## 2026-11-16 — compact wave briefing scroll control
 
 A 44px arrow shows when the enemy row extends past the compact briefing. It scrolls both from keyboard and pointer, returns from the end to the summary, and preserves the opener and row position after details. Chrome verified 320x568, 568x320, 844x390 and desktop plus the enemy trait reader regression. All 31 focused tests passed. The eighth game and News note is generated for v2026.11.16.4.
+
+## 2026-11-16 — draft and placement release validation started
+
+Sealed v2026.11.16.4 Clearer Draft and Placement Controls at 541df1d9. The public-build source contains all eight News notes and the homepage release title. Full validator session 68047 uses --base a66dc998. Log draft-placement-release-validation.log. Follow-up commit 42e68363 stays isolated while release validation and public verification run.
+
+## 2026-11-16 — draft and placement release audit passed
+
+v2026.11.16.4 passed typecheck, 3194 tests, the production phone layout gate, and documentation checks. Verified all eight notes and the homepage release title in dist. Game entry is play-B9gdmA9O.js. Four cinematic improvements are committed separately on codex/cutscene-review.

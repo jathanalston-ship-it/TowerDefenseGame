@@ -4,35 +4,44 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 02:22 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** 9be21612
+- **Generated:** 2026-11-16 03:10 UTC · **Diff scope:** a66dc998...HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 541df1d9
 
 ## Summary of work completed
 
-Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Sealed v2026.11.16.3 Clearer Hive Controls and Sound has eight prepared website and game notes. The latest improvement makes Hive motion obey the in-game preference and preserves receipt expiry.
+Production v2026.11.16.3 remains live at a66dc998. Clearer Draft and Placement Controls v2026.11.16.4 is sealed at 541df1d9 with eight website and game notes. Full validation passed with --base a66dc998, including 3194 tests, typecheck, documentation and the production mobile gate. Main source and build should remain fixed until public verification. The audited build contains play-B9gdmA9O.js, the homepage title and all eight News notes.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/GameView.css`, `src/ui/GameView.tsx`
+- Source (8): `src/audio/music.ts`, `src/changelog/releases.gen.ts`, `src/render/renderer.ts`, `src/ui/App.tsx`, `src/ui/BuildControls.tsx`, `src/ui/DraftModal.tsx`, `src/ui/GameView.css`, `src/ui/GameView.tsx`
 - Tests (0): —
-- Docs (6): `docs/HISTORY.md`, `docs/PROJECT_MANIFEST.md`, `docs/UI-MOTION.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`, `docs/devlog/DRAFT-2026-11-15.md`
+- Docs (8): `docs/AI_HANDOFF.md`, `docs/CARDS.md`, `docs/HISTORY.md`, `docs/HUD.md`, `docs/MUSIC.md`, `docs/PROJECT_STATUS.md`, `docs/TOWER-MANAGEMENT.md`, `docs/VALIDATION_REPORT.md`
 
 ## Systems affected (from the dependency registry)
 
+- **audio** — `src/audio/music.ts`
 - **chronicle** — `src/changelog/releases.gen.ts`
-- **run-ui** — `src/ui/GameView.tsx`
+- **gene-cards** — `src/ui/DraftModal.tsx`
+- **hub-shell** — `src/ui/App.tsx`
+- **rendering** — `src/render/renderer.ts`
+- **run-ui** — `src/ui/BuildControls.tsx`, `src/ui/GameView.tsx`
+- Consumer ring (verify, unchanged): battle-pass, cosmetics, cutscenes, doctrines, engine, hero-cinematics, hive-construction, infestation, living-battlefield, profile, quests, reward-architecture
 
 ## Power Score changes
 
-None. Presentation and display lifetime only.
+No changes to the Power model. Draft comparisons still use the same authored inputs and math.
 
 ## UI changes
 
-The Hive indicator stays steady and the receipt displays without motion when reduced motion is resolved. Allow motion restores indicator pulse and receipt transitions even with the OS preference enabled. Receipt expiry unmounts the HUD notice independently of motion. Its data stays in Pause. The live GameView browser probe verified all of these behaviors. All 48 focused tests passed.
+Surfaces in the blast radius: `MusicDebug (Settings dev console)`, `(audible)`, `App (UpdateBriefing popup)`, `GeneArchive`, `DraftModal`, `BuildPanel`, `gene splash`, `Splice pill`, `Hub`, `CommandCenter`, `ProgressDashboard`, `the battlefield itself`, `Results`, `ALL`
+
+Gene drafts support Pause and show the automatic choice. Exact values opens inline comparison. Three draft cards fit in a row on compact landscape. Placement targets have text and line patterns. Wave briefing details explain authored traits and compact overflow has a scroll button. The menu score resumes via the first qualifying keyboard, mouse or touch input. Chrome probes checked each changed surface.
 
 ## Documentation changes
 
-UI-MOTION and PROJECT_MANIFEST describe resolved Hive motion and receipt expiry. Website and game notes generated and synchronized.
+Registry says these move with the touched systems: `docs/MUSIC.md`, `docs/GAME-FEEL.md`, `docs/AUDIO.md`, `docs/CUTSCENES.md`, `docs/LIVING-BATTLEFIELD.md`, `docs/CHANGELOG-PIPELINE.md`, `docs/GENE-EVOLUTION.md`, `docs/CARDS.md`, `docs/GENE-AUDIT-REPORT.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP.md`, `docs/DESIGN.md`, `docs/EARLY-CALL.md`, `docs/DOCTRINES.md`, `docs/MODE-IDENTITY.md`, `docs/COMMAND-CENTER.md`, `docs/HOME-BASE.md`, `docs/ONE-MORE-RUN.md`, `docs/HUD.md`, `docs/PROGRESSION-LOOP.md`, `docs/UX-CONSOLIDATION.md`, `docs/HIVE-CONSTRUCTION.md`, `docs/INFESTATION.md`, `docs/COSMETICS.md`, `docs/BATTLEPASS.md`, `docs/QUESTS.md`, `docs/PROFILE.md`, `docs/REWARD-ARCHITECTURE.md`, `docs/REWARD-FREQUENCY.md`, `docs/RENDER-PIPELINE.md`, `docs/TOWER-VISUAL-EVOLUTION.md`, `docs/CAMERA.md`, `docs/COMBAT-VISUAL-STANDARDS.md`, `docs/HERO-CINEMATICS.md`, `docs/READABILITY.md`, `docs/REWARD-PRESENTATION.md`
+
+CARDS, HUD, MUSIC and TOWER-MANAGEMENT describe the changed controls. Chronicle generated synchronized News, homepage and in-game data. Other registry docs retain their existing reference values and behavior descriptions.
 
 ## Save changes
 
@@ -40,16 +49,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-Explicit motion opt-in overrides the global reduced-motion duration rule for these Hive elements only. Preserve all three untracked devlog drafts.
+The compact briefing ref keeps the horizontal position while the reader temporarily hides the row. Keep all three untracked devlog drafts out of release commits.
 
 ## Remaining technical debt
 
-Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
+Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and the parent chrome-probe-compat.cjs preload.
 
 ## Recommended next tasks
 
-Sealed release commit 8ba4661e passed full validation with --base 189fcd63, including 3194 tests and the 320px and 390px mobile gate. The built homepage and News page contain the release and eight notes. Production deployed a66dc998 in GitHub Actions run 43793412424. The exact-commit guard and subsequent normal custom-domain verification passed for the game entry, homepage and all eight News notes. Follow-up candidate: P is checked after the draft phase guard and the draft has no visible pause action. An isolated checkout on codex/draft-pause committed 41e89116 after verifying P, touch Pause, remaining countdown time and draft focus return in live GameView. Next-release commit 6f052d9d adds the named automatic gene choice and passed 320px GameView browser checks covering re-roll, Stop, accessibility description and Pause. Commit 706a14cc labels open, occupied and locked tower pads with solid or dashed outlines and respects reduced motion. Five renderer tests and a Chrome Canvas 2D probe passed. The probe also confirmed occupied pad clicks open inspection. The three verified changes are integrated as 6bfe5ced, 204cd434 and 35774e6c. Open release v2026.11.16.4 Clearer Draft and Placement Controls has eight player notes in the ledger and generated website and game artifacts. Commit e0c56fc8 makes the compact briefing overflow discoverable with a 44px button and restores row position after details. Chrome verified keyboard and pointer in 320x568, 568x320 and 844x390 plus desktop omission. All 31 focused tests passed. Commit 25db6700 explains authored enemy roles and hybrid traits in the briefing. Chrome verified six example kinds, elite/probe metadata, access, reading keys and focus return at 320x568, 844x390 and desktop. All 36 focused tests passed. Commit 74656cb0 fixes suspended menu soundtrack startup from keyboard. Native Chrome autoplay probe reproduced failure before and verified trusted Enter, mouse and touch resume the existing context. Escape stayed suspended, and a muted profile created no audio context. All 47 focused audio tests passed. Commit a53e0601 kept three cards in one row at 568x320 and 844x390 and moved Exact values into document flow. Chrome verified both modes, readable wrapped labels, no nested detail scrolling and reroll reachability. Commit 205ab64f added the Exact values toggle with named details. Live GameView on a 320px touch viewport verified tap, Enter, focus, reroll, Pause, Shift blur and manual card selection. Typecheck and 62 focused integration, draft, renderer, UI and cue tests passed. Next production target is around 03:40 UTC. Add any further verified notes, then seal and run full validation with --base a66dc998 before pushing. The isolated Vite server is session 51454 on port 5175.
+Validator session 68047 passed. Push the audited production branch and verify the normal custom-domain pages and eight notes. Next release improvement is 42e68363 on codex/cutscene-review in the isolated worktree. It adds Back to scene in manual Memory Archive playback, with real keyboard and touch checks at 320x568 and 568x320 and 25 focused tests. Commit 95b9f9f2 on the same branch adds visible scene counts to both film players in manual mode. Chrome verified count synchronization with the live caption, Next and Previous, persisted pace, short landscape and the final-card return regression. All 22 focused tests passed. Commit 16e8009e scopes each advance to its displayed scene. Baseline Chrome reproduced Scene 1 jumping to Scene 3. Fixed probes cover both film players, the archive final card, a retired autoplay callback and background/resume clocks. All 15 focused tests passed. Commit e86e75de resolves motion consistently for the film interface and projector. Chrome verified gate, captions, bars and coda under both modes, persistent caption/coda animation timelines and no leakage outside the film. All 22 focused tests passed. After v.4 public verification, cherry-pick 42e68363, 95b9f9f2, 16e8009e and e86e75de and add four player notes.
 
 ## Future expansion hooks
 
-Parent hive-motion-preference-check.cjs uses local Vite port 5174. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.
+Main production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Run ../verify-current-release.ps1 before preparing the next ledger release. Isolated Vite server session 51454 on port 5175 runs ../cutscene-coda-review-check.cjs.
