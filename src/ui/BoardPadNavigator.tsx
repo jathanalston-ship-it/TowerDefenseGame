@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, type RefObject } from 'react';
 import { audio } from '../audio/sound';
 import { TOWER_DEFS } from '../core/config';
 import type { Game } from '../core/game';
@@ -13,9 +13,11 @@ const directions = new Map<string, [number, number]>([
   ['ArrowRight', [0, 1]],
 ]);
 
-export function BoardPadNavigator({ game, enabled, showPad, refresh }: {
+export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showPad, refresh }: {
   game: Game;
   enabled: boolean;
+  shortcutHint: boolean;
+  buttonRef: RefObject<HTMLButtonElement>;
   showPad: (slot: TowerSlot | null) => void;
   refresh: () => void;
 }): JSX.Element {
@@ -40,10 +42,12 @@ export function BoardPadNavigator({ game, enabled, showPad, refresh }: {
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         className="board-pad-key"
         tabIndex={enabled ? 0 : -1}
         aria-label="Tower pads"
+        aria-keyshortcuts="B"
         aria-describedby={helpId}
         onFocus={() => {
           if (!enabled) return;
@@ -75,6 +79,9 @@ export function BoardPadNavigator({ game, enabled, showPad, refresh }: {
       >
         <span aria-hidden="true">{position} Arrow keys select. {action}</span>
       </button>
+      {enabled && shortcutHint && game.selectedTower && !focused && (
+        <span className="board-pad-hint" role="status"><kbd>B</kbd> to choose a tower pad</span>
+      )}
       <span id={helpId} className="a11y-only">Use the arrow keys to select a pad. Enter places or moves an armed tower or inspects the tower on the pad. Arm a tower with 1 through 4.</span>
       <span className="a11y-only" role="status">{focused && enabled ? `${position} ${action}` : ''}</span>
     </>

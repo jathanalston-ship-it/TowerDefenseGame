@@ -518,6 +518,8 @@ export function GameView({
   useEffect(() => game.events.on('waveLastKill', (e) => lastKillRef.current!.start(e, game.mode, game.timeScale)), [game]);
   const pointerRef = useRef<Pointer | null>(null);
   const keyboardPadRef = useRef<Pointer | null>(null);
+  const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
+  const [padShortcutHint, setPadShortcutHint] = useState(false);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const peakTierRef = useRef(game.assimilation.peakTier); // the deepest assimilation tier already announced
@@ -1112,6 +1114,14 @@ export function GameView({
             audio.cue('select');
           }
         }
+        setPadShortcutHint(!!game.selectedTower);
+      } else if (!tutorial && (k === 'b' || k === 'B')) {
+        const pads = keyboardPadButtonRef.current;
+        if (pads?.tabIndex === 0) {
+          e.preventDefault();
+          setPadShortcutHint(false);
+          pads.focus({ preventScroll: true });
+        }
       } else if (k === 'q' || k === 'Q') {
         const wasArmed = game.armedAbility;
         game.armAbility();
@@ -1205,6 +1215,8 @@ export function GameView({
           <BoardPadNavigator
             game={game}
             enabled={!paused && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
+            buttonRef={keyboardPadButtonRef}
+            shortcutHint={padShortcutHint}
             showPad={(slot) => { keyboardPadRef.current = slot ? { x: slot.x, y: slot.y, keyboardPad: true } : null; }}
             refresh={refresh}
           />
@@ -1221,6 +1233,7 @@ export function GameView({
           }}
           onPointerDown={(e) => {
             audio.resume();
+            if (padShortcutHint) setPadShortcutHint(false);
             pointerRef.current = toCoords(e.clientX, e.clientY);
             downRef.current = { x: e.clientX, y: e.clientY };
           }}

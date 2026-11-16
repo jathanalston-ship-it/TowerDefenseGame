@@ -1131,7 +1131,8 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 }
 
 /* The pad navigator takes a Tab stop without covering touch targets on the field. */
-.board-pad-key {
+.board-pad-key,
+.board-pad-hint {
   position: absolute;
   z-index: 45;
   left: 50%;
@@ -1141,6 +1142,15 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   min-height: 44px;
   pointer-events: none;
   background: var(--panel);
+}
+
+.board-pad-hint {
+  min-height: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 12px;
 }
 
 .board-pad-key:not(:focus-visible) {

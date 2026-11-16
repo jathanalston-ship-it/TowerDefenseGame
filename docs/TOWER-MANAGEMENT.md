@@ -161,7 +161,8 @@ Hive-aware tower confirmations: sale quotes derive from the live selected tower.
 
 ## Keyboard targeting
 
-In regular runs, Tab to Tower pads. Arrow keys follow the physical layout and identify
+In regular runs, press B or Tab to Tower pads. The number-row arming shortcuts show a
+hint for B. Arrow keys follow the physical layout and identify
 the current row, column, and whether the pad is open, locked, or occupied. A contrast
 ring tracks focus on the battlefield.
 
