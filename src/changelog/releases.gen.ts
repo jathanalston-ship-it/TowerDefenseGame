@@ -7,7 +7,7 @@ export const RELEASES: Release[] = [
   {
     "id": "v2026.11.16.3",
     "date": "2026-11-16",
-    "title": "Cinematic Sound and Accessibility",
+    "title": "Clearer Hive Controls and Sound",
     "sealed": false,
     "entries": [
       {
@@ -37,6 +37,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Gene drafts move keyboard focus into the draft when they open and keep Tab navigation on draft controls. Screen readers can read the draft title and shortcuts on entry, and focus returns to the previous control when it is still available."
+      },
+      {
+        "cat": "UI",
+        "text": "Hive Intelligence uses a steady indicator and stationary purchase receipt in reduced-motion mode. The receipt still clears after a few seconds, and its details stay available in Pause."
       }
     ]
   },

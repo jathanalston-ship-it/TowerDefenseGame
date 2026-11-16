@@ -114,3 +114,5 @@ Story cutscenes suspend their visual clock and caption animations while hidden; 
 Opening-cinematic visibility suspends gate/film/dive motion and caption CSS animations. Resume preserves scene hold and dive progress. Reduced motion requested during a hidden dive completes safely rather than waiting in a frozen transition.
 
 Reward motion preferences (2026-11-10): RewardReveal resolves shared motion preferences at entry and subscribes to device/preference changes. Reduction reveals the already-applied reward summary immediately without restarting completed sequences; existing paused audio and focus rules remain. Shared useCountUp (results, vault summary, reward toasts) now uses the same resolver and subscriptions; completed counts do not restart. Reward amounts and actions are unchanged.
+
+The battlefield Hive indicator and purchase receipt follow the resolved game motion preference, including its Allow motion override. Reduced motion shows the lit indicator and receipt without animation. The receipt expires independently of CSS, so changing the preference does not revive expired reports.

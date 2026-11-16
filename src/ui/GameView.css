@@ -2282,7 +2282,21 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   border: 1px solid color-mix(in srgb, #8fd0ff 45%, var(--line));
   background: color-mix(in srgb, #8fd0ff 8%, var(--panel));
   box-shadow: var(--shadow-sm); font-size: 11px; line-height: 1.45; pointer-events: none;
-  animation: ui-rise var(--dur-3) var(--ease-out) both, gene-splash-out var(--dur-4) ease-in 3.4s forwards;
+  animation: ui-rise var(--dur-3) var(--ease-out) both, hive-ticker-out var(--dur-4) ease-in 3.4s forwards;
+}
+
+@keyframes hive-ticker-out { to { opacity: 0; } }
+
+.game[data-motion="reduced"] .hive-mind-core,
+.game[data-motion="reduced"] .hive-ticker { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Allow motion is an explicit override of the global reduced-motion duration rule. */
+  .game[data-motion="full"] .hive-mind-btn.is-ready .hive-mind-core {
+    animation-duration: 1.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+  .game[data-motion="full"] .hive-ticker { animation-duration: var(--dur-3), var(--dur-4) !important; }
 }
 
 .hive-ticker b { color: #8fd0ff; font-size: 10px; letter-spacing: 0.08em; }

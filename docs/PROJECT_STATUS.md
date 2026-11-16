@@ -2219,3 +2219,7 @@ The pause menu exposes the most recent Hive purchase pulse with labels, reasons 
 ## 2026-11-16 — gene draft dialog focus verified
 
 The draft now moves focus to its title and shortcut description, traps Tab, and restores the prior connected control. Browser accessibility and keyboard checks passed, including existing shortcuts, pause and reroll. All 57 focused tests passed. Seven website and game notes are prepared.
+
+## 2026-11-16 — Hive HUD follows resolved motion
+
+The Hive indicator and receipt follow reduced motion and the explicit Allow motion setting. Receipt expiry remains independent of animation and the report stays readable in Pause. Live GameView browser verification and all 48 focused tests passed. Eight website and in-game notes are ready in Clearer Hive Controls and Sound.

@@ -353,9 +353,15 @@ export function GameView({
   //    byte-identical simulation at any speed. Auto-slow triggers fire once per run each.
   const [speed, setSpeedState] = useState(1);
   const [speedNote, setSpeedNote] = useState<string | null>(null);
-  // HIVE INTELLIGENCE (docs/HIVE-MIND.md): the pulse report ticker — what the hive just
-  // bought, fading on its own (keyed by `at` so every pulse restarts the animation).
+  // Keep the latest purchase report for Pause. The on-board receipt expires independently
+  // of its animation, so changing the motion preference cannot bring back an old receipt.
   const [hiveTicker, setHiveTicker] = useState<Game['hiveReport'] | null>(null);
+  const [expiredHiveReport, setExpiredHiveReport] = useState(0);
+  useEffect(() => {
+    if (!hiveTicker) return;
+    const timeout = window.setTimeout(() => setExpiredHiveReport(hiveTicker.serial), 3700);
+    return () => window.clearTimeout(timeout);
+  }, [hiveTicker]);
   const autoSlowFired = useRef({ finale: false, record: false, danger: false }); // finale/record: once per RUN; danger: once per WAVE (re-armed in prep)
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
@@ -1324,7 +1330,7 @@ export function GameView({
             ◇ SPLICE <b>{hud.spliceCost.toLocaleString()}</b>
           </button>
         )}
-        {hiveTicker && (
+        {hiveTicker && hiveTicker.serial !== expiredHiveReport && (
           <div className="hive-ticker" key={hiveTicker.serial} role="status">
             <b>◈ HIVE INTELLIGENCE{hiveTicker.spent > 0 ? ` · −${hiveTicker.spent} Biomass` : ''}</b>
             {hiveTicker.actions.slice(0, 6).map((action, index) => <span key={index}>{action.label}</span>)}

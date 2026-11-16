@@ -932,3 +932,5 @@ Automatic gene drafts count only visible, unpaused time. DraftModal retains the 
 Pause offers a keyboard-accessible Latest Hive actions disclosure using the most recent pulse’s existing purchase labels, costs and reasons. See HIVE-MIND.md.
 
 DraftModal names its dialog, exposes keyboard instructions, and owns Tab focus while the cards are active. See CARDS.md.
+
+The Hive purchase receipt expires independently of CSS. Resolved reduced motion keeps the indicator and receipt stationary. See UI-MOTION.md.

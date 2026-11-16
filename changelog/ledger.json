@@ -1,6 +1,6 @@
 {
-  "lastSha": "a8fc438178aa2e317f07c8cdc3c8ace1b510d908",
-  "commitsSinceDraft": 8,
+  "lastSha": "9be216124bcc3826cccd721353bfd99bfa951070",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4921,7 +4921,7 @@
     {
       "id": "v2026.11.16.3",
       "date": "2026-11-16",
-      "title": "Cinematic Sound and Accessibility",
+      "title": "Clearer Hive Controls and Sound",
       "sealed": false,
       "entries": [
         {
@@ -4951,6 +4951,10 @@
         {
           "cat": "UI",
           "text": "Gene drafts move keyboard focus into the draft when they open and keep Tab navigation on draft controls. Screen readers can read the draft title and shortcuts on entry, and focus returns to the previous control when it is still available."
+        },
+        {
+          "cat": "UI",
+          "text": "Hive Intelligence uses a steady indicator and stationary purchase receipt in reduced-motion mode. The receipt still clears after a few seconds, and its details stay available in Pause."
         }
       ]
     }
@@ -11513,6 +11517,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: show the latest Hive purchases in pause",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "9be216124bcc3826cccd721353bfd99bfa951070",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Give gene drafts keyboard dialog focus",
       "internal": true,
       "needsReview": false
     }

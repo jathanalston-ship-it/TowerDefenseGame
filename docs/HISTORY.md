@@ -866,3 +866,4 @@
 - `2932697` **[UI]** Ui: retain Hive draft control focus _(internal)_
 - `32a6db9` **[UI]** Ui: preserve automatic draft reading time _(internal)_
 - `a8fc438` **[UI]** Ui: show the latest Hive purchases in pause _(internal)_
+- `9be2161` **[Gene Cards]** Give gene drafts keyboard dialog focus _(internal)_
