@@ -2321,3 +2321,10 @@ Chrome reproduced the previous scene offset carrying over 126px on short screens
 enlarged text. Both players reset caption scroll on scene changes. Real Chrome verified
 Next, Previous and the Archive final-card return. All 36 focused tests passed. This is
 note eleven for v2026.11.16.5.
+
+## 2026-11-16 — keyboard scrolling inside film captions
+
+Chrome reproduced the modal Tab loop skipping an overflowing caption. Both films
+include the named scroll pane in the focus loop when the text needs it. Native key
+checks verified Page Down, Home and Shift+Tab. Resize removes the stop when unused;
+the existing scene reset still passes. All 26 focused tests passed. Note twelve is ready.

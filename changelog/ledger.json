@@ -1,6 +1,6 @@
 {
-  "lastSha": "8a101c2e89536b770ff2a49f08e75e23df16b5b8",
-  "commitsSinceDraft": 4,
+  "lastSha": "21b6a2151869947f8067495f743739ae8b7932ca",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -5047,6 +5047,10 @@
         {
           "cat": "UI",
           "text": "When captions scroll on a short screen or at a large text size, changing scenes starts at the first line in the opening film and Memory Archive."
+        },
+        {
+          "cat": "UI",
+          "text": "When a film’s captions need scrolling, use Tab to focus the caption area. Page Up and Page Down scroll the text, and the film keeps its keyboard navigation in one loop."
         }
       ]
     }
@@ -11937,6 +11941,22 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: reset caption scroll between scenes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "5c056e6df7d8121f46764127cf28538277dc24ff",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare caption scroll note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "21b6a2151869947f8067495f743739ae8b7932ca",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: make overflowing film captions keyboard scrollable",
       "internal": true,
       "needsReview": false
     }

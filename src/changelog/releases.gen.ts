@@ -53,6 +53,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "When captions scroll on a short screen or at a large text size, changing scenes starts at the first line in the opening film and Memory Archive."
+      },
+      {
+        "cat": "UI",
+        "text": "When a film’s captions need scrolling, use Tab to focus the caption area. Page Up and Page Down scroll the text, and the film keeps its keyboard navigation in one loop."
       }
     ]
   },

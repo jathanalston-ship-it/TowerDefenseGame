@@ -907,3 +907,5 @@
 - `47c154b` **[Audio]** Audio: give Hive purchases a distinct confirmation _(internal)_
 - `70e9172` **[Framework]** Release: prepare Hive confirmation note _(internal)_
 - `8a101c2` **[UI]** Ui: reset caption scroll between scenes _(internal)_
+- `5c056e6` **[Framework]** Release: prepare caption scroll note _(internal)_
+- `21b6a21` **[UI]** Ui: make overflowing film captions keyboard scrollable _(internal)_
