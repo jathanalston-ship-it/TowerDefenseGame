@@ -272,3 +272,9 @@ enemies are ever visible in the gutters (spawn approach) or never.
 1 → 2 → 4 → 3 (cutscenes are the largest and benefit from the other three's tooling).
 Sizes: 1 = M, 2 = M, 4 = M, 3 = L. Each ships behind its own review with before/after frame
 sheets; none changes the sim, saves or balance.
+
+The run-end title presents a focused Continue to summary button. Enter, Space,
+Escape, Browser Back and a board tap reach the same Results handoff. Normal
+automatic timing still applies. The backdrop animation is independent of the
+button and reduced motion shows the outcome immediately without the zoom.
+Results focuses its outcome heading once the rewards screen is available.

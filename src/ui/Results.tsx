@@ -4,7 +4,7 @@
 // This file is the DATA layer — it turns the outcome into RewardCategory[] (add a progression system
 // = add one category here); RewardReveal owns the pacing, animation, and player controls.
 
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { meta } from '../state/meta';
 import { music } from '../audio/music';
 import type { RunOutcome, RunResult } from '../state/meta';
@@ -108,6 +108,13 @@ export function Results({
   /** The run's last frame (docs/SIGNATURE-MOMENTS.md §2) — absent (replay theater, Arena, tutorial) ⇒ today's dark room. */
   backdrop?: RunBackdropImage;
 }): JSX.Element {
+  const summaryHeading = useRef<HTMLHeadingElement>(null);
+  const requestedInitialFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (paused || requestedInitialFocus.current) return;
+    requestedInitialFocus.current = true;
+    if (document.activeElement === document.body) summaryHeading.current?.focus();
+  }, [paused]);
   const masteryGains = TOWER_ORDER.filter((k) => outcome.mastery[k].xpGained > 0);
   // The run's highest mastery contributor (by XP) wears the crown in the ledger.
   const topContributor = masteryGains.length > 0 ? masteryGains.reduce((a, b) => (outcome.mastery[b].xpGained > outcome.mastery[a].xpGained ? b : a)) : null;
@@ -574,9 +581,9 @@ export function Results({
   const title = (
     <div className={`rr-title ${result.won ? 'win' : 'lose'}`}>
       <div className="rr-eyebrow">{result.won ? 'RUN COMPLETE' : 'RUN ENDED'}</div>
-      <div className="rr-headline">
+      <h1 ref={summaryHeading} className="rr-headline" tabIndex={-1}>
         {result.endless ? `DEPTH ${result.wave} REACHED` : result.won ? 'EXTRACTION COMPLETE' : 'NUCLEUS LOST'}
-      </div>
+      </h1>
       {doc && <div className="rr-doctrine" title={doc.blurb}>{doc.icon} {doc.name}</div>}
       <AutoClaimSummary settle={result} />
     </div>

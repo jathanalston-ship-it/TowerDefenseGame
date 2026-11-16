@@ -240,7 +240,7 @@
 
 .rr-eyebrow { font-size: 12px; letter-spacing: 0.28em; color: var(--muted); text-transform: uppercase; }
 
-.rr-headline { font-size: clamp(26px, 5vw, 40px); font-weight: 900; letter-spacing: 0.04em; margin-top: 4px; line-height: 1.05; }
+.rr-headline { font-size: clamp(26px, 5vw, 40px); font-weight: 900; letter-spacing: 0.04em; margin: 4px 0 0; line-height: 1.05; }
 
 .rr-title.win .rr-headline { color: var(--success); text-shadow: 0 0 28px rgba(63, 224, 138, 0.45); }
 

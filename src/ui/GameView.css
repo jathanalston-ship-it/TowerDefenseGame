@@ -1072,6 +1072,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 }
 
 .run-outro-title {
+  margin: 0;
   font-weight: 800;
   font-size: clamp(44px, 9vw, 92px);
   letter-spacing: 0.14em;
@@ -1096,19 +1097,15 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   animation: outro-fade 0.9s ease-out 1.05s both;
 }
 
-.run-outro-hint {
-  margin-top: 20px;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0;
-  animation: outro-hint 1.7s ease-in-out 2s infinite;
+.run-outro-continue {
+  min-height: 44px;
+  margin-top: 12px;
+  padding-inline: 20px;
+  background: var(--panel);
+  color: var(--text);
 }
 
 @keyframes outro-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-@keyframes outro-hint { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.7; } }
 
 .canvas-wrap.is-ending canvas.board {
   animation: outro-zoom 4.4s ease-out both;
@@ -1117,12 +1114,10 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 @keyframes outro-zoom { from { transform: scale(1); } to { transform: scale(1.07); } }
 
-@media (prefers-reduced-motion: reduce) {
-  .run-outro { animation-duration: 0.3s; }
-  .run-outro-title { animation: outro-fade 0.3s ease-out both; filter: none; }
-  .run-outro-sub { animation-delay: 0.2s; }
-  .canvas-wrap.is-ending canvas.board { animation: none; }
+.game[data-motion='reduced'] :is(.run-outro, .run-outro-title, .run-outro-sub, .canvas-wrap.is-ending canvas.board) {
+  animation: none;
 }
+.game[data-motion='reduced'] .run-outro::before { animation: none; }
 
 .stage .canvas-wrap {
   flex: 1 1 auto;
@@ -3508,13 +3503,13 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .pause-settings .motion-settings .set-toggle { margin-top: 6px; }
 
 /* The veil becomes a spotlight on the board's rect: the chrome recedes, the board stays lit. */
-.game[data-outro] .run-outro { background: none; }
-
 .game[data-outro] .run-outro::before {
   content: '';
   position: fixed;
   left: var(--outro-x, 0);
   top: var(--outro-y, 0);
+  right: auto;
+  bottom: auto;
   width: var(--outro-w, 100vw);
   height: var(--outro-h, var(--app-h));
   z-index: -1;
@@ -3524,7 +3519,7 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
   pointer-events: none;
 }
 
-.game[data-outro='settle'] .run-outro > * {
+.game[data-outro='settle'] .run-outro > :is(.run-outro-title, .run-outro-sub) {
   color: transparent;
   text-shadow: 0 0 42px transparent;
   transition: color var(--outro-settle, 350ms) ease-in, text-shadow var(--outro-settle, 350ms) ease-in; /* bespoke: OUTRO.settleMs */

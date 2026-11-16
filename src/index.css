@@ -1362,11 +1362,16 @@ canvas.board {
   gap: 8px;
   cursor: pointer;
   text-align: center;
-  /* a full-screen vignette so the whole UI recedes — but the center stays translucent so the
-     quieted, slowly-pushing-in battlefield still reads behind the title. */
+  -webkit-tap-highlight-color: transparent;
+}
+.run-outro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background: radial-gradient(ellipse at 50% 48%, rgba(4, 6, 11, 0.32) 0%, rgba(4, 6, 11, 0.92) 72%);
   animation: outro-veil 1s ease-out both;
-  -webkit-tap-highlight-color: transparent;
 }
 @keyframes outro-veil { from { opacity: 0; } to { opacity: 1; } }
 .reward {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
@@ -310,7 +310,13 @@ export function GameView({
     setConfirmAbandon(false); // reset the abandon guard whenever pause toggles
   }, []);
   // Browser/Android BACK mid-run opens the Pause sheet instead of leaving (ui/browserBack.ts).
-  useEffect(() => runBus.onPause(() => { if (!pausedRef.current) togglePause(); }), [togglePause]);
+  useEffect(() => runBus.onPause(() => {
+    if (!tutorial && (game.phase === 'won' || game.phase === 'lost')) {
+      skipRef.current = true;
+      return;
+    }
+    if (!pausedRef.current) togglePause();
+  }), [game, togglePause, tutorial]);
   // TUTORIAL GATES (docs/TUTORIAL.md): the overlay's Pause must freeze the SIM too (not just
   // the lesson), and the active checkpoint may request a gentle canvas focus. Subscribing is a
   // no-op cost outside the tutorial (the store is null on normal runs).
@@ -599,8 +605,14 @@ export function GameView({
   // Run-end OUTRO: when the run ends we don't cut straight to the summary — we linger on the
   // (already-quieted) battlefield with a Victory/Defeat title + a resolved sting, then hand off.
   const outroRef = useRef<{ won: boolean; startedAt: number } | null>(null);
-  const skipRef = useRef(false); // tap during the linger to proceed immediately
+  const skipRef = useRef(false);
   const [outro, setOutro] = useState<{ won: boolean; endless: boolean } | null>(null);
+  const outroTitleId = useId();
+  const outroContinueRef = useRef<HTMLButtonElement>(null);
+  const skipOutro = useCallback(() => { skipRef.current = true; }, []);
+  useLayoutEffect(() => {
+    if (outro) outroContinueRef.current?.focus({ preventScroll: true });
+  }, [outro]);
 
   // Per-kind mastery-rank → cosmetic tier (MASTERY.md visual mutations) for BOTH towers and
   // heroes (their kind ids don't collide). Fixed for the run (mastery banks at run end), so
@@ -1678,15 +1690,23 @@ export function GameView({
           // A tap proceeds immediately; otherwise the loop auto-hands-off to the summary.
           <div
             className={`run-outro ${outro.won ? 'win' : 'lose'}`}
-            role="button"
-            tabIndex={0}
-            aria-label="Continue to summary"
-            onClick={() => { skipRef.current = true; }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') skipRef.current = true; }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={outroTitleId}
+            onClick={skipOutro}
+            onKeyDown={(event) => {
+              if (event.key === 'Tab') {
+                event.preventDefault();
+                outroContinueRef.current?.focus({ preventScroll: true });
+              } else if (event.key === 'Escape') {
+                event.preventDefault();
+                skipOutro();
+              } else if (event.repeat && event.key === 'Enter') event.preventDefault();
+            }}
           >
-            <div className="run-outro-title">{outro.endless ? 'RUN ENDED' : outro.won ? 'VICTORY' : 'DEFEAT'}</div>
+            <h2 id={outroTitleId} className="run-outro-title">{outro.endless ? 'RUN ENDED' : outro.won ? 'VICTORY' : 'DEFEAT'}</h2>
             <div className="run-outro-sub">{outro.won ? 'The hive holds the line.' : 'The Nucleus is lost.'}</div>
-            <div className="run-outro-hint">tap to continue</div>
+            <button ref={outroContinueRef} type="button" className="run-outro-continue">Continue to summary</button>
           </div>
         )}
         {hud.phase === 'draft' && hud.draft && (
