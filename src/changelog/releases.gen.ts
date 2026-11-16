@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.16.8",
     "date": "2026-11-16",
     "title": "Battlefield Guidance",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -21,6 +21,22 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Field Notes now have accessible names and return keyboard focus to Tower pads when you dismiss them with Enter or Escape."
+      },
+      {
+        "cat": "UI",
+        "text": "Automatic slowdown notices read out the reason, keep keyboard focus on the active speed when dismissed, and let you tap the battlefield through the notice text. Choosing a faster speed clears the notice."
+      },
+      {
+        "cat": "UI",
+        "text": "Early Call announces the wave number and exact Biomass earned. When you activate its button with the keyboard, focus returns to Tower pads."
+      },
+      {
+        "cat": "UI",
+        "text": "The opening film and story memories wait while you scroll captions with the keyboard. Move focus away to resume from the time left in the scene."
+      },
+      {
+        "cat": "UI",
+        "text": "Hive Core warnings announce once when an attack begins, explain the incoming damage without a placeholder countdown, and stay still when motion is reduced or flashes are disabled."
       }
     ]
   },

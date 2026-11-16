@@ -2449,3 +2449,11 @@ names and return focus to Tower pads when dismissed from the keyboard.
 The `../field-note-focus-check.cjs` browser check reproduced the original
 focus loss and passed Enter and Escape on desktop and 320px. Thirty
 focused tests passed. Three synchronized release notes are ready.
+
+## 2026-11-16 — Battlefield Guidance sealed
+
+Checkpoint 19822 passed all 3,197 tests, typecheck, the mobile layout
+matrix, and documentation checks at 06:48 UTC. The candidate includes
+four further verified changes for slowdown notices, Early Call,
+keyboard caption reading, and Hive Core warnings. All seven game and
+website notes are sealed for the final audit.

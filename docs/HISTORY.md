@@ -955,3 +955,8 @@
 - `830bf9e` **[UI]** Ui: make the battlefield shortcuts easy to find _(internal)_
 - `83f932c` **[Bug Fixes]** Retain keyboard focus after starting a wave
 - `a5b6cdf` **[Bug Fixes]** Ui: keep keyboard focus after field notes
+- `504f438` **[Framework]** Release: prepare battlefield guidance notes _(internal)_
+- `ca04850` **[Bug Fixes]** Ui: keep speed notices clear of play
+- `7c79cc6` **[Bug Fixes]** Confirm early wave calls accessibly
+- `4718070` **[Bug Fixes]** Cinematics: hold autoplay while reading captions
+- `8d31e3e` **[Bug Fixes]** Ui: make Hive Core danger easier to read

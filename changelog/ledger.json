@@ -1,6 +1,6 @@
 {
-  "lastSha": "a5b6cdf9aa24b0280306c0104711fb6792f986a4",
-  "commitsSinceDraft": 1,
+  "lastSha": "8d31e3ebd8dbedb31bfc40095ca30ff7f5103271",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -5154,7 +5154,7 @@
       "id": "v2026.11.16.8",
       "date": "2026-11-16",
       "title": "Battlefield Guidance",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -5167,6 +5167,22 @@
         {
           "cat": "UI",
           "text": "Field Notes now have accessible names and return keyboard focus to Tower pads when you dismiss them with Enter or Escape."
+        },
+        {
+          "cat": "UI",
+          "text": "Automatic slowdown notices read out the reason, keep keyboard focus on the active speed when dismissed, and let you tap the battlefield through the notice text. Choosing a faster speed clears the notice."
+        },
+        {
+          "cat": "UI",
+          "text": "Early Call announces the wave number and exact Biomass earned. When you activate its button with the keyboard, focus returns to Tower pads."
+        },
+        {
+          "cat": "UI",
+          "text": "The opening film and story memories wait while you scroll captions with the keyboard. Move focus away to resume from the time left in the scene."
+        },
+        {
+          "cat": "UI",
+          "text": "Hive Core warnings announce once when an attack begins, explain the incoming damage without a placeholder countdown, and stay still when motion is reduced or flashes are disabled."
         }
       ]
     }
@@ -12441,6 +12457,46 @@
       "date": "2026-11-15",
       "cat": "Bug Fixes",
       "text": "Ui: keep keyboard focus after field notes",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "504f438f0c3989885ff17674b344e398e7d4aa2d",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare battlefield guidance notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "ca048506ec31a17a8c33d8d26496fbf8bcc639f4",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Ui: keep speed notices clear of play",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "7c79cc661c601229c31012ed7922db41e55096ed",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Confirm early wave calls accessibly",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "47180707da777408263c039154126ceb8c203f86",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Cinematics: hold autoplay while reading captions",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "8d31e3ebd8dbedb31bfc40095ca30ff7f5103271",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Ui: make Hive Core danger easier to read",
       "internal": false,
       "needsReview": false
     }
