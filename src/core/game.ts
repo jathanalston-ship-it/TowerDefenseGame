@@ -8820,6 +8820,8 @@ export class Game {
       return out;
     }
     const w = Math.max(0, this.waveIndex);
+    const raid = this.upcomingCampaignRaid();
+    if (raid) out.push(`Mega Boss ${raid.name} at wave ${raid.wave}`);
     // The finale boss: a campaign stage names its generated boss; the authored stage, the Tyrant.
     const bossName = this.stage ? this.stage.boss.name : ENEMY_DEFS.tyrant.name;
     if (w < this.totalWaves) out.push(`${bossName} at wave ${this.totalWaves}`);
@@ -8930,6 +8932,16 @@ export class Game {
     if (this.mode === 'bossRush') def.bounty = RUSH.bossBounty;
     this.procBosses.set(def.id, def);
     this.spawnBoss(def);
+  }
+
+  /** Raid arrival for the briefing and HUD while there is still time to prepare. */
+  upcomingCampaignRaid(): { name: string; wave: number } | null {
+    if (this.mode !== 'campaign' || !this.stage || this.mega !== null) return null;
+    const wave = campaignMegaArrivalWave(this.totalWaves);
+    if (this.waveIndex >= wave) return null;
+    const encounter = campaignMegaFor(this.stage.stage);
+    const def = encounter ? megaBossDef(encounter.defId) : undefined;
+    return def ? { name: def.name, wave } : null;
   }
 
   /** Composition of the wave that Start Wave will launch next (null if none left). */

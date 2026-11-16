@@ -75,6 +75,8 @@ export function BuildControls({
     hud.hiveActive ? 'Hive Intelligence currently manages both controls. Turn Hive off to change them individually.' : '',
   ].filter(Boolean).join(' ');
   const nextWave = hud.endless || hud.bossRush ? hud.wave + 1 : Math.min(hud.totalWaves, hud.wave + 1);
+  const raid = visible ? game.upcomingCampaignRaid() : null;
+  const nextRaid = raid?.wave === nextWave ? raid : null;
   // Launch sweep: a one-shot full-board energy band when the wave fires (keyed per launch).
   const [sweepAt, setSweepAt] = useState(0);
   // Encounter forecast — base biomass (Σ unmodified bounty) + the heaviest tier present, from the
@@ -170,6 +172,13 @@ export function BuildControls({
               <span className="wb-eyebrow">◉ INCOMING</span>
               <span className="wb-wave">{hud.endless ? `DEPTH ${nextWave}` : hud.bossRush ? `WAVE ${nextWave} — ${nextWave} ${nextWave === 1 ? 'BOSS' : 'BOSSES'}` : `WAVE ${nextWave}`}</span>
               {!hud.endless && !hud.bossRush && <span className="wb-of">/ {hud.totalWaves}</span>}
+              {nextRaid && (
+                <button type="button" className="wb-info wb-raid" tabIndex={visible ? 0 : -1}
+                  aria-expanded={detail?.id === 'raid'} aria-label={`Mega Boss ${nextRaid.name} arrives this wave. Show details`}
+                  onClick={(event) => showDetail(event, 'raid', nextRaid.name, 'The Mega Boss anchors at the top of the arena. Towers and heroes can target open weak points marked by dashed rings.')}>
+                  ◈ RAID · {nextRaid.name}
+                </button>
+              )}
               {hostiles > 0 && <span className="wb-count">{hostiles} hostiles</span>}
               {forecast && forecast.biomass > 0 && (
                 <button type="button" className="wb-forecast wb-info" tabIndex={visible ? 0 : -1}

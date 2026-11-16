@@ -42,6 +42,8 @@ The redesign below has been implemented and extended. The live combat HUD is now
   to the triggering chip after the compact row reappears;
   a new preview or departure from prep dismisses the details. Enemy HP/armor are explicitly
   base stats, elite counts are included in the total, and rewards explain modifier/kill limits.
+  When the next Campaign wave brings a Mega Boss, the briefing names the raid and offers
+  target guidance. The wave HUD forecasts the raid until it spawns.
 - **HERO OPS** right-panel default: breathing portrait, conic ability wheel, HP + shield,
   rarity-lit equipment slots, evolution chip, compact run stats.
 - **Left panel**: collapsible Gene Cards / Active Effects + an OBJECTIVES section. Run conditions

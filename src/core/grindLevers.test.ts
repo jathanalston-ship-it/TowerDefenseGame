@@ -42,6 +42,9 @@ describe('Campaign opening safety (CAMPAIGN_OPENING)', () => {
     expect(campaignMegaFor(st)).toBeTruthy();
     const g = new Game(5, NO_META, undefined, undefined, undefined, { mode: 'campaign', stage: generateStage(st), earlyCall: true });
     g.god = true;
+    const forecast = g.upcomingCampaignRaid();
+    expect(forecast?.wave).toBe(CAMPAIGN_OPENING.megaArrivalWave);
+    expect(g.getSnapshot().anticipation[0]).toBe(`Mega Boss ${forecast?.name} at wave ${forecast?.wave}`);
     g.startWave();
     expect(g.waveIndex).toBe(1);
     expect(anyG(g).mega).toBeNull();
@@ -52,6 +55,8 @@ describe('Campaign opening safety (CAMPAIGN_OPENING)', () => {
       if (w < CAMPAIGN_OPENING.megaArrivalWave) expect(anyG(g).mega).toBeNull();
     }
     expect(anyG(g).mega).not.toBeNull();
+    expect(g.upcomingCampaignRaid()).toBeNull();
+    expect(g.getSnapshot().anticipation[0]).not.toContain(forecast?.name);
   });
 });
 
