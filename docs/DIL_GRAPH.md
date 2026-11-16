@@ -2435,7 +2435,7 @@ _at: src/core/megaboss.ts, src/render/megaboss.ts_
 
 Unlockable animated story films: one premiere per mega boss first-defeat (ENFORCED — every mega def must ship a cutscene, cutscenes.test.ts) + four milestone story beats; collected + replayed forever in the Memory Archive, each granting a small permanent passive.
 
-_at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/render/filmDirection.ts, src/ui/CutscenePlayer.tsx_
+_at: src/core/cutscenes.ts, src/render/cutsceneScenes.ts, src/render/filmDirection.ts, src/ui/CutscenePlayer.tsx, src/ui/useFilmCaptionScroll.ts_
 
   - dependsOn → `system:mega-bosses`
   - dependsOn → `system:meta-store`
