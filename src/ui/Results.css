@@ -542,7 +542,11 @@
 
 .mh-next { font-size: var(--fs-xs); color: var(--muted); }
 
-.mh-organs { display: flex; flex-wrap: wrap; gap: 6px; }
+.mh-count { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: var(--fs-xs); color: var(--muted); }
+
+.mh-count b { color: var(--text); }
+
+.mh-organs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 
 .mh-organ {
   display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 150px;

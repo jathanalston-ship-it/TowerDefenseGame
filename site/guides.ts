@@ -130,7 +130,7 @@ export const GUIDES: Guide[] = [
         'Look for the bright dashed rings around open organs. A warmer ring means the organ is close to rupturing. The raid bar shows how many seconds each timed organ stays open. A timer marked <b>held</b> stays frozen while the boss is toppled, giving you more time to break the organ.',
       ] },
       { h: 'The hunt pays even when the raid fails', body: [
-        'Every raid leaves a wound — Marked, Wounded, Crippled or Felled — and every organ you burst counts toward your <b>Mega Hunt</b> rank, win or lose. Each new rank pays Genome Cores once, and Results shows an organ dossier of what you have learned about the beast. Mega stages also ask far less extra Power than they used to, so a raid is a wall you climb in a session, not a day.',
+        'Every raid leaves a wound — Marked, Wounded, Crippled or Felled — and every organ you burst counts toward your <b>Mega Hunt</b> rank, win or lose. Each new rank pays Genome Cores once. In Results, open Mega Hunt to see how many organs you have identified. Rupture an organ to learn its effect. Hunt Rank 3 reveals the full dossier. Mega stages also ask far less extra Power than they used to, so a raid is a wall you climb in a session, not a day.',
       ] },
       { h: 'The lone siege', body: [
         'When the wave plan is spent and the Mega Boss is the last thing standing, it TURNS ON THE HIVE: its mass drapes down into every tower’s reach (and takes deeper body damage for it), reinforcements escalate, and it winds up direct HIVE LASHES — telegraphed strikes on your integrity that come FASTER with every landed blow. Stalling is a losing race. Burst an eye mid-windup or topple it with a weak-point push to defuse a lash and buy a full beat.',

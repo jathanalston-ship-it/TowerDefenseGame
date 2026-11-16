@@ -376,6 +376,7 @@ export function Results({
   if (hunt) {
     const wound = MEGA_HUNT.wounds.find((w) => w.id === hunt.wound);
     const tornPct = Math.round(hunt.hpTorn * 100);
+    const knownOrgans = hunt.dossier.filter((organ) => organ.known).length;
     categories.push({
       id: 'mega-hunt',
       title: 'Mega Hunt',
@@ -396,14 +397,22 @@ export function Results({
       extra: (
         <div className="mh-dossier">
           <div className="mh-next">Next rank at {num(hunt.nextRankAt)} organs pays +{num(hunt.nextRankCores)} {ACCOUNT_CURRENCY.name} — every rupture counts, win or lose.</div>
-          <div className="mh-organs" aria-label={`${hunt.name} organ dossier`}>
-            {hunt.dossier.map((o) => (
-              <span key={o.kind} className={`mh-organ${o.known ? ' is-known' : ''}`} title={o.note}>
-                <b>{o.known ? o.name : 'Unknown organ'}</b>
-                <i>{o.note}</i>
-              </span>
-            ))}
-          </div>
+          {hunt.dossier.length > 0 && (
+            <>
+              <div className="mh-count">Organ dossier <b>{knownOrgans}/{hunt.dossier.length} identified</b></div>
+              {knownOrgans < hunt.dossier.length && (
+                <div className="mh-next">Rupture an organ to identify it. Hunt Rank {MEGA_HUNT.dossierRank} reveals the full dossier.</div>
+              )}
+              <ul className="mh-organs" role="list" aria-label={`${hunt.name} organ dossier`}>
+                {hunt.dossier.map((o) => (
+                  <li key={o.kind} className={`mh-organ${o.known ? ' is-known' : ''}`}>
+                    <b>{o.known ? o.name : 'Unknown organ'}</b>
+                    {o.known && <i>{o.note}</i>}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       ),
     });
