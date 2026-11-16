@@ -1397,6 +1397,29 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   border-color: var(--gold);
   background: color-mix(in srgb, var(--gold) 14%, transparent);
 }
+.draft-dialog.is-comparing {
+  justify-content: flex-start;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+.draft-dialog.is-comparing > :first-child { margin-top: auto; }
+.draft-dialog.is-comparing > :last-child { margin-bottom: auto; }
+.draft-dialog.is-comparing .card-fx { display: none; }
+.draft-dialog.is-comparing .card-detail > .card-detail-k:first-child { display: none; }
+.draft-dialog.is-comparing .card-detail {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.draft-dialog.is-comparing .cmp-label {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.draft-dialog.is-comparing .card-pick { margin-top: auto; }
 
 .draft-auto {
   display: flex;
@@ -3150,6 +3173,21 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :first-child { margin-top: auto; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .canvas-wrap > .overlay > :last-child { margin-bottom: auto; }
+
+@media (min-width: 520px) {
+  html[data-layout='landscape'] .draft-dialog { gap: 10px; overflow-x: hidden; }
+
+  html[data-layout='landscape'] .draft-dialog .cards {
+    width: 100%;
+    gap: 8px;
+  }
+
+  html[data-layout='landscape'] .draft-dialog .card {
+    width: min(220px, calc((100% - 16px) / 3));
+    min-width: 0;
+    padding-inline: 10px;
+  }
+}
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .evo-menu.hcc {
   position: fixed;

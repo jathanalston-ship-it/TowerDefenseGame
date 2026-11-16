@@ -362,7 +362,7 @@ export function DraftModal({
   return (
     <div
       ref={dialogRef}
-      className={`overlay draft-dialog${committed ? ' is-committing' : ''}`}
+      className={`overlay draft-dialog${committed ? ' is-committing' : exactValues ? ' is-comparing' : ''}`}
       role="dialog"
       aria-modal={!paused}
       aria-hidden={paused || undefined}
@@ -494,6 +494,7 @@ export function DraftModal({
             <span className="card-fx">
               {o.lines.map((l, k) => <FxLine key={k} l={l} primary={k === 0} />)}
             </span>
+            {detailOpen && <CardDetail o={o} chosen={chosen} />}
             {/* DRAFT FIT (docs/CARDS.md §fit): name a card whose subject barely matters to this run. */}
             {o.fit !== undefined && o.fit < DRAFT_FIT.offBuild && (
               <span className="card-offbuild" title="Its subject deals little of this run's damage — or your Biomass bank already overflows">◇ Off-build for this run</span>
@@ -502,7 +503,6 @@ export function DraftModal({
               <span className="card-pair">◈ Pairs with your {o.category} build ×{catCount.get(o.category)}</span>
             )}
             <span className="card-pick">DRAFT</span>
-            {detailOpen && <CardDetail o={o} chosen={chosen} />}
           </button>
           );
         })}
