@@ -28,6 +28,7 @@ import { highestCampaignStage } from '../save/derive';
 import { RewardPreview } from './RewardPreview';
 import type { PreviewChip } from './RewardPreview';
 import { missionControl } from '../state/missionControl';
+import { campaignMegaBrief } from '../state/missionBrief';
 import { PredictionPanel } from './PredictionPanel';
 import { WorldStatus } from './WorldStatus';
 import { LiveEventsStrip } from './components/LiveEventsStrip';
@@ -262,6 +263,7 @@ function Vitals({ save, view, go }: WidgetCtx): ReactNode {
 /** Mission control — CONTINUE CAMPAIGN dominates; the primary decision of every visit. */
 function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless, doctrineRef }: WidgetCtx): ReactNode {
   const { diff, stage, cleared, cfg, rec, ready, band, isMilestone, firstClearCore } = view.frontier;
+  const raid = campaignMegaBrief(cfg);
   const underPowered = band === 'under'; // the only band that warns (docs/PROGRESSION-LOOP.md §readiness)
   // Foundation #1 (docs/MISSION-CONTROL.md): the objective ledger under the deploy card — the
   // one model that answers "what else should I do, and where is this going". Absorbs the old
@@ -317,11 +319,12 @@ function MissionControl({ save, view, go, start, onStartCampaign, onStartEndless
             <span className="mc-mod hazard" title={cfg.hazardDesc}>⚠ {cfg.hazardName}</span>
           </div>
           <div className="mc-objective">{objective}</div>
+          {raid && <div className="mc-objective">Mega Boss {raid.name} arrives on wave {raid.wave}.</div>}
         </div>
       </div>
       <div className="mc-facts">
         <div className="mc-fact">
-          <span className="mc-fact-k">◈ Next Boss</span>
+          <span className="mc-fact-k">◈ Final wave boss</span>
           <span className="mc-fact-v">{cfg.boss.name}</span>
         </div>
         <div className={`mc-fact ${underPowered ? 'low' : 'ok'}`}>

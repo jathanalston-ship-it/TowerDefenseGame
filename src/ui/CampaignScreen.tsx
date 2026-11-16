@@ -12,7 +12,7 @@ import { audio } from '../audio/sound';
 import { BIOME_REGION, campaignMapView, generateStage, recommendedPowerScore, stageUnlocks, upcomingGates } from '../core/campaign';
 import { layoutById } from '../core/mapLayouts';
 import { ENEMY_DEFS } from '../core/config';
-import { waveOneThreats } from '../state/missionBrief';
+import { campaignMegaBrief, waveOneThreats } from '../state/missionBrief';
 import { nextGoals } from '../state/nextGoal';
 import { ProgressBar } from './components/ProgressBar';
 import { formatPower } from '../core/power';
@@ -74,6 +74,7 @@ export function CampaignScreen({
 
   // Focused stage — one full generation (the selected node only).
   const cfg = generateStage(focus, diff);
+  const raid = campaignMegaBrief(cfg);
   const focusState = focus <= cleared ? 'cleared' : focus === frontier ? 'current' : 'locked';
   const rec = recommendedPowerScore(focus, diff);
   const ready = power >= rec;
@@ -276,8 +277,18 @@ export function CampaignScreen({
             ) : null;
           })()}
 
+          {raid && (
+            <div className="camp-event" role="group" aria-label="Mega Boss raid" style={{ ['--ev' as string]: raid.color }}>
+              <div className="camp-event-h">
+                <span className="camp-event-n">{raid.name}</span>
+                <span className="camp-event-r">Mega Boss · Wave {raid.wave}</span>
+              </div>
+              <p className="camp-event-d">Build towers that can reach the weak points near the top of the arena.</p>
+            </div>
+          )}
+
           <div className="camp-detail-grid">
-            <div className="cd-row"><span className="cd-k">◈ Boss</span><span className="cd-v">{cfg.boss.name}</span></div>
+            <div className="cd-row"><span className="cd-k">◈ Final wave boss</span><span className="cd-v">{cfg.boss.name}</span></div>
             {cfg.miniBoss && <div className="cd-row"><span className="cd-k">Mini-boss</span><span className="cd-v">{cfg.miniBoss.name}</span></div>}
             <div className="cd-row"><span className="cd-k">Waves</span><span className="cd-v">{cfg.waveCount}</span></div>
             <div className="cd-row"><span className="cd-k">Enemy HP</span><span className="cd-v">+{Math.round((cfg.scaling.enemyHealthMult - 1) * 100)}%</span></div>

@@ -14,7 +14,7 @@
 
 import type { EnemyKind } from './types';
 import { Registry } from './registry';
-import { CAMPAIGN_REWARDS } from './config';
+import { CAMPAIGN_OPENING, CAMPAIGN_REWARDS } from './config';
 
 // ── Ability modules — the battlefield-manipulation verbs ─────────────────────
 // Reusable across every Mega Boss (future megas are assembled from this pool + weak points; adding
@@ -614,6 +614,11 @@ export function campaignMegaFor(stage: number): MegaEncounter | null {
   if (stage < MEGA.campaignEvery || stage % MEGA.campaignEvery !== 0) return null;
   const n = stage / MEGA.campaignEvery; // 1st, 2nd, 3rd … mega of the campaign
   return { defId: cycled(n - 1), tier: n };
+}
+
+/** The raid joins this wave, or the final wave when a campaign stage is shorter. */
+export function campaignMegaArrivalWave(waveCount: number): number {
+  return Math.min(waveCount, CAMPAIGN_OPENING.megaArrivalWave);
 }
 
 /** Endless: waves 20, 40, 60 … (null otherwise). */

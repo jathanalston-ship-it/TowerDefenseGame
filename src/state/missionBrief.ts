@@ -1,12 +1,9 @@
-// MISSION BRIEF (docs/CAMPAIGN.md §mission-card — Batch G): what WAVE 1 actually sends, read from the
-// generated stage itself, so the mission card warns before Deploy. G1 audit: ~90 % of Campaign losses
-// fell in waves 1–3, and the S30 frontier opened with a Mega Boss + fliers the card never mentioned.
-// Pure over a StageConfig — no meta, no DOM; the same plan the Game spawns from (waves[0] + the
-// Mega that arrives with wave 1 on Mega stages + any boss mapped to wave 1).
+// MISSION BRIEF (docs/CAMPAIGN.md §mission-card): actual wave 1 threats and any scheduled Mega Boss.
+// Both read the generated stage and the campaign simulation's raid timing.
 
 import { ENEMY_DEFS, spawnCount } from '../core/config';
 import type { StageConfig } from '../core/campaign';
-import { campaignMegaFor, megaBossDef } from '../core/megaboss';
+import { campaignMegaArrivalWave, campaignMegaFor, megaBossDef } from '../core/megaboss';
 import type { EnemyKind } from '../core/types';
 
 export interface WaveThreat {
@@ -20,12 +17,18 @@ export interface WaveThreat {
 
 const BOSS_COLOR = ENEMY_DEFS.tyrant.color;
 
+/** Raid briefing. Its arrival uses the same timing as the campaign simulation. */
+export function campaignMegaBrief(stage: StageConfig): { id: string; name: string; color: string; wave: number } | null {
+  const enc = campaignMegaFor(stage.stage);
+  const mega = enc ? megaBossDef(enc.defId) : undefined;
+  return mega ? { id: mega.id, name: mega.name, color: mega.palette.glow, wave: campaignMegaArrivalWave(stage.waveCount) } : null;
+}
+
 /** Wave 1's threats, most dangerous first: bosses, then fliers, then the biggest groups. */
 export function waveOneThreats(stage: StageConfig, max = 4): WaveThreat[] {
   const out: WaveThreat[] = [];
-  const enc = campaignMegaFor(stage.stage);
-  const mega = enc ? megaBossDef(enc.defId) : undefined;
-  if (mega) out.push({ key: `mega:${mega.id}`, name: mega.name, color: mega.palette.glow, count: 1, flier: false, boss: true });
+  const mega = campaignMegaBrief(stage);
+  if (mega?.wave === 1) out.push({ key: `mega:${mega.id}`, name: mega.name, color: mega.color, count: 1, flier: false, boss: true });
   const bosses = [stage.miniBoss && stage.miniBossWave === 1 ? stage.miniBoss : null, stage.bossWaves?.[1] ?? null, stage.waveCount === 1 ? stage.boss : null];
   for (const b of bosses) if (b) out.push({ key: `boss:${b.id}`, name: b.name, color: BOSS_COLOR, count: 1, flier: false, boss: true });
   const counts = new Map<EnemyKind, number>();

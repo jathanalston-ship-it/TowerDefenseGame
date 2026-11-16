@@ -98,8 +98,8 @@ import { damageAfter, effectiveArmor, fractureCap, shredBurst } from './combat';
 import { CHASSIS, assembleBoss, bossDef } from './boss';
 import type { BossDef } from './boss';
 import { nemesisTraits } from './nemesis';
-import { CAMPAIGN_OPENING, DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, MINES } from './config';
-import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
+import { DIRECTOR_ADAPTIVE, EARLY_CALL, ENDLESS_SQUEEZE, MINES } from './config';
+import { MEGA, NEUTRAL_MEGA_FX, WEAK_POINT_DEFS, campaignMegaArrivalWave, campaignMegaFor, createMegaRuntime, foldMegaFx, infiniteMegaFor, megaBossDef, rushMegaFor } from './megaboss';
 import type { MegaAbility, MegaBossDef, MegaEncounter, MegaFieldFx, MegaMotif, MegaRuntime, MegaWeakPoint } from './megaboss';
 import { BOSS, BEAM, DIRECTOR, REACTIONS, RUSH, CHESTS, chestForWave, rushStrength, spawnCount } from './config';
 import { pendingReaction } from './reactions';
@@ -2416,7 +2416,7 @@ export class Game {
       // It ARRIVES with wave CAMPAIGN_OPENING.megaArrivalWave (clamped to the stage — never with the
       // opening build, docs/CAMPAIGN.md §opening) and persists across the rest of the stage; the stage
       // cannot be cleared until it falls (checkWaveEnd holds the finale open with overtime reinforcements).
-      if (this.mode === 'campaign' && this.waveIndex === Math.min(this.totalWaves, CAMPAIGN_OPENING.megaArrivalWave) && this.mega === null) {
+      if (this.mode === 'campaign' && this.waveIndex === campaignMegaArrivalWave(this.totalWaves) && this.mega === null) {
         const enc = campaignMegaFor(this.stage.stage);
         if (enc) this.spawnMegaBoss(enc, 'campaign');
       }

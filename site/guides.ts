@@ -193,7 +193,7 @@ export const GUIDES: Guide[] = [
         'A wall is information: it names the axis you have underfed. Check the recommended Power, bank a few genome tiers, star up your core towers, then re-attempt. Mutation-choice events are the campaign’s biggest swings — read both options before picking.',
       ] },
       { h: 'Milestones worth planning for', body: [
-        'Every tenth stage is a Mega Boss raid — arrive with sustained single-target damage and a living hero. Boss stages telegraph their chassis on the map card: a juggernaut wants massed fire, a controller wants hero pressure, an artillery chassis wants your line spread so one shell can’t erase it. First-clear rewards are the campaign’s richest single payouts, so when you are close to a new stage record, spend your banked currencies BEFORE the attempt, not after.',
+        'Every tenth stage is a Mega Boss raid. Campaign and Mission Control show the raid’s arrival wave separately from the final-wave boss. Prepare sustained single-target towers that can reach the open organs. Boss stages telegraph their chassis on the map card: a juggernaut wants massed fire, a controller wants hero pressure, an artillery chassis wants your line spread so one shell can’t erase it. First-clear rewards are the campaign’s richest single payouts, so when you are close to a new stage record, spend your banked currencies BEFORE the attempt, not after.',
       ] },
     ],
   },
