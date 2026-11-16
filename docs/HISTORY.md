@@ -882,3 +882,5 @@
 - `74656cb` **[Music]** Unlock menu music from keyboard input _(internal)_
 - `32cdfad` **[Music]** Prepare keyboard soundtrack note _(internal)_
 - `25db670` **[Enemies]** Explain incoming enemy traits _(internal)_
+- `2d5b725` **[Enemies]** Prepare enemy briefing note _(internal)_
+- `e0c56fc` **[UI]** Show compact wave briefing overflow _(internal)_

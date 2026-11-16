@@ -2255,3 +2255,7 @@ Chrome reproduced a suspended menu soundtrack after the first trusted Enter. The
 ## 2026-11-16 — wave briefing explains enemy behavior
 
 Enemy details describe their authored combat roles and several traits for hybrids. Browser probes verified six enemy kinds including armored artillery, airborne support and a burrowing regenerator. Layout, focus restoration and reading key isolation passed on portrait and landscape phones and desktop. All 36 focused tests passed. The seventh game and News note is generated for v2026.11.16.4.
+
+## 2026-11-16 — compact wave briefing scroll control
+
+A 44px arrow shows when the enemy row extends past the compact briefing. It scrolls both from keyboard and pointer, returns from the end to the summary, and preserves the opener and row position after details. Chrome verified 320x568, 568x320, 844x390 and desktop plus the enemy trait reader regression. All 31 focused tests passed. The eighth game and News note is generated for v2026.11.16.4.
