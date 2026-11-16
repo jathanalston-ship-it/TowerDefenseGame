@@ -868,3 +868,9 @@
 - `a8fc438` **[UI]** Ui: show the latest Hive purchases in pause _(internal)_
 - `9be2161` **[Gene Cards]** Give gene drafts keyboard dialog focus _(internal)_
 - `ec9535b` **[UI]** Ui: honor motion preferences in Hive feedback _(internal)_
+- `8ba4661` **[Audio]** Seal Hive controls and sound update _(internal)_
+- `a66dc99` **[Audio]** Record Hive controls and sound validation _(internal)_
+- `49043dc` **[Audio]** Record live Hive controls and sound release _(internal)_
+- `6bfe5ce` **[Gene Cards]** Make Pause accessible during gene drafts _(internal)_
+- `204cd43` **[Gene Cards]** Name the automatic gene choice _(internal)_
+- `35774e6` **[Towers]** Label tower placement targets _(internal)_

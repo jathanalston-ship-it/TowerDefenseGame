@@ -5,6 +5,26 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.4",
+    "date": "2026-11-16",
+    "title": "Clearer Draft and Placement Controls",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Use Pause or press P during a gene draft to take a break. Resume returns keyboard focus to the draft and continues the automatic pick countdown from where you left it."
+      },
+      {
+        "cat": "UI",
+        "text": "The gene draft names the card Hive Intelligence plans to pick. The name updates after a reroll, and you can choose any card before the timer runs out."
+      },
+      {
+        "cat": "UI",
+        "text": "The tower placement preview labels open, occupied, and locked pads. Solid and dashed outlines distinguish open pads from the others, and occupied pads say Inspect."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16.3",
     "date": "2026-11-16",
     "title": "Clearer Hive Controls and Sound",

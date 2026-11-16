@@ -2235,3 +2235,7 @@ Release v2026.11.16.3 passed typecheck, all 3194 tests, the production mobile la
 ## 2026-11-16 — Clearer Hive Controls and Sound is live
 
 Production run 43793412424 deployed commit a66dc998 and passed the exact-commit guard. The normal custom-domain Play page serves play-fKGUBR5k.js with HTTP 200. Verified the homepage release heading and all eight v2026.11.16.3 notes on News.
+
+## 2026-11-16 — draft and placement follow-up started
+
+Integrated gene draft Pause, named automatic draft choice, and labels and patterned outlines for tower placement. Isolated browser checks covered 320px pause and resume, retained countdown, focus return, reroll and choice status. Chrome Canvas 2D checked all three placement labels and outline patterns and the occupied-pad inspection action. The 53 focused draft tests and five renderer tests passed. Open v2026.11.16.4 has three game and website notes.
