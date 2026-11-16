@@ -355,7 +355,7 @@ export function GameView({
   const [speedNote, setSpeedNote] = useState<string | null>(null);
   // HIVE INTELLIGENCE (docs/HIVE-MIND.md): the pulse report ticker — what the hive just
   // bought, fading on its own (keyed by `at` so every pulse restarts the animation).
-  const [hiveTicker, setHiveTicker] = useState<{ at: number; lines: string[]; spent: number } | null>(null);
+  const [hiveTicker, setHiveTicker] = useState<Game['hiveReport'] | null>(null);
   const autoSlowFired = useRef({ finale: false, record: false, danger: false }); // finale/record: once per RUN; danger: once per WAVE (re-armed in prep)
   const setSpeed = useCallback((x: number) => {
     game.timeScale = x;
@@ -725,7 +725,7 @@ export function GameView({
 
         if (game.hiveReport.serial !== hiveReportSeen.current) {
           hiveReportSeen.current = game.hiveReport.serial;
-          setHiveTicker({ at: Date.now(), lines: game.hiveReport.actions.map((a) => a.label), spent: game.hiveReport.spent });
+          setHiveTicker(game.hiveReport);
         }
         presentCues(true);
         traumaRef.current = Math.max(0, traumaRef.current - SHAKE_DECAY * dt);
@@ -1325,10 +1325,10 @@ export function GameView({
           </button>
         )}
         {hiveTicker && (
-          <div className="hive-ticker" key={hiveTicker.at} role="status">
+          <div className="hive-ticker" key={hiveTicker.serial} role="status">
             <b>◈ HIVE INTELLIGENCE{hiveTicker.spent > 0 ? ` · −${hiveTicker.spent} Biomass` : ''}</b>
-            {hiveTicker.lines.slice(0, 6).map((l) => <span key={l}>{l}</span>)}
-            {hiveTicker.lines.length > 6 && <span>+{hiveTicker.lines.length - 6} more</span>}
+            {hiveTicker.actions.slice(0, 6).map((action, index) => <span key={index}>{action.label}</span>)}
+            {hiveTicker.actions.length > 6 && <span>+{hiveTicker.actions.length - 6} more</span>}
           </div>
         )}
         {!evoOpen && (hud.phase === 'prep' || hud.phase === 'wave') && (
@@ -1353,7 +1353,7 @@ export function GameView({
             onClick={togglePause}
             onKeyDown={(e) => {
               if (e.key !== 'Tab') return;
-              const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]'));
+              const controls = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex="0"]'));
               const first = controls[0], last = controls[controls.length - 1];
               if (e.shiftKey && (document.activeElement === first || document.activeElement === e.currentTarget)) {
                 e.preventDefault(); last?.focus();
@@ -1385,6 +1385,20 @@ export function GameView({
               ) : (
                 <>
                   <button className="primary pause-resume" onClick={(e) => { e.stopPropagation(); togglePause(); }}>▶ Resume</button>
+                  {hiveTicker && (
+                    <details className="pause-hive-report">
+                      <summary>Latest Hive actions</summary>
+                      <p>{hiveTicker.spent.toLocaleString()} Biomass spent</p>
+                      <ul>
+                        {hiveTicker.actions.map((action, index) => (
+                          <li key={index}>
+                            <strong>{action.label}</strong> · {action.cost > 0 ? `${action.cost.toLocaleString()} Biomass` : 'Free'}
+                            <small>{action.detail}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   <div className="pause-settings" onClick={(e) => e.stopPropagation()}>
                     <div className="pause-set-k">Settings</div>
                     <AudioToggles compact />

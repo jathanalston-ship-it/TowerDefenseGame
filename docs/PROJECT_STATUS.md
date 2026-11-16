@@ -2211,3 +2211,7 @@ One Enable/Stop control retains focus and immediately displays the full countdow
 ## 2026-11-16 — automatic draft visible-time countdown
 
 Chrome reproduced a pause resetting a draft countdown to ten seconds. Updated countdown preserves remaining visible time across pause and hidden tabs, then picks once. Manual Stop/Enable focus and cancellation rechecked. All 57 focused tests passed. Five website and game notes are prepared.
+
+## 2026-11-16 — latest Hive actions report
+
+The pause menu exposes the most recent Hive purchase pulse with labels, reasons and Biomass costs. Browser probe at 320px verified exact report data, keyboard disclosure, pointer-safe ticker and persistence after resume. All 35 focused tests passed. Six game and website notes are prepared.

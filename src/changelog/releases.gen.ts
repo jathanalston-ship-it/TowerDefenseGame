@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Automatic gene drafts pause their countdown when the game is paused or the tab is hidden. The countdown resumes from the time you had left when you return."
+      },
+      {
+        "cat": "UI",
+        "text": "Open Latest Hive actions in the pause menu to review the latest purchases, the reasons Hive chose them, and their Biomass costs after the battlefield ticker fades."
       }
     ]
   },

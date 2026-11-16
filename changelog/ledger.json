@@ -1,6 +1,6 @@
 {
-  "lastSha": "2932697fff32aefdaab3a941ff93cc1d9e58e5d5",
-  "commitsSinceDraft": 6,
+  "lastSha": "32a6db9013b376b4b21adda38b684cf80dfe194d",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -4943,6 +4943,10 @@
         {
           "cat": "UI",
           "text": "Automatic gene drafts pause their countdown when the game is paused or the tab is hidden. The countdown resumes from the time you had left when you return."
+        },
+        {
+          "cat": "UI",
+          "text": "Open Latest Hive actions in the pause menu to review the latest purchases, the reasons Hive chose them, and their Biomass costs after the battlefield ticker fades."
         }
       ]
     }
@@ -11489,6 +11493,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: retain Hive draft control focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "32a6db9013b376b4b21adda38b684cf80dfe194d",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: preserve automatic draft reading time",
       "internal": true,
       "needsReview": false
     }

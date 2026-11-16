@@ -864,3 +864,4 @@
 - `c842159` **[Audio]** Add a tower shot volume preview _(internal)_
 - `a02d62b` **[UI]** Ui: explain locked Hive Intelligence runs _(internal)_
 - `2932697` **[UI]** Ui: retain Hive draft control focus _(internal)_
+- `32a6db9` **[UI]** Ui: preserve automatic draft reading time _(internal)_
