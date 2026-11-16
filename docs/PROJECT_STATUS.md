@@ -2351,3 +2351,10 @@ The sole suite failure was stale DIL graph output after the registry fix. Docs-o
 commit 17a41f15 regenerates it, and all 32 focused graph, site and release-sync tests
 pass. The same production bundle contains the release title, all twelve News notes
 and play-Cusy4WDE.js. Confirmation audit 18509 is repeating the full checks.
+
+## 2026-11-16 — Clearer Cinematic Playback is live
+
+Production v2026.11.16.5 deploy 313a8b87 passed Actions run 43803868650 and job
+133090038619, including the exact-commit guard. The normal custom-domain game
+serves play-Cusy4WDE.js, the homepage shows the update, and all twelve notes are
+public on News. Confirmation audit 18509 is still running against the release.
