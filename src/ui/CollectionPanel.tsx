@@ -39,14 +39,23 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
     const cv = cvRef.current;
     const ctx = cv?.getContext('2d');
     if (!cv || !ctx) return;
-    cv.width = 260;
-    cv.height = 96;
-    drawCutsceneStill(ctx, cv.width, cv.height, def);
-    if (!unlocked) {
-      // the locked silhouette: dim the still to a rumor of itself
-      ctx.fillStyle = 'rgba(3,5,9,0.82)';
-      ctx.fillRect(0, 0, cv.width, cv.height);
-    }
+    const draw = (): void => {
+      const width = cv.clientWidth;
+      const height = cv.clientHeight;
+      if (!width || !height) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.round(width * dpr);
+      cv.height = Math.round(height * dpr);
+      ctx.setTransform(cv.width / width, 0, 0, cv.height / height, 0, 0);
+      drawCutsceneStill(ctx, width, height, def);
+      if (!unlocked) {
+        ctx.fillStyle = 'rgba(3,5,9,0.82)';
+        ctx.fillRect(0, 0, width, height);
+      }
+    };
+    const observer = new ResizeObserver(draw);
+    observer.observe(cv);
+    return () => observer.disconnect();
   }, [def, unlocked]);
   return (
     <div className={`mem-card${unlocked ? '' : ' is-locked'}`} style={{ ['--mc' as string]: def.palette.glow }}>

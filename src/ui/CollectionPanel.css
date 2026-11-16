@@ -90,7 +90,7 @@
 
 .mem-card.is-locked { border-color: var(--line); }
 
-.mem-art { width: 100%; height: 86px; object-fit: cover; display: block; background: #030509; }
+.mem-art { width: 100%; height: 86px; display: block; background: #030509; }
 
 .mem-kind { font-size: 10px; font-weight: 800; letter-spacing: 0.16em; color: color-mix(in srgb, var(--mc, var(--muted)) 70%, var(--muted)); }
 
@@ -105,6 +105,7 @@
 .mem-card.is-locked .mem-boost { color: var(--muted); }
 
 .mem-play { position: absolute; top: 8px; right: 8px; min-height: 44px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; padding: 5px 11px; border-radius: 999px; color: #0a0d12; background: var(--mc, var(--gold)); border: none; }
+.mem-play:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 2px #030509; }
 
 .mem-search { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
 .mem-search input { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; }
