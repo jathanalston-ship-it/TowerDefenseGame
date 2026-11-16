@@ -7,7 +7,7 @@
 // scale pulse, light sweep, particle burst, and a throttled cue — the progression number
 // should feel like the one that matters.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { HudSnapshot } from '../core/types';
 import { HERO_DEFS } from '../core/config';
 import { HERO_EVO, HERO_EVO_CATEGORIES, heroEvoCost } from '../core/heroEvolution';
@@ -104,7 +104,12 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
   const threatPct = Math.min(100, Math.round((hud.enemiesAlive / 40) * 100));
   // Hive Siege pressure (docs/HIVE-SIEGE.md §UI): who's chewing, how fast, how long we last.
   const underAttack = hud.hiveAttackers > 0 && hud.phase === 'wave';
-  const survivalS = hud.hiveDps > 0.5 ? Math.max(0, Math.round(hud.integrity / hud.hiveDps)) : 999;
+  const coreDescriptionId = useId();
+  const criticalIntegrity = intPct <= 0.25;
+  const survivalS = hud.hiveDps > 0.5 ? Math.max(0, Math.round(hud.integrity / hud.hiveDps)) : null;
+  const attackers = hud.hiveAttackers === 1 ? '1 enemy is attacking' : `${hud.hiveAttackers} enemies are attacking`;
+  const damageRate = hud.hiveDps >= 1 ? Math.round(hud.hiveDps).toLocaleString() : 'less than 1';
+  const damageShort = hud.hiveDps >= 1 ? `−${damageRate}/s` : '<1/s';
 
   // POWER GAIN CELEBRATION (docs/GAME-FEEL.md): any live increase (a draft, an evolution buy,
   // a mastery perk) fires the fly-up + pulse + burst, with a throttled chime. Render-only.
@@ -157,8 +162,12 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
     <div className="hud" data-hphase={hphase}>
       {/* ── LEFT zone: survival — the run's life, with loot progress riding beneath ── */}
       <div className="hz hz-l">
+        <span className="a11y-only" role="status">{underAttack ? 'Hive Core under attack.' : ''}</span>
         <div
-          className={`hud-cell hud-vital tt${underAttack ? ' is-siege' : ''}${intPct <= 0.25 ? ' is-critical' : ''}`}
+          className={`hud-cell hud-vital tt${underAttack ? ' is-siege' : ''}${criticalIntegrity ? ' is-critical' : ''}`}
+          role="group"
+          aria-label="Hive Core"
+          aria-describedby={coreDescriptionId}
           tabIndex={0}
           data-tut="hive-core"
           style={{ ['--hud-acc' as string]: integrityColor(intPct) }}
@@ -166,7 +175,7 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
           <div className="hud-k">
             Hive Core
             {underAttack && (
-              <span className="hud-siege-flag" role="status" aria-label={`${hud.hiveAttackers} enemies attacking the Hive`}>
+              <span className="hud-siege-flag" aria-hidden="true">
                 UNDER ATTACK
               </span>
             )}
@@ -200,19 +209,20 @@ export function Hud({ hud, power, onOpenConsole, tutorial = false, doctrine = nu
             </span>
           </div>
           {underAttack && (
-            <div className="hud-siege-row">
+            <div className="hud-siege-row" aria-hidden="true">
               <span className="hud-siege-stat">⚔ {hud.hiveAttackers}</span>
-              <span className="hud-siege-stat">−{Math.round(hud.hiveDps)}/s</span>
-              {hud.hiveDps > 0.5 && (
+              {hud.hiveDps > 0 && <span className="hud-siege-stat">{damageShort}</span>}
+              {survivalS !== null && (
                 <span className={`hud-siege-stat${survivalS <= 10 ? ' is-danger' : ''}`}>~{survivalS}s</span>
               )}
             </div>
           )}
-          <span className="tt-bubble">
-            Hive Core integrity — the run ends if it reaches 0.
-            {underAttack
-              ? ` ${hud.hiveAttackers} enemies are attacking it right now (−${Math.round(hud.hiveDps)}/s; ~${survivalS}s of integrity at this rate).`
-              : ' Enemies that reach it ATTACK it until killed — clear them off.'}
+          <span id={coreDescriptionId} className="tt-bubble" aria-hidden="true">
+            The run ends when Hive Core integrity reaches 0.
+            {criticalIntegrity && ' Core integrity is critical.'}
+            {underAttack ? ` ${attackers} the Core.` : ' Clear enemies before they reach the Core.'}
+            {underAttack && hud.hiveDps > 0 && ` The Core is losing ${damageRate} integrity per second.`}
+            {underAttack && survivalS !== null && ` About ${survivalS} ${survivalS === 1 ? 'second' : 'seconds'} remaining at this rate.`}
           </span>
         </div>
         <LootMeter />

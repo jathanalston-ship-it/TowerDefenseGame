@@ -413,6 +413,7 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 }
 
 .hud-vital.is-critical {
+  box-shadow: inset 0 0 0 1px var(--danger);
   animation: hive-critical-pulse 1.1s ease-in-out infinite;
 }
 
@@ -3491,6 +3492,10 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .game[data-flashes="off"] .mutation-flash { display: none; }
 
 .game[data-motion="reduced"] .wave-breach::before { display: none; }
+
+.game:is([data-motion="reduced"], [data-flashes="off"]) :is(
+  .hud-vital.is-critical, .hud-siege-flag, .hud-siege-stat.is-danger, .hud-vital-ghost, .phase-emergency
+) { animation: none; }
 
 /* Keep the purchase result readable when motion is stilled. An instant completed rise
    would land on opacity:0; static burst labels must not pile up at the same position. */

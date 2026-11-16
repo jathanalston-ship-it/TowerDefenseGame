@@ -114,7 +114,10 @@ ends the run. Minion body-blocks chew at the enemy's true sustained DPS
   recent-damage **ghost segment** draining behind the live bar (`hud.hiveRecentDamage`, a
   ~3s leaky window), an attacker count `⚔ N`, the **incoming DPS estimate** `−N/s`
   (`Σ damage/interval`), and a **survival clock** `~Ns` (`integrity / dps`, pounding when
-  ≤10s). Critical (≤25%) pulses the cell. All states ride two snapshot fields + CSS.
+  ≤10s). The clock appears when the estimate exceeds 0.5 integrity per second. Focus the
+  Core cell to read the attacker count, estimated loss and remaining time. An attack
+  announces once when it begins. Critical integrity (≤25%) has a red outline. Core and
+  emergency HUD warnings stay still with reduced motion or flashes disabled.
 
 ## 9. Balance (§balance) — sustained pressure, not burst
 
