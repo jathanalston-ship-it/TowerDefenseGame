@@ -401,6 +401,15 @@ export function GameView({
   useEffect(() => { Object.assign(viewFeel, feelNow); }, [feelNow]);
   // A new run is a launch: the confident "engage" swell (the Deploy click unlocked the audio).
   useEffect(() => { audio.cue('launch'); }, []);
+  const previousHeroCooldown = useRef(hud.hero.abilityCd);
+  useEffect(() => {
+    const recharged = previousHeroCooldown.current > 0 && hud.hero.abilityReady;
+    previousHeroCooldown.current = hud.hero.abilityCd;
+    if (recharged && !paused && !evoOpen && !tutPausedRef.current && !hud.hiveActive && !hud.autocast.on
+      && (hud.phase === 'prep' || hud.phase === 'wave') && document.visibilityState === 'visible') {
+      audio.cue('abilityReady');
+    }
+  }, [evoOpen, hud.autocast.on, hud.hero.abilityCd, hud.hero.abilityReady, hud.hiveActive, hud.phase, paused]);
   useEffect(() => () => clearImpacts(), []);
 
   // CENTRE STAGE (docs/GAME-FEEL.md §centre-stage): WAVE N, boss/mega intros, the assimilation tier

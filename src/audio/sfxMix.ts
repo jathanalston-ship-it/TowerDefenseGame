@@ -199,6 +199,7 @@ export const CUE_MIX: Readonly<Record<string, CueMixRow>> = {
   select: c('ui', 10),
   ui: c('ui', 10),
   hiveAction: c('ui'),
+  abilityReady: c('ui', 1, -3),
   hover: c('ui', 9.5, -15),
   launch: c('ui', -3, 4),
   tut_step: c('ui', 4, 1),

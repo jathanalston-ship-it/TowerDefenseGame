@@ -178,3 +178,9 @@ Cinematic sound cues in the opening and Memory Archive use visible scene time th
 Hive Intelligence confirms a successful batch with the two-note hiveAction cue on the UI bus.
 The Chrome offline audit measured -33.78 LUFS momentary and -19.17 dBFS peak, with zero
 clipped samples or hard stops.
+
+A short abilityReady cue marks the primary hero’s cooldown reaching zero during
+manual combat or preparation. It plays once per completed cooldown on the effects
+bus. It is suppressed during Pause, drafts, hidden tabs, Auto-Cast and Hive
+Intelligence. Chrome’s offline render measured a peak near −21.5 dBFS with no
+clipping.
