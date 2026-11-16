@@ -5,6 +5,26 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.8",
+    "date": "2026-11-16",
+    "title": "Battlefield Guidance",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Open Keyboard controls in Pause for a quick reference to tower, hero, wave and speed shortcuts. The corresponding controls expose their keys to assistive technology."
+      },
+      {
+        "cat": "UI",
+        "text": "Starting a wave with the keyboard keeps focus on Tower pads so you can keep building and inspecting during combat."
+      },
+      {
+        "cat": "UI",
+        "text": "Field Notes now have accessible names and return keyboard focus to Tower pads when you dismiss them with Enter or Escape."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16.7",
     "date": "2026-11-16",
     "title": "Clearer Hero Controls",

@@ -2440,3 +2440,12 @@ v2026.11.16.7 is live at `040bb1b2`. Actions run 43815843044 passed its
 exact-commit check. The public game serves `/assets/play-BfeZNU-6.js`.
 The home page, all ten News notes, and the Beginner and Heroes guides
 were verified on the custom domain at about 06:20 UTC.
+
+## 2026-11-16 — Battlefield Guidance underway
+
+Pause now has a keyboard reference and the Beginner Guide points to it.
+Keyboard launch keeps focus on Tower pads. Field Notes have accessible
+names and return focus to Tower pads when dismissed from the keyboard.
+The `../field-note-focus-check.cjs` browser check reproduced the original
+focus loss and passed Enter and Escape on desktop and 320px. Thirty
+focused tests passed. Three synchronized release notes are ready.

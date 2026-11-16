@@ -949,3 +949,9 @@
 - `b847b2e` **[Heroes]** Record passing hero feedback checkpoint _(internal)_
 - `85d75ab` **[UI]** Ui: keep run rewards readable through the reveal _(internal)_
 - `81c8b75` **[UI]** Clarify wave flow when the field is empty _(internal)_
+- `e8ec3f9` **[Heroes]** Seal clearer hero controls _(internal)_
+- `040bb1b` **[Heroes]** Record clearer hero controls validation _(internal)_
+- `c034d8b` **[Developer Tools]** Record live clearer hero controls release _(internal)_
+- `830bf9e` **[UI]** Ui: make the battlefield shortcuts easy to find _(internal)_
+- `83f932c` **[Bug Fixes]** Retain keyboard focus after starting a wave
+- `a5b6cdf` **[Bug Fixes]** Ui: keep keyboard focus after field notes

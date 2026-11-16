@@ -1,6 +1,6 @@
 {
-  "lastSha": "81c8b75544c8db1a8d2dbb29e6b9b22305f27e96",
-  "commitsSinceDraft": 9,
+  "lastSha": "a5b6cdf9aa24b0280306c0104711fb6792f986a4",
+  "commitsSinceDraft": 1,
   "content": {
     "tower": [
       "needle",
@@ -5147,6 +5147,26 @@
         {
           "cat": "UI",
           "text": "When the battlefield is empty, the wave HUD explains what is happening. It distinguishes enemies still arriving, a cleared wave, a Mega Boss still active, and a defeated boss finishing its collapse."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.8",
+      "date": "2026-11-16",
+      "title": "Battlefield Guidance",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Open Keyboard controls in Pause for a quick reference to tower, hero, wave and speed shortcuts. The corresponding controls expose their keys to assistive technology."
+        },
+        {
+          "cat": "UI",
+          "text": "Starting a wave with the keyboard keeps focus on Tower pads so you can keep building and inspecting during combat."
+        },
+        {
+          "cat": "UI",
+          "text": "Field Notes now have accessible names and return keyboard focus to Tower pads when you dismiss them with Enter or Escape."
         }
       ]
     }
@@ -12374,6 +12394,54 @@
       "cat": "UI",
       "text": "Clarify wave flow when the field is empty",
       "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e8ec3f9699ffa5c89074e997124b3f13c7d477eb",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Seal clearer hero controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "040bb1b2279dc55751489a8b93a5942d7b190a64",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Record clearer hero controls validation",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c034d8bd910a237ebe8a6832e9567285da559d7e",
+      "date": "2026-11-15",
+      "cat": "Developer Tools",
+      "text": "Record live clearer hero controls release",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "830bf9ede049542c40c6db5823f3611d02f2e814",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: make the battlefield shortcuts easy to find",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "83f932c1bde519ad04998b5aa11b1d5a1a34ceb5",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Retain keyboard focus after starting a wave",
+      "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "a5b6cdf9aa24b0280306c0104711fb6792f986a4",
+      "date": "2026-11-15",
+      "cat": "Bug Fixes",
+      "text": "Ui: keep keyboard focus after field notes",
+      "internal": false,
       "needsReview": false
     }
   ]
