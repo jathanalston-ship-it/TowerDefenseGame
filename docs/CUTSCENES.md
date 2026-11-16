@@ -173,3 +173,6 @@ The opening and Memory Archive resolve the film's CSS motion using the same pref
 the projector. Reduced motion stills the gate and letterbox bars and removes translation
 from captions and the archive finale. Allow motion restores the authored animations inside the
 film. Caption and finale animation timelines survive a live preference change.
+
+In a Memory Archive replay, browser Back follows Escape. The first press opens the final card
+and the next returns to the same archive view, restoring focus to Watch.

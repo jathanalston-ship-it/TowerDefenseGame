@@ -97,6 +97,7 @@ causes real back-and-forth.)
 | Where | Back | Escape |
 |---|---|---|
 | A layer is open (any `<Popup>` or a modal calling `useDismiss`) | closes the TOPMOST layer | same |
+| Memory Archive replay | opens the final card, then returns to the archive | same |
 | Another modal on screen (a ceremony, What's New, the HUD tour, the replay theater) | held — the hub never moves underneath | ignored by the hub (the modal owns it) |
 | Hub screen / landing | the Hub's `goBack` (same walk as the ScreenHeader ‹ and edge swipe-back) | same (never from inside a text field) |
 | Hub root (Home, empty history) | the browser's own Back (previous page / close the PWA) | nothing |

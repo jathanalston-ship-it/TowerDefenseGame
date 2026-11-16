@@ -15,6 +15,7 @@ import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
+import { useDismiss } from './browserBack';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -107,6 +108,11 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     if (idx >= def.scenes.length - 1) toCoda();
     else setIdx((current) => current === idx ? idx + 1 : current);
   };
+  const requestBack = (): void => {
+    if (coda) finish();
+    else toCoda();
+  };
+  useDismiss(requestBack);
 
   // The score: the film owns 'cinema' while it runs; the caller re-arms its own music after.
   useEffect(() => {
@@ -237,7 +243,11 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   return createPortal(
     <div ref={dialogRef} tabIndex={-1} className={`intro cutscene ${reducedMotion ? 'is-still' : 'motion-allowed'}${manual ? ' is-manual' : ''}${hidden ? ' is-suspended' : ''}`} role="dialog" aria-modal="true" aria-label={`Cutscene — ${def.title}`} aria-describedby={manual && !coda ? captionId : undefined} onClick={manual ? undefined : advance}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); coda ? finish() : toCoda(); }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!e.repeat) requestBack();
+        }
         if (e.key !== 'Tab') return;
         const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
         const first = buttons[0], last = buttons[buttons.length - 1];
