@@ -1,6 +1,7 @@
 import { useId, useState, type RefObject } from 'react';
 import { audio } from '../audio/sound';
 import { TOWER_DEFS } from '../core/config';
+import { deployCost } from '../core/conveyor';
 import type { Game } from '../core/game';
 import { towerSlots, type TowerSlot } from '../core/map';
 
@@ -37,7 +38,18 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
     if (tower?.id === game.movingTowerId) action = 'Enter cancels the move.';
     else action = tower ? 'Choose an open pad.' : 'Enter moves the tower.';
   } else if (tower) action = 'Enter inspects the tower.';
-  else if (game.selectedTower) action = 'Enter deploys the tower.';
+  else if (game.selectedTower) {
+    const pod = game.selectedConveyorId === null ? null : game.conveyor.find(({ id }) => id === game.selectedConveyorId);
+    if (pod === undefined) action = 'That conveyor pod is gone. Arm another with 1–4.';
+    else if (pod && pod.readyAt > game.time) action = 'That conveyor pod is still growing.';
+    else if (pod?.free) action = 'Enter deploys for free.';
+    else {
+      const cost = deployCost(game.deployments);
+      action = game.biomass < cost
+        ? `Needs ${cost} Biomass. You have ${Math.floor(game.biomass)}.`
+        : `Enter deploys for ${cost} Biomass.`;
+    }
+  }
 
   return (
     <>

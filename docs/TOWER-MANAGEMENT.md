@@ -170,3 +170,7 @@ Use 1–4 to arm the favorite or a conveyor pod. Enter on an open pad places the
 tower or completes a relocation. Enter on an occupied pad inspects it, or cancels a
 relocation when it is the tower's original pad. The normal prices and placement rules
 apply. Escape cancels the current targeting action.
+
+For an open pad, the navigator names the live Biomass cost or the free starting gift.
+If the player cannot deploy, it explains a shortfall, a growing pod, or a selection
+that has already been consumed.
