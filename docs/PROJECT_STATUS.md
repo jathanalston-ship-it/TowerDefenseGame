@@ -2223,3 +2223,11 @@ The draft now moves focus to its title and shortcut description, traps Tab, and 
 ## 2026-11-16 — Hive HUD follows resolved motion
 
 The Hive indicator and receipt follow reduced motion and the explicit Allow motion setting. Receipt expiry remains independent of animation and the report stays readable in Pause. Live GameView browser verification and all 48 focused tests passed. Eight website and in-game notes are ready in Clearer Hive Controls and Sound.
+
+## 2026-11-16 — Hive controls and sound release validation started
+
+Sealed v2026.11.16.3 at 8ba4661e with eight game and website notes. Full validation uses --base 189fcd63 to cover the whole release. Session 48278 is active. Log clearer-hive-sound-release-validation.log.
+
+## 2026-11-16 — Hive controls and sound release audit passed
+
+Release v2026.11.16.3 passed typecheck, all 3194 tests, the production mobile layout gate at 320px and 390px, and documentation checks. Verified all eight notes on the built News page and the release heading on the homepage. Built game entry is play-fKGUBR5k.js.

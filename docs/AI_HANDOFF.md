@@ -9,7 +9,7 @@
 
 ## Summary of work completed
 
-Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v2026.11.16.3 Clearer Hive Controls and Sound has eight prepared website and game notes. The latest improvement makes Hive motion obey the in-game preference and preserves receipt expiry.
+Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Sealed v2026.11.16.3 Clearer Hive Controls and Sound has eight prepared website and game notes. The latest improvement makes Hive motion obey the in-game preference and preserves receipt expiry.
 
 ## Files modified
 
@@ -48,7 +48,7 @@ Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compa
 
 ## Recommended next tasks
 
-Start release preparation in time for the next deployment around 02:58 UTC. Seal and regenerate notes, commit the sealed ledger, run the full validator using --base 189fcd63 to capture every changed system, then push and verify the live game, homepage and all notes.
+Sealed release commit 8ba4661e passed full validation with --base 189fcd63, including 3194 tests and the 320px and 390px mobile gate. The built homepage and News page contain the release and eight notes. Push the audited commit and verify the public game, homepage and all eight notes. Follow-up candidate: P is checked after the draft phase guard and the draft has no visible pause action. An isolated checkout on codex/draft-pause committed 41e89116 after verifying P, touch Pause, remaining countdown time and draft focus return in live GameView. Next-release commit 6f052d9d adds the named automatic gene choice and passed 320px GameView browser checks covering re-roll, Stop, accessibility description and Pause. Commit 706a14cc labels open, occupied and locked tower pads with solid or dashed outlines and respects reduced motion. Five renderer tests and a Chrome Canvas 2D probe passed. The probe also confirmed occupied pad clicks open inspection. After verifying production, cherry-pick 41e89116, 6f052d9d and 706a14cc in order and generate a fresh release with all three notes. The isolated Vite server is session 51454 on port 5175. Do not push that branch to production with this release.
 
 ## Future expansion hooks
 
