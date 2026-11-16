@@ -459,3 +459,8 @@ chokepoints; rendering is layered procedural Canvas 2D. Hundreds of enemies + do
 - Tutorial: the arrival card + HUD callouts carry the teaching load; a scripted tutorial beat is
   a future hook.
 - Weak-point *accuracy* stats (misses) aren't tracked — no miss concept exists for raid fire.
+
+The raid bar exposes named health, stagger and open weak-point health meters.
+The active boss phase is announced on change. Cataclysm announces when the cast
+begins. Boss HUD motion stops under reduced motion, and disabling flashes
+stills the warning chips while preserving their text.

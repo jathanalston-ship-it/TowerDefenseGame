@@ -353,3 +353,7 @@ The sim names a boss verb on the boss banner ("MEND", "SUPPRESS"…) on the tick
 next — it flashed for one tick. GameView holds the latest verb for `BOSS_VERB_HOLD_MS` (1200 ms,
 render/feel.ts); a new verb replaces it at once. Presentation only.
 
+
+The standard boss HUD exposes a named health meter. Its phase and held attack
+warning announce separately, so an attack warning does not repeat the phase.
+Attack warning pulses respect reduced motion and the flash setting.

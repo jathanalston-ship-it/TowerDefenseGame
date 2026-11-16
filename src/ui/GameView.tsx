@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
+import { clamp01 } from '../core/math';
 import type { StageConfig } from '../core/campaign';
 import { recommendedPowerScore } from '../core/campaign';
 import { drawGame, drawRallyMarker } from '../render/renderer';
@@ -1302,6 +1303,8 @@ export function GameView({
   };
 
   // BOSS VERB HOLD: the latest verb the sim named, held BOSS_VERB_HOLD_MS (render rate ≈ the snapshot rate).
+  const megaBoss = hud.phase !== 'draft' ? hud.megaBanner : null;
+  const featuredBoss = megaBoss ?? hud.bossBanner;
   const bossTele = hud.bossBanner?.telegraph;
   if (bossTele) bossVerbRef.current = { text: bossTele, at: performance.now() };
   const bossVerb = bossTele || (hud.bossBanner && bossVerbRef.current && performance.now() - bossVerbRef.current.at < BOSS_VERB_HOLD_MS ? bossVerbRef.current.text : null);
@@ -1630,6 +1633,13 @@ export function GameView({
             </div>
           </div>
         )}
+        <span className="a11y-only" role="status">{featuredBoss
+          ? `${featuredBoss.name}. Phase ${featuredBoss.phase} of ${featuredBoss.phases}.`
+          : ''}</span>
+        <span className="a11y-only" role="status">{bossVerb ? `${hud.bossBanner?.name}: ${bossVerb}.` : ''}</span>
+        <span className="a11y-only" role="alert">{!megaBoss?.dormant && megaBoss?.telegraph?.kind === 'cataclysm'
+          ? `${megaBoss.name} is preparing Cataclysm. Interrupt it.`
+          : ''}</span>
         {hud.megaBanner && hud.phase !== 'draft' && (
           <div className={`mega-banner${hud.megaBanner.exposed ? ' is-exposed' : ''}${hud.megaBanner.stunned ? ' is-stunned' : ''}${hud.megaBanner.staggered ? ' is-staggered' : ''}${hud.megaBanner.dormant ? ' is-dormant' : ''}`} style={{ ['--mega']: hud.megaBanner.glow } as CSSProperties}>
             <div className="mega-banner-row">
@@ -1637,11 +1647,15 @@ export function GameView({
               <span className="mega-title">{hud.megaBanner.title}</span>
               <span className="mega-phase">PHASE {hud.megaBanner.phase}/{hud.megaBanner.phases}</span>
             </div>
-            <div className="mega-hp">
+            <div className="mega-hp" role="progressbar" aria-label={`${hud.megaBanner.name} health`}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamp01(hud.megaBanner.hpPct) * 100)}>
               <div className="mega-hp-fill" style={{ width: `${hud.megaBanner.hpPct * 100}%` }} />
             </div>
             {/* Stagger posture (docs/MEGA-BOSS.md §stagger): ruptures fill it; full = TOPPLED. */}
-            <div className="mega-stagger" title="Stagger — weak-point ruptures fill it; full topples the organism">
+            <div className="mega-stagger" title="Stagger — weak-point ruptures fill it; full topples the organism"
+              role="progressbar" aria-label={`${hud.megaBanner.name} stagger`} aria-valuemin={0} aria-valuemax={100}
+              aria-valuenow={hud.megaBanner.staggered ? 100 : Math.round(clamp01(hud.megaBanner.stagger) * 100)}
+              aria-valuetext={hud.megaBanner.staggered ? 'Toppled' : undefined}>
               <div className={`mega-stagger-fill${hud.megaBanner.staggered ? ' is-full' : ''}`} style={{ width: `${(hud.megaBanner.staggered ? 1 : hud.megaBanner.stagger) * 100}%` }} />
             </div>
             <div className="mega-banner-row2">
@@ -1676,7 +1690,10 @@ export function GameView({
               <div className="mega-wps">
                 {hud.megaBanner.weakPoints.map((w) => (
                   <span key={w.kind} className="mega-wp" title={w.note}>
-                    ⊙ {w.name} <i className="mega-wp-hp"><b style={{ width: `${w.hpPct * 100}%` }} /></i>
+                    ⊙ {w.name} <i className="mega-wp-hp" role="progressbar" aria-label={`${w.name} health`}
+                      aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamp01(w.hpPct) * 100)}>
+                      <b style={{ width: `${w.hpPct * 100}%` }} />
+                    </i>
                   </span>
                 ))}
               </div>
@@ -1694,7 +1711,8 @@ export function GameView({
                 PHASE {hud.bossBanner.phase}/{hud.bossBanner.phases}
               </span>
             </div>
-            <div className="boss-hp">
+            <div className="boss-hp" role="progressbar" aria-label={`${hud.bossBanner.name} health`}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(clamp01(hud.bossBanner.hpPct) * 100)}>
               <div className="boss-hp-fill" style={{ width: `${hud.bossBanner.hpPct * 100}%` }} />
             </div>
             {bossVerb && <div className="boss-telegraph">{bossVerb}</div>}

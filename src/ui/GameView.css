@@ -3494,8 +3494,12 @@ html[data-layout='landscape'] .build-controls.is-visible ~ .mega-banner { top: 6
 .game[data-motion="reduced"] .wave-breach::before { display: none; }
 
 .game:is([data-motion="reduced"], [data-flashes="off"]) :is(
-  .hud-vital.is-critical, .hud-siege-flag, .hud-siege-stat.is-danger, .hud-vital-ghost, .phase-emergency
+  .hud-vital.is-critical, .hud-siege-flag, .hud-siege-stat.is-danger, .hud-vital-ghost, .phase-emergency,
+  .boss-telegraph, .mega-chip-staggered, .mega-chip-stun, .mega-chip-exposed, .mega-chip-cast.is-cataclysm, .wm-haz
 ) { animation: none; }
+
+.game[data-motion="reduced"] :is(.boss-banner, .mega-banner) { animation: none; transition: none; }
+.game[data-motion="reduced"] :is(.boss-hp-fill, .mega-hp-fill, .mega-stagger-fill, .mega-cast-fill, .mega-wp-hp b) { transition: none; }
 
 /* Keep the purchase result readable when motion is stilled. An instant completed rise
    would land on opacity:0; static burst labels must not pile up at the same position. */
