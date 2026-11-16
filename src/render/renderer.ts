@@ -2273,17 +2273,17 @@ function drawEnemy(
   // Siege attack animation (docs/HIVE-SIEGE.md §feedback): while winding up, the body REARS
   // BACK then LUNGES into the Core, snapping home as the hit lands. Driven purely by the
   // sim's windup timer — deterministic, no state, one translate.
-  let lunged = false;
-  if (e.sieging && e.windup >= 0 && e.attackWindup > 0) {
-    const k = 1 - Math.max(0, e.windup) / e.attackWindup; // 0 → 1 across the windup
-    const amp = k < 0.55 ? -0.35 * (k / 0.55) : (k - 0.55) / 0.45; // rear back, then strike
+  const windingUp = e.sieging && e.windup >= 0 && e.attackWindup > 0;
+  const windupProgress = windingUp ? Math.max(0, Math.min(1, 1 - e.windup / e.attackWindup)) : 0;
+  const lunged = windingUp && viewFeel.motion > 0;
+  if (lunged) {
+    const amp = windupProgress < 0.55 ? -0.35 * (windupProgress / 0.55) : (windupProgress - 0.55) / 0.45;
     const dx = nucleusPoint.x - e.x;
     const dy = nucleusPoint.y - e.y;
     const d = Math.hypot(dx, dy) || 1;
     const reach = Math.min(9, r * 0.8);
     ctx.save();
     ctx.translate((dx / d) * reach * amp, (dy / d) * reach * amp);
-    lunged = true;
   }
 
   if (detail) {
@@ -2599,6 +2599,21 @@ function drawEnemy(
     }
   }
   if (lunged) ctx.restore();
+  else if (windingUp) {
+    // An anchored arc conveys the same attack timing in reduced motion.
+    const start = Math.PI * 0.25;
+    const sweep = Math.PI * 0.5;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, r + 8, start, start + sweep);
+    ctx.strokeStyle = '#030509';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, r + 8, start, start + sweep * windupProgress);
+    ctx.strokeStyle = '#ffd08a';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
 }
 
 // Presentation-only afterimage buffer (primary hero) — never read by sim.

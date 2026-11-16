@@ -181,3 +181,7 @@ block durability now scales with attacker DPS (blocker balance rides the same ta
 - **Tuning** → `HIVE` (geometry/rings/feedback windows), per-def `attack`, chassis cadences,
   `DIRECTOR.ehp*`/`SHAPE_DEPTH`/`swarmMinDepth` (endless pacing). Re-run the probe sweep
   (DIFFICULTY.md §contract) after ANY of these.
+
+With reduced motion, an attacker winding up at the Core shows a fixed-position arc
+that fills over the windup. The arc disappears on interruption or attack. With motion
+allowed, the attacker uses the authored rear-back and lunge.
