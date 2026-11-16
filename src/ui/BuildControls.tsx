@@ -38,6 +38,7 @@ export function BuildControls({
   game,
   hud,
   refresh,
+  onKeyboardLaunch,
   compact,
   tutorialLock = false,
   autoGeneLock = null,
@@ -45,6 +46,7 @@ export function BuildControls({
   game: Game;
   hud: HudSnapshot;
   refresh: () => void;
+  onKeyboardLaunch?: () => void;
   compact: boolean;
   /** Tutorial: the director scripts every wave start — the console shows intel only, with the
    * launch controls held so the game can never outrun the lesson. */
@@ -246,10 +248,13 @@ export function BuildControls({
           <button
             className="primary start-btn"
             tabIndex={visible ? 0 : -1}
-            onClick={() => {
+            aria-keyshortcuts={onKeyboardLaunch ? "Space" : undefined}
+            onClick={(event) => {
               audio.resume();
               setSweepAt(Date.now());
+              const previousWave = game.waveIndex;
               game.startWave();
+              if (event.detail === 0 && game.waveIndex > previousWave) onKeyboardLaunch?.();
               refresh();
             }}
           >
