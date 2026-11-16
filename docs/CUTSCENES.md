@@ -22,7 +22,7 @@ and scenes and the final memory card wait for explicit advancement. Previous sce
 the normal hold from its beginning. Clicking the caption or backdrop advances in Auto-play; in Read at my pace, captions can be selected and navigation uses the controls. **Next scene** is a native keyboard/touch button;
 Escape skips to the memory card, then closes it; in the opening film it exits through the existing descent (immediately under reduced motion). Focus stays within the film and returns
 to the launching control when it closes. The final memory card associates its title, subtitle and permanent reward with Continue, which receives focus when the card opens. Controls have 44px minimum height. Reduced-motion
-stills redraw after viewport changes so rotating a phone cannot clear the artwork. A film opened in manual mode describes its first scene when the dialog receives focus. A polite live region provides scene numbers and captions for subsequent changes. Auto-play clears the manual announcement, and the opening film includes its final title and triad.
+stills redraw after viewport changes so rotating a phone cannot clear the artwork. A film opened in manual mode describes its first scene when the dialog receives focus. A polite live region provides scene numbers and captions for subsequent changes. Auto-play clears the manual announcement, and the opening film includes its final title and triad. At viewport heights of 360px and below, the caption area can scroll while the controls stay visible. The opening title also uses less vertical spacing.
 
 **Adding a `MEGA_BOSS_DEFS` entry REQUIRES adding its defeat cutscene** (`kind: 'mega'`,
 id `mega:<megaId>`) in `core/cutscenes.ts`. `cutscenes.test.ts` fails the build otherwise —

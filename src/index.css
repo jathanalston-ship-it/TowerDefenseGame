@@ -6474,6 +6474,17 @@ html[data-layout='landscape'] .conveyor { flex-direction: column; padding: 6px; 
       letterbox bar + the grade's dark fade sit under the upper/lower bands, so copy always reads. ── */
 .intro-stage.is-copy-upper { align-items: start; padding-top: calc(max(4.5vh, 26px) + 6vh); }
 .intro-stage.is-copy-lower { align-items: end; padding-bottom: calc(max(4.5vh, 26px) + 5vh); }
+
+@media (max-height: 360px) {
+  :is(.opening-film, .cutscene) { grid-template-rows: minmax(0, 1fr) auto; }
+  .intro:is(.opening-film, .cutscene) .intro-stage {
+    align-items: safe center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+}
 html[data-layout='desktop'] .conveyor { flex: 0 1 auto; min-width: 0; }
 .armory-chase b { color: var(--text); }
 

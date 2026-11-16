@@ -856,3 +856,4 @@
 - `1b20ea7` **[UI]** Announce manual cutscene captions _(internal)_
 - `8663b3a` **[UI]** Let players return to earlier cutscene captions _(internal)_
 - `e444c6a` **[UI]** Ui: make manual cinematic captions safe to select _(internal)_
+- `244bf01` **[UI]** Ui: remember cinematic reading pace _(internal)_

@@ -917,3 +917,5 @@ Manual cinematic caption announcements: InitCutscene and CutscenePlayer expose s
 Manual cinematic reading lets players select captions without advancing. The focused memory Continue button describes the archived memory and permanent reward. See CUTSCENES.md.
 
 Opening and story cinematics share the browser-local cutsceneManualPref. Remembered manual mode attaches the initial caption as the dialog description. See CUTSCENES.md.
+
+Cinematic short-screen layout keeps controls visible and allows caption overflow to scroll. The opening title uses compact spacing. See CUTSCENES.md.

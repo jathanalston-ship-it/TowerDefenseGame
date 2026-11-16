@@ -2175,3 +2175,7 @@ Manual caption selection and backdrop taps preserve the active scene. The final 
 ## 2026-11-16 — cinematic pace preference verified locally
 
 Both films remember the selected pace between openings and reloads. Manual first captions appear in the dialog description. Browser probe passed fresh defaults, cross-film preference sharing, reload persistence, dialog description, stable manual dwell and saved Auto-play. All 31 focused tests passed. Four website and game notes are prepared.
+
+## 2026-11-16 — short cinematic layout verified locally
+
+Opening title clipping reproduced at 640x270 after fonts and resize settled. Compact spacing and scrollable film area fixed it. Chrome confirmed all opening scenes across four phone sizes and a dismissible final memory card at 640x270. All 31 focused tests passed. Five game and website notes are prepared.

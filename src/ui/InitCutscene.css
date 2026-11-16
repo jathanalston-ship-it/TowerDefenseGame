@@ -147,4 +147,8 @@
 .opening-film.is-manual .intro-triad span,
 .opening-film.is-manual .intro-begin { animation: none; opacity: 1; transform: none; }
 .opening-film .intro-begin:focus-visible { animation: none; opacity: 1; transform: none; }
+@media (max-height: 360px) {
+  .opening-film .intro-triad { margin-top: 8px; }
+  .opening-film .intro-begin { margin-top: 12px; min-height: 44px; }
+}
 .intro.opening-suspended, .intro.opening-suspended *, .intro.opening-suspended *::before, .intro.opening-suspended *::after { animation-play-state: paused !important; }

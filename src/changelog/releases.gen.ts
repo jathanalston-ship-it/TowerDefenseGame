@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Cinematics remember your playback pace on this device. Choose Read at my pace once and the next film opens in manual mode, with its first caption available to screen readers."
+      },
+      {
+        "cat": "UI",
+        "text": "Cinematic captions and controls fit better on short landscape screens. The opening title uses tighter spacing, and the film area can scroll when it needs more room."
       }
     ]
   },

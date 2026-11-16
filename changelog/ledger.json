@@ -1,6 +1,6 @@
 {
-  "lastSha": "e444c6a1e84e070e03ec3b991da93800ced508ad",
-  "commitsSinceDraft": 8,
+  "lastSha": "244bf01c9a539f8bc7d76abda5ec45b7c40a4c95",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -4911,6 +4911,10 @@
         {
           "cat": "UI",
           "text": "Cinematics remember your playback pace on this device. Choose Read at my pace once and the next film opens in manual mode, with its first caption available to screen readers."
+        },
+        {
+          "cat": "UI",
+          "text": "Cinematic captions and controls fit better on short landscape screens. The opening title uses tighter spacing, and the film area can scroll when it needs more room."
         }
       ]
     }
@@ -11393,6 +11397,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: make manual cinematic captions safe to select",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "244bf01c9a539f8bc7d76abda5ec45b7c40a4c95",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: remember cinematic reading pace",
       "internal": true,
       "needsReview": false
     }
