@@ -6,7 +6,7 @@
 // so the collectible moment always lands. Tap advances; Skip jumps to the coda; reduced
 // motion shows one hand-picked still per scene (CSS fades carry the copy).
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
 import { scheduleCinematicBeats } from '../audio/cinematicBeats';
@@ -42,6 +42,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   const [hidden, setHidden] = useState(() => document.hidden);
   const hiddenAt = useRef<number | null>(document.hidden ? performance.now() : null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const filmRef = useRef({
@@ -53,6 +54,9 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   codaRef.current = coda;
   const scene = def.scenes[idx];
   const sceneProgress = `Scene ${idx + 1} of ${def.scenes.length}`;
+  useLayoutEffect(() => {
+    if (stageRef.current) stageRef.current.scrollTop = 0;
+  }, [idx, coda]);
 
   useEffect(() => {
     const update = (): void => {
@@ -256,7 +260,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
       <div id={captionId} className="a11y-only" aria-live="polite" aria-atomic="true">
         {manual && !coda ? `${sceneProgress}. ${scene.lines.map((line) => line.text).join(' ')}` : ''}
       </div>
-      <div className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
+      <div ref={stageRef} className={`intro-stage is-copy-${coda ? 'center' : scene.copyAt ?? 'center'}`}>
         <canvas ref={canvasRef} className="intro-canvas" aria-hidden />
         <div className="intro-grade" aria-hidden />
         <div className="intro-bar intro-bar-top" aria-hidden />

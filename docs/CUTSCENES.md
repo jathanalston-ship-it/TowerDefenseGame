@@ -183,3 +183,6 @@ final card's hold. The same duration describes the Watch button for assistive te
 Archive thumbnails render at the displayed size with a pixel ratio capped at 2. They repaint when
 the card changes size and stay still during scrolling. Watch uses a two-tone keyboard focus ring
 that remains distinct over the artwork.
+
+Both film players reset caption scroll before painting a newly selected scene. This
+keeps the opening lines in view when text overflows at short heights or large sizes.
