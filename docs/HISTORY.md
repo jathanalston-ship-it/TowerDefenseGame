@@ -858,3 +858,5 @@
 - `e444c6a` **[UI]** Ui: make manual cinematic captions safe to select _(internal)_
 - `244bf01` **[UI]** Ui: remember cinematic reading pace _(internal)_
 - `5494b05` **[UI]** Fit cinematic captions on short screens _(internal)_
+- `189fcd6` **[Framework]** Release: publish clearer cinematic controls _(internal)_
+- `0517f41` **[Framework]** Docs: record cinematic release verification _(internal)_

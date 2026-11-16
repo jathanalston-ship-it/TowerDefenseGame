@@ -25,6 +25,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { audio } from '../audio/sound';
+import { scheduleCinematicBeats } from '../audio/cinematicBeats';
 import { music } from '../audio/music';
 import { REDUCED_FRAME_T, drawDiveTransition, drawIntroFrame } from '../render/introScenes';
 import type { IntroVisual } from '../render/introScenes';
@@ -146,7 +147,6 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
   // no camera drift / punches / flashes, no dive. Preferences remain live throughout playback.
   const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
-  const previousMotion = useRef(feel.motion);
   useEffect(() => {
     let prefs = motionPrefs();
     const update = (): void => setFeel(resolveMotion(prefs, systemReducedMotion()));
@@ -287,8 +287,12 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     music.setIntensity(idx / (SCENES.length - 1));
   }, [phase, idx, scene.visual]);
 
-  // The projector: a DPR-capped full-screen canvas running the procedural scene painters, firing
-  // the scene's sound-design BEATS as the clock crosses them, and painting the dive on exit.
+  useEffect(() => {
+    if (hidden || phase !== 'film') return undefined;
+    return scheduleCinematicBeats(scene.beats, filmRef.current, (cue) => audio.cue(cue));
+  }, [hidden, phase, idx, scene.beats]);
+
+  // The projector: a DPR-capped full-screen canvas painting scenes and the dive on exit.
   // Reduced motion: no loop — each scene paints ONE hand-picked still (CSS fades carry it).
   useEffect(() => {
     // A live reduced-motion request ends an in-flight dive without leaving a frozen transition.
@@ -307,13 +311,6 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     };
     size();
     let raf = 0;
-    if (previousMotion.current === 0 && feel.motion > 0 && phase === 'film') {
-      const f = filmRef.current;
-      const beats = SCENES[f.scene].beats;
-      const elapsed = (performance.now() - f.startedAt) / 1000;
-      while (f.beatsFired < beats.length && beats[f.beatsFired].at <= elapsed) f.beatsFired++;
-    }
-    previousMotion.current = feel.motion;
     const frame = (): void => {
       if (document.hidden) return;
       const f = filmRef.current;
@@ -326,14 +323,6 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
         return; // one still per scene — repainted only when the scene (or size) changes
       }
       const t = (now - f.startedAt) / 1000;
-      if (phaseRef.current === 'film') {
-        // fire this scene's beats as the clock crosses them (idx order == time order)
-        const beats = SCENES[idxRef.current].beats;
-        while (f.beatsFired < beats.length && t >= beats[f.beatsFired].at) {
-          audio.cue(beats[f.beatsFired].cue);
-          f.beatsFired++;
-        }
-      }
       const fade = f.prev ? Math.min(1, (now - f.startedAt) / FADE_MS) : 1;
       drawIntroFrame(ctx, w, h, f.visual, t, f.prev, (now - f.prevStartedAt) / 1000, fade,
         SCENES[f.scene], f.prevScene >= 0 ? SCENES[f.prevScene] : null, feel.motion, feel.flashes);

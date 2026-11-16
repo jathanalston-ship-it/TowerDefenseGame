@@ -919,3 +919,5 @@ Manual cinematic reading lets players select captions without advancing. The foc
 Opening and story cinematics share the browser-local cutsceneManualPref. Remembered manual mode attaches the initial caption as the dialog description. See CUTSCENES.md.
 
 Cinematic short-screen layout keeps controls visible and allows caption overflow to scroll. The opening title uses compact spacing. See CUTSCENES.md.
+
+Cinematic audio: audio/cinematicBeats.ts schedules authored cues on visible scene time for InitCutscene and CutscenePlayer. Animation and stills share their cue timeline. See CUTSCENES.md and AUDIO.md.

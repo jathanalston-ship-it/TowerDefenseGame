@@ -152,7 +152,7 @@ lands even on a skip. Reduced motion: one still per scene, CSS fades only (§dir
 frame spec is one object per showing, mutated per frame (no per-frame allocation). The caller
 owns what the music does after (`music.play('menu')`).
 
-Live film preferences: CutscenePlayer subscribes to device settings and OS motion changes without resetting scene/copy/reading clocks. Returning from reduced to animated playback consumes elapsed sound beats silently; only future beats play. Flash changes update the projector. Reduced stills repaint on scene/coda/resize changes, including the ending-card dim, and listeners/projector frames clean up on unmount.
+Live film preferences: CutscenePlayer subscribes to device settings and OS motion changes without resetting scene/copy/reading clocks. The cinematic sound scheduler uses visible film time in both animated and reduced-motion playback. Motion changes preserve cue progress, and scene changes, hidden tabs and exits cancel pending timers. Flash changes update the projector. Reduced stills repaint on scene/coda/resize changes, including the ending-card dim, and listeners/projector frames clean up on unmount.
 
 Hidden-tab story playback: CutscenePlayer pauses the remaining scene/coda timeout, projector, and caption CSS animations on visibilitychange. Resume offsets current/previous visual clocks by hidden duration, preserving beat timing without catch-up. Manual reading retains its existing timer behavior; a film mounted hidden waits to begin visible playback. Visibility listeners, timers and frames are removed on cleanup. Background music preference/ownership is unchanged.
 

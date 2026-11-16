@@ -9,6 +9,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
+import { scheduleCinematicBeats } from '../audio/cinematicBeats';
 import { music } from '../audio/music';
 import type { CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
@@ -24,7 +25,6 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // per scene, no camera drift / punches / flashes. Preferences remain live during the film.
   const [feel, setFeel] = useState(() => resolveMotion(motionPrefs(), systemReducedMotion()));
   const reducedMotion = feel.motion === 0;
-  const previousMotion = useRef(feel.motion);
   useEffect(() => {
     let prefs = motionPrefs();
     const update = (): void => setFeel(resolveMotion(prefs, systemReducedMotion()));
@@ -151,7 +151,12 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     }
   }, [idx]);
 
-  // The projector — full-screen canvas, beats fired as the clock crosses them.
+  useEffect(() => {
+    if (hidden || coda) return undefined;
+    return scheduleCinematicBeats(scene.beats, filmRef.current, (cue) => audio.cue(cue));
+  }, [hidden, coda, idx, scene.beats]);
+
+  // The projector — full-screen canvas, independent of sound cue timing.
   useEffect(() => {
     if (hidden) return undefined;
     const cv = canvasRef.current;
@@ -164,14 +169,6 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     };
     size();
     let raf = 0;
-    // Reduced playback is silent. Do not replay its elapsed beats when motion is restored.
-    if (previousMotion.current === 0 && feel.motion > 0) {
-      const f = filmRef.current;
-      const beats = def.scenes[f.scene].beats;
-      const elapsed = (performance.now() - f.startedAt) / 1000;
-      while (f.beatsFired < beats.length && beats[f.beatsFired].at <= elapsed) f.beatsFired++;
-    }
-    previousMotion.current = feel.motion;
     // One frame spec for the whole showing, mutated per frame (no per-frame allocation).
     const prevSpec = { painter: def.scenes[0].painter, t: 0 };
     const spec: CutsceneFrameSpec = {
@@ -192,12 +189,6 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
         spec.t = cutsceneStillT(cur);
       } else {
         const t = (now - f.startedAt) / 1000;
-        if (!codaRef.current) {
-          while (f.beatsFired < cur.beats.length && t >= cur.beats[f.beatsFired].at) {
-            audio.cue(cur.beats[f.beatsFired].cue);
-            f.beatsFired++;
-          }
-        }
         const prevScene = f.prev >= 0 ? def.scenes[f.prev] : null;
         spec.t = t;
         spec.prevScene = prevScene;

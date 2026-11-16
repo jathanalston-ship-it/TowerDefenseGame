@@ -1,6 +1,19 @@
 [
   {
     "date": "2026-11-16",
+    "title": "Cinematic Sound and Accessibility",
+    "categories": [
+      "UI"
+    ],
+    "items": [
+      {
+        "cat": "UI",
+        "text": "Cinematic sound effects now play with reduced motion. Both the opening and Memory Archive films keep their timed cues over still images, pause cues in hidden tabs, and resume without repeating sounds."
+      }
+    ]
+  },
+  {
+    "date": "2026-11-16",
     "title": "Clearer Cinematic Controls",
     "categories": [
       "UI"

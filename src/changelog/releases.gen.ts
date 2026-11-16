@@ -5,6 +5,18 @@ import type { Release } from './types';
 /** Player-facing releases, newest first. */
 export const RELEASES: Release[] = [
   {
+    "id": "v2026.11.16.3",
+    "date": "2026-11-16",
+    "title": "Cinematic Sound and Accessibility",
+    "sealed": false,
+    "entries": [
+      {
+        "cat": "UI",
+        "text": "Cinematic sound effects now play with reduced motion. Both the opening and Memory Archive films keep their timed cues over still images, pause cues in hidden tabs, and resume without repeating sounds."
+      }
+    ]
+  },
+  {
     "id": "v2026.11.16.2",
     "date": "2026-11-16",
     "title": "Clearer Cinematic Controls",

@@ -105,9 +105,9 @@ Hero symbiote and tower preview canvases resolve device reduced motion plus the 
 
 Tutorial Typewriter (ui/tutorial/primitives.tsx) now resolves state/prefs motion live, including Allow motion, and exposes a stable complete sentence separately from the aria-hidden visual reveal. Reduced motion finishes the current reveal; restoring motion preserves already-read content.
 
-CutscenePlayer resolves motion/flashes live. Changing preferences preserves film timing; elapsed beats under reduced motion are not replayed when animation resumes. Reduced stills retain coda dimming and repaint on resize/scene/coda changes.
+CutscenePlayer resolves motion/flashes live. Changing preferences preserves film and sound timing. Timed cues play while reduced-motion stills are displayed. Reduced stills retain coda dimming and repaint on resize/scene/coda changes.
 
-InitCutscene applies live resolved motion/flashes at the pre-roll gate and during playback. Reduced motion during an active dive ends the transition cleanly; normal dive duration and single completion remain unchanged. Restoring animation consumes past film beats without sound catch-up.
+InitCutscene applies live resolved motion/flashes at the pre-roll gate and during playback. Reduced motion during an active dive ends the transition cleanly; normal dive duration and single completion remain unchanged. Restoring animation keeps the current position in the scene’s sound cues.
 
 Story cutscenes suspend their visual clock and caption animations while hidden; auto scene/coda holds retain remaining visible time. On return the projector resumes without hidden-time sound catch-up. This does not alter global music settings.
 

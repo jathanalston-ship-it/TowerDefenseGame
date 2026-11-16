@@ -1,6 +1,6 @@
 {
-  "lastSha": "5494b0581f806decaa4cb994ceff95bd9246958c",
-  "commitsSinceDraft": 0,
+  "lastSha": "0517f41797db67320b0651ca33508c61006ba574",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -4915,6 +4915,18 @@
         {
           "cat": "UI",
           "text": "Cinematic captions and controls fit better on short landscape screens. The opening title uses tighter spacing, and the film area can scroll when it needs more room."
+        }
+      ]
+    },
+    {
+      "id": "v2026.11.16.3",
+      "date": "2026-11-16",
+      "title": "Cinematic Sound and Accessibility",
+      "sealed": false,
+      "entries": [
+        {
+          "cat": "UI",
+          "text": "Cinematic sound effects now play with reduced motion. Both the opening and Memory Archive films keep their timed cues over still images, pause cues in hidden tabs, and resume without repeating sounds."
         }
       ]
     }
@@ -11413,6 +11425,22 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Fit cinematic captions on short screens",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "189fcd63733930c73671ac96d90bb00ac1c41a2d",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: publish clearer cinematic controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0517f41797db67320b0651ca33508c61006ba574",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Docs: record cinematic release verification",
       "internal": true,
       "needsReview": false
     }

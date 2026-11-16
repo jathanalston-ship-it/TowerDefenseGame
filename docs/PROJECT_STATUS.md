@@ -2191,3 +2191,7 @@ Clearer Cinematic Controls v2026.11.16.2 passed full validator 69343 at 01:55 UT
 ## 2026-11-16 — cinematic release live
 
 Clearer Cinematic Controls v2026.11.16.2 is live. Commit 189fcd63733930c73671ac96d90bb00ac1c41a2d passed Actions run 43789154181 and production job 133043400708, including the exact commit check. The public game serves /assets/play-B_AtZuk-.js, matching the audited build. Homepage and all five website notes verified.
+
+## 2026-11-16 — reduced-motion film audio verified locally
+
+Both cinematics dispatch their authored cues over still images through the shared audio/cinematicBeats.ts scheduler. Four browser probes passed motion switches, one-time delivery, hidden pause and dismissal. All 67 focused tests passed. One note is prepared in unsealed v2026.11.16.3.
