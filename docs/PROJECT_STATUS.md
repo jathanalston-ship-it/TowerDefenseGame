@@ -2247,3 +2247,7 @@ The Exact values toggle shows all draft comparisons under the corresponding gene
 ## 2026-11-16 — readable landscape gene comparisons
 
 Normal and Exact values drafts keep three cards in one row on landscape phones at least 520px wide. Exact values use the draft scroll surface rather than nested scrollers and preserve full comparison labels. Chrome verified 568x320 and 844x390, touch and keyboard, reroll access and visible text bounds. All 26 focused tests passed. The fifth game and News note is generated for v2026.11.16.4.
+
+## 2026-11-16 — keyboard soundtrack startup
+
+Chrome reproduced a suspended menu soundtrack after the first trusted Enter. The hub now resumes the existing soundtrack on the first qualifying keyboard, mouse or touch interaction. The browser probe verified all three paths, Escape and Music Off. All 47 focused audio tests passed. The sixth game and News note is generated for v2026.11.16.4.

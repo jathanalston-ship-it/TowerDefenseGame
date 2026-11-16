@@ -29,6 +29,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Compare three gene cards side by side in landscape on phones at least 520 pixels wide. Exact values expand inside the cards, and long comparison labels wrap so you can read them while scrolling the draft."
+      },
+      {
+        "cat": "Audio",
+        "text": "The menu soundtrack can start from your first keyboard interaction as well as a click or tap. The game resumes the queued music and respects your Music setting."
       }
     ]
   },

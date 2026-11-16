@@ -878,3 +878,5 @@
 - `205ab64` **[Gene Cards]** Make exact gene values available by tap _(internal)_
 - `4f0078a` **[Framework]** Release: prepare exact values update note _(internal)_
 - `a53e060` **[Gene Cards]** Fit gene comparisons on landscape phones _(internal)_
+- `a159300` **[Gene Cards]** Prepare landscape gene comparison note _(internal)_
+- `74656cb` **[Music]** Unlock menu music from keyboard input _(internal)_
