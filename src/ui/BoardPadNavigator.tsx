@@ -15,12 +15,13 @@ const directions = new Map<string, [number, number]>([
   ['ArrowRight', [0, 1]],
 ]);
 
-export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, rallyTargeting, onRallyEnd, buttonRef, showTarget, onInspect, refresh }: {
+export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, rallyTargeting, onRally, onRallyEnd, buttonRef, showTarget, onInspect, refresh }: {
   game: Game;
   enabled: boolean;
   shortcutHint: boolean;
   rallyShortcut: boolean;
   rallyTargeting: boolean;
+  onRally: (point: { x: number; y: number }) => void;
   onRallyEnd: () => void;
   buttonRef: RefObject<HTMLButtonElement>;
   showTarget: (target: Pointer | null) => void;
@@ -132,7 +133,7 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, 
           if (armedAbility) return;
           if (rallyTargeting) {
             const target = center(aim.column, aim.row);
-            game.setRally(target.x, target.y);
+            onRally(target);
             audio.cue('select');
             setRallyFeedback(`Hero rally set at row ${aim.row + 1}, column ${aim.column + 1}.`);
             onRallyEnd();

@@ -3169,6 +3169,21 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
   }
 }
 
+/** Confirmation for a player-set rally point, separate from the aiming reticle. */
+export function drawRallyMarker(ctx: CanvasRenderingContext2D, point: { x: number; y: number }, progress: number): void {
+  const { x, y } = point;
+  ctx.save();
+  const animated = viewFeel.motion > 0;
+  if (animated) {
+    ctx.globalAlpha *= 1 - progress;
+    ring(ctx, x, y, 15 + 14 * progress, '#b8eeff', 2);
+  }
+  ring(ctx, x, y, 10, '#030509', 5);
+  ring(ctx, x, y, 10, '#fff', 2);
+  labelAt(ctx, Math.max(42, Math.min(WIDTH - 42, x)), Math.max(18, y - 17), 'RALLY SET', '#fff');
+  ctx.restore();
+}
+
 function labelAt(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string): void {
   ctx.font = "600 11px 'Exo 2', system-ui, sans-serif";
   ctx.textAlign = 'center';

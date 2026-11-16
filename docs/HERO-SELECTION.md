@@ -111,3 +111,7 @@ Press H during a regular run to inspect the primary hero. Press it again to
 cycle forward, or use Shift+H to move backward. The panel receives keyboard
 focus and supports native scrolling. Escape or Deselect restores the previous
 control. Deselect measures 44px on touch screens.
+
+A player-set rally point gets a brief marker drawn in battlefield coordinates.
+It confirms keyboard and pointer placement and uses a still marker in reduced
+motion. Hero casts and Hive Intelligence use their own feedback.

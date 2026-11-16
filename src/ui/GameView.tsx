@@ -3,7 +3,7 @@ import { Game } from '../core/game';
 import type { RunMode } from '../core/game';
 import type { StageConfig } from '../core/campaign';
 import { recommendedPowerScore } from '../core/campaign';
-import { drawGame } from '../render/renderer';
+import { drawGame, drawRallyMarker } from '../render/renderer';
 import type { Pointer, MulliganRender } from '../render/renderer';
 import { pollAmbientCue } from '../render/organism';
 import { setGoreAnchors } from '../render/gore';
@@ -103,6 +103,7 @@ function addTrauma(current: number, impulse: number): number {
 // not a tap — we swallow the click so a stray drag never places a tower, casts an ability,
 // or moves the rally point by accident.
 const CLICK_SLOP = 8;
+const RALLY_MARKER_MS = 900;
 
 /** Serialize a finished recording for submission — undefined when not recording or oversized. */
 function packReplay(rec: Recorder | null, game: Game): string | undefined {
@@ -529,6 +530,12 @@ export function GameView({
   lastKillRef.current ??= new LastKillMoment();
   useEffect(() => game.events.on('waveLastKill', (e) => lastKillRef.current!.start(e, game.mode, game.timeScale)), [game]);
   const pointerRef = useRef<Pointer | null>(null);
+  const rallyMarker = useRef<{ point: { x: number; y: number }; at: number } | null>(null);
+  const markRally = (point: { x: number; y: number }): void => { rallyMarker.current = { point, at: performance.now() }; };
+  const setPlayerRally = (point: { x: number; y: number }): void => {
+    game.setRally(point.x, point.y);
+    markRally(point);
+  };
   const keyboardTargetRef = useRef<Pointer | null>(null);
   const showKeyboardTarget = useCallback((target: Pointer | null): void => { keyboardTargetRef.current = target; }, []);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
@@ -872,6 +879,12 @@ export function GameView({
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
         drawGame(ctx, rs, keyboardTargetRef.current ?? pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
+        const rally = rallyMarker.current;
+        if (rally) {
+          const progress = Math.max(0, now - rally.at) / RALLY_MARKER_MS;
+          if (progress < 1 && (rs.phase === 'prep' || rs.phase === 'wave')) drawRallyMarker(ctx, rally.point, progress);
+          else rallyMarker.current = null;
+        }
         drawImpacts(ctx, now); // boss-fall rings + ult impact frames ride the same camera kick
         runOutro.frame(ctx, now); // run-end outro FX (victory wash clock · defeat drain + cracks) — no-op mid-run
         // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
@@ -1298,6 +1311,7 @@ export function GameView({
             shortcutHint={padShortcutHint || !!tutorial}
             rallyShortcut={!tutorial}
             rallyTargeting={rallyTargeting}
+            onRally={setPlayerRally}
             onRallyEnd={() => setRallyTargeting(false)}
             showTarget={showKeyboardTarget}
             onInspect={(towerId) => {
@@ -1334,7 +1348,11 @@ export function GameView({
             // Shift keeps the build tool armed for rapid placement (docs/TOWER-MANAGEMENT.md §4).
             keyboardInspectorId.current = null;
             heroInspectOrigin.current = null;
+            const wasAbility = game.armedAbility;
+            const rallyBefore = game.heroes[0]?.rally;
             game.click(p.x, p.y, { shift: e.shiftKey });
+            const rallyAfter = game.heroes[0]?.rally;
+            if (!wasAbility && rallyAfter && rallyAfter !== rallyBefore) markRally(rallyAfter);
             refresh();
           }}
           onDoubleClick={(e) => {
@@ -1353,7 +1371,7 @@ export function GameView({
             if (game.armedAbility || game.selectedTower || game.selectedPlacedId !== null || game.movingTowerId !== null) {
               game.cancelInteractions();
             } else {
-              game.setRally(p.x, p.y);
+              setPlayerRally(p);
             }
             refresh();
           }}
