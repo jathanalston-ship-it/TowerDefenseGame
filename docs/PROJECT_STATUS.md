@@ -2487,3 +2487,9 @@ at 07:35 UTC. The eight-note candidate adds Mega Hunt dossier guidance,
 raid-loss advice, accurate arrival forecasts on Home and Campaign, and
 a Raid briefing in the arrival wave. The Campaign and Mega Boss guides
 are synchronized. All 22 final site and note checks passed.
+
+The sealed release audit passed at 07:53 UTC with 3,198 tests, typecheck,
+mobile layout and documentation checks. The FAQ, Features page, Campaign
+Guide and Infinite Guide now describe the Stage 5 unlock and the current
+Hive Intelligence behavior. The website-only correction passed all 55
+focused site, note, Hive-policy and Threat tests.

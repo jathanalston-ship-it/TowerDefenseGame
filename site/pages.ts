@@ -3,6 +3,7 @@
 // All copy is original and specific — no lorem, no stubs: every page must stand alone for a
 // human reader (and an AdSense reviewer) with real information.
 
+import { HIVE_MIND } from '../src/core/config';
 import { CONTACT_EMAIL, PLAY_PATH } from './config';
 import { adSlot, esc } from './shell';
 import type { BlogPost } from './blog';
@@ -166,8 +167,8 @@ export function featuresPage(c: SiteCounts): string {
 <p>Champions with battle doctrines (dive, guard, control, phase), active abilities, ★10 upgrade paths with ability forks at ★5/★8, and full Weapon/Armor/Relic loadouts with behavioral affixes and set bonuses — rendered on the battlefield by a procedural gear system. Benched heroes run timed <b>Expeditions</b> for materials while you play.</p>
 <h2>Doctrines — commit to a run</h2>
 <p>Before a run you may sign exactly ONE <a href="/guides/doctrines/">Doctrine</a>: a Build doctrine that bends your own math, a Protocol that reshapes the enemy world (double swarms at half health; a handful of titans; a famine that pays premium rewards), or a Pact that does both. Doctrines carry campaign unlock gates, mastery ranks that raise their payouts, and a Bio-Dex codex of their own — commitment is a progression axis.</p>
-<h2>Hive Intelligence — automation that respects mastery</h2>
-<p>One button evaluates every Biomass purchase on the board — branch tiers, hero evolutions, conveyor deploys, strain merges — and executes the best ones while keeping a reserve. It works on content you have already beaten: Infinite and campaign replays. On your frontier, in the Daily and in Boss Rush record runs the decisions stay yours, and the button tells you why.</p>
+<h2>Hive Intelligence</h2>
+<p>Complete Campaign Stage ${HIVE_MIND.unlockStage} to unlock Hive Intelligence in Campaign and Infinite. Turn it on to handle tower and hero upgrades, deploy towers, use hero abilities, start waves and pick recommended genes. You can use it on eligible frontier stages or replays and turn it off any time. The game explains when it is locked, including in Daily, Boss Rush and above your cleared Threat record.</p>
 <h2>The Threat ladder</h2>
 <p>Beat something, then make it harder. Every mode you've cleared opens a ladder of ${c.threatRungs} Threat rungs — each one names the single lever it turns (more health, faster swarms, bigger waves, harsher elites) and pays a little more. Climbing earns titles, profile frames and achievements; it never sells or grants Power.</p>
 <h2>The weekly game</h2>
@@ -244,7 +245,7 @@ export function faqPage(c: SiteCounts): { html: string; qa: [string, string][] }
     ['Are the hero abilities animated?', 'Every hero cast stages a procedural set-piece — the sky-dragon strafes the lane, the great eye opens and lances — and the damage lands exactly when the performance strikes. It is all drawn in code (no sprites or video), and it respects your reduced-motion setting.'],
     ['How many maps are there?', `${c.layouts} battlefields, each with its own geometry — twin lanes, mazes, flank funnels, open fronts. The first campaign stages use fixed maps; deeper stages, the Daily and Infinite rotate through the rest.`],
     ['What is Threat?', `An optional difficulty ladder for content you've already beaten: ${c.threatRungs} rungs per mode, each turning one named lever and paying a little more. Climbing earns titles, profile frames and achievements — never Power.`],
-    ['What does Hive Intelligence do?', 'One button that evaluates every Biomass purchase on the board and makes the best ones, keeping a reserve. It works on content you have already beaten (Infinite and campaign replays); on your frontier, in the Daily and in Boss Rush record runs the decisions stay yours.'],
+    ['What does Hive Intelligence do?', `Complete Campaign Stage ${HIVE_MIND.unlockStage}, then toggle Hive Intelligence in Campaign or Infinite. It manages purchases, hero abilities, wave starts and recommended gene picks, including on eligible frontier stages. Turn it off to take over. Daily, Boss Rush and Threat settings above your cleared record use manual play.`],
     ['Why can\'t I buy anything in Belgium or the Netherlands?', 'Loot-box law there treats randomized rewards bought with money — or with a currency bought with money — as gambling. So in those countries we don\'t sell anything that can end in a random reward. Everything in the game, containers included, stays earnable in play.'],
     ['Do I need an account?', 'No. The game plays fully without one. A free named account adds cloud backup, cross-device play and leaderboard identity — and you can delete it in-game at any time.'],
     ['How do I report a bug or give feedback?', `Email ${CONTACT_EMAIL} — reports with a replay code attached are gold, because we can reproduce your exact run.`],

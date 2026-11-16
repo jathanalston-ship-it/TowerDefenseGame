@@ -181,7 +181,8 @@ export const GUIDES: Guide[] = [
         'Every stage is fought on one of ' + MAP_LAYOUTS.length + ' battlefields — twin lanes, an open maw, a maze-like coil, broken walls, flank funnels and more. Stages 1–3 use fixed maps chosen to teach; deeper stages roll a battlefield that suits their biome and never repeat back to back. The stage preview names the map before you deploy: split lanes want towers that cover both mouths, mazes reward long range, funnels reward splash.',
       ] },
       { h: 'Replays, Threat and Hive Intelligence', body: [
-        'A stage you have cleared becomes a replay: it still pays progression, Hive Intelligence can run the routine Biomass purchases for you, and the <b>Threat</b> picker lets you climb ' + THREAT_MAX + ' rungs of named difficulty for titles, profile frames and a little more reward. Your frontier stage is always yours to play by hand.',
+        'Replaying a cleared stage still pays progression. The <b>Threat</b> picker has ' + THREAT_MAX + ' difficulty rungs with titles, profile frames and increased rewards.',
+        'Complete Campaign Stage ' + HIVE_MIND.unlockStage + ' to unlock <b>Hive Intelligence</b>, including on your frontier. The toggle can handle purchases, hero abilities, wave launches and recommended gene picks. Threat above your cleared record uses manual control.',
       ] },
       { h: 'The opening, and the Hive that adapts', body: [
         'A run is no longer decided in its first thirty seconds. Fliers stay out of wave 1 and arrive only in small numbers in wave ' + (CAMPAIGN_OPENING.flyingUnitCap.length) + ', a stage’s Mega surfaces with wave ' + CAMPAIGN_OPENING.megaArrivalWave + ' rather than on top of your opening build, and on deeper stages your free first organism is one that answers the stage’s opening threats.',
@@ -203,7 +204,7 @@ export const GUIDES: Guide[] = [
     sections: [
       { h: 'How it escalates', body: [
         'Infinite composes waves from a depth-scaled threat budget — the deeper you go, the smarter and heavier the composition. Biomes rotate as you descend, each warping the rules, and the battlefield changes with every biome: the run starts on the classic map and moves through the others. Your best wave is a permanent record and unlocks reward tiers.',
-        'Hive Intelligence works here — Infinite is content you have proven — and once you have reached deep enough, the Threat ladder adds harder rungs with their own records.',
+        'Hive Intelligence becomes available after you complete Campaign Stage ' + HIVE_MIND.unlockStage + '. The Threat ladder adds harder rungs with their own records. Threat above your cleared record uses manual control.',
       ] },
       { h: 'Building for depth', body: [
         'Infinite rewards compounding economies: income organs early, damage conversion late. The run that reaches wave 40 usually looks greedy at wave 10. Draft economy genes in the first third, control in the second, and pure damage only when the composition demands it.',
