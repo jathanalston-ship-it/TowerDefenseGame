@@ -522,11 +522,13 @@ export function GameView({
   const mutationPanelRef = useRef<HTMLElement>(null);
   const keyboardInspectorId = useRef<number | null>(null);
   const pendingInspectorFocus = useRef(false);
-  const returnToTowerPads = useCallback((): void => {
-    if (keyboardInspectorId.current !== game.selectedPlacedId || keyboardInspectorId.current === null) return;
+  const returnToTowerPads = useCallback((): boolean => {
+    if (keyboardInspectorId.current !== game.selectedPlacedId || keyboardInspectorId.current === null) return false;
     keyboardInspectorId.current = null;
     const pads = keyboardPadButtonRef.current;
-    if (pads?.tabIndex === 0) pads.focus({ preventScroll: true });
+    if (pads?.tabIndex !== 0) return false;
+    pads.focus({ preventScroll: true });
+    return true;
   }, [game]);
   const [padShortcutHint, setPadShortcutHint] = useState(false);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
@@ -1129,6 +1131,12 @@ export function GameView({
         if (pads?.tabIndex === 0) {
           e.preventDefault();
           setPadShortcutHint(false);
+          if (drawers) {
+            setLeftOpen(false);
+            setRightOpen(false);
+            if (game.movingTowerId === null) game.selectPlacedTower(null);
+          }
+          keyboardInspectorId.current = null;
           pads.focus({ preventScroll: true });
         }
       } else if (k === 'q' || k === 'Q') {
@@ -1155,7 +1163,7 @@ export function GameView({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [game, togglePause, setSpeed, tutorial, returnToTowerPads]);
+  }, [game, togglePause, setSpeed, tutorial, drawers, returnToTowerPads]);
 
   const toCoords = (clientX: number, clientY: number): Pointer => {
     const c = canvasRef.current!;
@@ -1232,7 +1240,7 @@ export function GameView({
         {!tutorial && (
           <BoardPadNavigator
             game={game}
-            enabled={!paused && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
+            enabled={!paused && !evoOpen && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
             buttonRef={keyboardPadButtonRef}
             shortcutHint={padShortcutHint}
             showPad={(slot) => { keyboardPadRef.current = slot ? { x: slot.x, y: slot.y, keyboardPad: true } : null; }}
@@ -1666,7 +1674,7 @@ export function GameView({
             }}
             onMove={(towerId) => {
               audio.resume();
-              if (game.phase === 'prep') returnToTowerPads();
+              if (game.phase === 'prep' && returnToTowerPads() && drawers) setRightOpen(false);
               game.beginMove(towerId); // pick up → tap a valid slot on the board to relocate
               refresh();
             }}
