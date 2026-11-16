@@ -192,3 +192,7 @@ until unpinned — console force-plays still work).
 Player volume overrides pending master automation: setVolume cancels/holds prior duck/duress recovery, anchors the current gain, then ramps100ms to the new level with the current duress multiplier. It does not create a context or retune music. Zero remains zero after an older recovery deadline; rapid slider changes supersede previous targets. Native cancelAndHoldAtTime and cancelScheduledValues fallback are supported.
 
 Music console touch controls: boss-name input and mix sliders use a 44px minimum target height, including tablet landscape. Debug opt-in and audio behavior are unchanged.
+
+When browser policy suspends the menu soundtrack, the first qualifying keyboard, mouse, or touch
+interaction resumes the existing music context. This respects Music Off and keeps the queued track
+and category. The gesture listeners leave after activation or when the menu unmounts.

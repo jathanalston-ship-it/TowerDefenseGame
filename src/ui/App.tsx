@@ -565,10 +565,19 @@ export function App(): JSX.Element {
     const s = meta.get();
     const cleared = Math.max(0, ...Object.values(s.campaign.cleared), 0);
     music.setProgression(Math.min(1, cleared / 30 + s.prestige.molts * 0.2));
-    const start = (): void => music.play('menu');
-    start(); // no-op until the AudioContext may run…
-    window.addEventListener('pointerdown', start, { once: true }); // …then the first click unlocks it
-    return () => window.removeEventListener('pointerdown', start);
+    music.play('menu');
+    const stopListening = (): void => {
+      window.removeEventListener('pointerup', unlockMusic, true);
+      window.removeEventListener('keydown', unlockMusic, true);
+    };
+    function unlockMusic(event: Event): void {
+      if (!event.isTrusted || navigator.userActivation?.isActive === false) return;
+      music.resume();
+      stopListening();
+    }
+    window.addEventListener('pointerup', unlockMusic, true);
+    window.addEventListener('keydown', unlockMusic, true);
+    return stopListening;
   }, [screen]);
 
   // Browser/Android BACK walks the game, never out of it (docs/HUB-FLOW.md §back): the hub's

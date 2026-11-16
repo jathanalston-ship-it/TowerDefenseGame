@@ -598,8 +598,13 @@ class MusicManager {
       this.duressFilter.connect(this.comp);
       this.comp.connect(this.ctx.destination);
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
+    this.resume();
     return true;
+  }
+
+  /** Resume the existing soundtrack after a user gesture unlocks browser audio. */
+  resume(): void {
+    if (this.enabled && this.ctx?.state === 'suspended') void this.ctx.resume();
   }
 
   // Wardrobe music packs (docs/COSMETICS.md §wardrobe): per-scope re-voicings applied to
