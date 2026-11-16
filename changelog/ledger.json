@@ -1,6 +1,6 @@
 {
-  "lastSha": "eb5240d0311192cdfa3a1d28bf4e06b995e54583",
-  "commitsSinceDraft": 5,
+  "lastSha": "81c8b75544c8db1a8d2dbb29e6b9b22305f27e96",
+  "commitsSinceDraft": 9,
   "content": {
     "tower": [
       "needle",
@@ -5106,7 +5106,7 @@
       "id": "v2026.11.16.7",
       "date": "2026-11-16",
       "title": "Clearer Hero Controls",
-      "sealed": false,
+      "sealed": true,
       "entries": [
         {
           "cat": "UI",
@@ -5139,6 +5139,14 @@
         {
           "cat": "UI",
           "text": "The run-end screen shows a focused Continue to summary button. Escape and Browser Back also reach Results, where focus moves to the outcome heading. Reduced motion shows the outcome without the battlefield zoom."
+        },
+        {
+          "cat": "UI",
+          "text": "Reward categories stay open when you focus them to read. Screen readers get final reward amounts during the visual count-up, and Skip is now a larger button that fits below the outcome heading."
+        },
+        {
+          "cat": "UI",
+          "text": "When the battlefield is empty, the wave HUD explains what is happening. It distinguishes enemies still arriving, a cleared wave, a Mega Boss still active, and a defeated boss finishing its collapse."
         }
       ]
     }
@@ -12333,6 +12341,38 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Guide the battlefield outro into Results",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c3c390d5de925afae2c0d77ee7a142f6bf2ab18a",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Note hero and run feedback updates",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "b847b2e4097703f51d6731950883fa94afe3db87",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Record passing hero feedback checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "85d75ab887f825dfa1218e96e0eb141b8723cb6a",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: keep run rewards readable through the reveal",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "81c8b75544c8db1a8d2dbb29e6b9b22305f27e96",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Clarify wave flow when the field is empty",
       "internal": true,
       "needsReview": false
     }

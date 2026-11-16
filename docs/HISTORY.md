@@ -945,3 +945,7 @@
 - `e787c3f` **[Heroes]** Make hero status gauges readable and steady _(internal)_
 - `c782100` **[UI]** Ui: show recent automatic Hive decisions _(internal)_
 - `eb5240d` **[UI]** Guide the battlefield outro into Results _(internal)_
+- `c3c390d` **[Heroes]** Note hero and run feedback updates _(internal)_
+- `b847b2e` **[Heroes]** Record passing hero feedback checkpoint _(internal)_
+- `85d75ab` **[UI]** Ui: keep run rewards readable through the reveal _(internal)_
+- `81c8b75` **[UI]** Clarify wave flow when the field is empty _(internal)_

@@ -2410,3 +2410,10 @@ The next checkpoint integrates accessible live hero gauges, the six recent Hive
 decisions, and a native Continue to summary action with end-of-run Back and
 Results focus fixes. The four 320px outro probes passed, as did the earlier
 hero-status and Hive probes. The open release has eight game and website notes.
+
+## 2026-11-16 — clearer hero controls sealed
+
+Audit 26154 passed the hero, Hive and run-end checkpoint with all 3,196
+tests. The sealed candidate adds reward reading and the empty-field wave
+readout. Both pass focused Chrome probes and regression suites. Ten game and
+website notes are ready for the final audit.

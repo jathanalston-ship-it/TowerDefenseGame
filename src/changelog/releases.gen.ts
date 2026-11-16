@@ -8,7 +8,7 @@ export const RELEASES: Release[] = [
     "id": "v2026.11.16.7",
     "date": "2026-11-16",
     "title": "Clearer Hero Controls",
-    "sealed": false,
+    "sealed": true,
     "entries": [
       {
         "cat": "UI",
@@ -41,6 +41,14 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The run-end screen shows a focused Continue to summary button. Escape and Browser Back also reach Results, where focus moves to the outcome heading. Reduced motion shows the outcome without the battlefield zoom."
+      },
+      {
+        "cat": "UI",
+        "text": "Reward categories stay open when you focus them to read. Screen readers get final reward amounts during the visual count-up, and Skip is now a larger button that fits below the outcome heading."
+      },
+      {
+        "cat": "UI",
+        "text": "When the battlefield is empty, the wave HUD explains what is happening. It distinguishes enemies still arriving, a cleared wave, a Mega Boss still active, and a defeated boss finishing its collapse."
       }
     ]
   },
