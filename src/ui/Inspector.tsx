@@ -6,7 +6,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode, Ref } from 'react';
-import { HERO_DEFS, TOWER_DEFS } from '../core/config';
+import { HERO_DEFS, TOWER_DEFS, type HeroAbilityDef } from '../core/config';
 import { branchStatsView, branchTreeView } from '../core/branchTree';
 import { BranchTree } from './components/BranchTree';
 import { ProgressBar } from './components/ProgressBar';
@@ -230,6 +230,7 @@ function MulliganLive({ state, kind }: { state: MulliganState | undefined; kind:
 
 export function Inspector({
   hud,
+  heroAbility,
   liveMastery,
   mulliganStates,
   mutationPanelRef,
@@ -241,6 +242,7 @@ export function Inspector({
   onCancelMove,
 }: {
   hud: HudSnapshot;
+  heroAbility: HeroAbilityDef;
   liveMastery?: Partial<Record<string, LiveMasteryView>>;
   mulliganStates?: Partial<Record<TowerKind, MulliganState>>; // this RUN's organisms (docs/MULLIGANS.md §inspect)
   mutationPanelRef?: Ref<HTMLElement>;
@@ -505,8 +507,8 @@ export function Inspector({
             type="button"
             className={`ho-ability${hud.hero.abilityReady ? ' is-ready' : ''}`}
             style={{ ['--ab' as string]: abPct }}
-            aria-label={`${heroDef.ability.name} — ${abilityStatus} · Ability details`}
-            aria-description={heroDef.ability.blurb}
+            aria-label={`${heroAbility.name} — ${abilityStatus} · Ability details`}
+            aria-description={heroAbility.blurb}
             aria-expanded={abilityDetails}
             aria-controls={abilityDetails ? abilityDetailsId : undefined}
             onClick={() => setAbilityDetails((open) => !open)}
@@ -524,7 +526,7 @@ export function Inspector({
         </div>
         {abilityDetails && (
           <p id={abilityDetailsId} className="ins-blurb ho-ability-detail">
-            <b>{heroDef.ability.name} · {abilityStatus}</b><br />{heroDef.ability.blurb}
+            <b>{heroAbility.name} · {abilityStatus}</b><br />{heroAbility.blurb}
           </p>
         )}
         {hud.hero.down ? (

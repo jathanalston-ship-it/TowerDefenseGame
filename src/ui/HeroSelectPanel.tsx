@@ -9,7 +9,7 @@
 
 import { useMemo } from 'react';
 import { meta } from '../state/meta';
-import { HERO_DEFS } from '../core/config';
+import { HERO_DEFS, type HeroAbilityDef } from '../core/config';
 import { itemDef, SLOT_LABELS } from '../core/equipment';
 import type { EquipSlot } from '../core/equipment';
 import { heroDetail } from '../state/heroView';
@@ -22,7 +22,11 @@ const STATE_LABEL: Record<string, string> = {
   idle: 'Holding', moving: 'Moving', attacking: 'Attacking', retreating: 'Retreating', downed: 'Downed',
 };
 
-export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onClose: () => void }): JSX.Element {
+export function HeroSelectPanel({ hero, ability, onClose }: {
+  hero: SelectedHeroView;
+  ability: HeroAbilityDef;
+  onClose: () => void;
+}): JSX.Element {
   const def = HERO_DEFS[hero.kind];
   const color = def?.color ?? 'var(--gold)';
   const hpPct = hero.maxHp > 0 ? Math.max(0, Math.min(1, hero.hp / hero.maxHp)) : 0;
@@ -31,7 +35,6 @@ export function HeroSelectPanel({ hero, onClose }: { hero: SelectedHeroView; onC
   // Permanent (meta) profile — level, stars, gear, Power. Locked during a run, so memoize by kind;
   // the live combat state comes from the snapshot `hero` view instead.
   const detail = useMemo(() => heroDetail(meta.get(), hero.kind), [hero.kind]);
-  const ability = def.ability;
   const abilityCooldown = hero.cooldowns.find((cd) => cd.id === 'ability')?.total ?? ability.cooldown;
   const abilityCooldownText = `${Math.round(abilityCooldown * 10) / 10}s`;
 

@@ -102,3 +102,7 @@ starts at the current rally cell. Use the arrow keys to choose a cell, hold
 Shift for larger steps and press Enter to confirm. Escape or leaving the
 control cancels the aim. This uses the same rally action as right-clicking
 and participates in the existing replay log.
+
+Hero Ops and the selected-hero panel use the same live ability definition as
+the toolbar. A renamed fork appears in the ability name and details, alongside
+the existing live cooldown.

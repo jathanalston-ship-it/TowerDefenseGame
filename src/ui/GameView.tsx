@@ -1585,7 +1585,8 @@ export function GameView({
         )}
         {/* Hero selection readout — non-modal (the sim keeps running); dismiss deselects the hero. */}
         {hud.selectedHero && (
-          <HeroSelectPanel hero={hud.selectedHero} onClose={() => { game.selectHero(null); refresh(); }} />
+          <HeroSelectPanel hero={hud.selectedHero} ability={game.heroAbilityDefinition(hud.selectedHero.kind)}
+            onClose={() => { game.selectHero(null); refresh(); }} />
         )}
         {geneSplash.length > 0 && (
           // Starting Gene Loadout cinematic (docs/GENE-EVOLUTION.md §Loadouts): a brief splash naming
@@ -1669,6 +1670,7 @@ export function GameView({
           <Inspector
             mutationPanelRef={mutationPanelRef}
             hud={hud}
+            heroAbility={game.heroAbilityDefinition(hud.hero.kind)}
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
             onCollapse={closeRight}
