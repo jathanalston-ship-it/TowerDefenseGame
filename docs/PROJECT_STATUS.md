@@ -2283,3 +2283,10 @@ Browser Back follows the replay Escape path through the final card and returns t
 ## 2026-11-16 — edge swipe respects open Archive replay
 
 Chrome reproduced a swipe closing the Archive beneath the film. The Hub now gives dismissable layers the gesture first and holds while other modals are open. Native touch verified both replay steps and the return to the same filter and Watch focus. A completed synthetic Hub gesture verified the underlying navigation handler after playback; the native gesture outside the replay did not complete in the probe. All 26 focused tests passed. This is note six for v2026.11.16.5.
+
+## 2026-11-16 — native Archive-to-Hub gesture verified
+
+A First Loop onboarding dialog explained the prior rejected Hub gesture. Native
+Chrome touch events traced through the Hub: replay to final card, final card to
+the same filtered Archive, then Archive to Home after completing the fixture's
+onboarding. Rechecked with all diagnostic code removed.
