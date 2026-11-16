@@ -1,9 +1,10 @@
-import { useId, useState, type RefObject } from 'react';
+import { useId, useLayoutEffect, useState, type RefObject } from 'react';
 import { audio } from '../audio/sound';
 import { TOWER_DEFS } from '../core/config';
 import { deployCost } from '../core/conveyor';
 import type { Game } from '../core/game';
-import { towerSlots, type TowerSlot } from '../core/map';
+import { CELL, COLS, ROWS, center, nucleusPoint, towerSlots } from '../core/map';
+import type { Pointer } from '../render/renderer';
 
 const rows = [...new Set(towerSlots.map((slot) => slot.y))].sort((a, b) => a - b);
 const columns = [...new Set(towerSlots.map((slot) => slot.x))].sort((a, b) => a - b);
@@ -14,26 +15,49 @@ const directions = new Map<string, [number, number]>([
   ['ArrowRight', [0, 1]],
 ]);
 
-export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showPad, onInspect, refresh }: {
+export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showTarget, onInspect, refresh }: {
   game: Game;
   enabled: boolean;
   shortcutHint: boolean;
   buttonRef: RefObject<HTMLButtonElement>;
-  showPad: (slot: TowerSlot | null) => void;
+  showTarget: (target: Pointer | null) => void;
   onInspect: (towerId: number) => void;
   refresh: () => void;
 }): JSX.Element {
   const [slot, setSlot] = useState(towerSlots[0]);
   const [focused, setFocused] = useState(false);
+  const [aim, setAim] = useState({ column: 0, row: 0 });
+  const armedAbility = game.armedAbility;
+  useLayoutEffect(() => {
+    if (!armedAbility) return;
+    const hero = game.heroes[0] ?? nucleusPoint;
+    setAim({
+      column: Math.min(COLS - 1, Math.max(0, Math.floor(hero.x / CELL))),
+      row: Math.min(ROWS - 1, Math.max(0, Math.floor(hero.y / CELL))),
+    });
+  }, [armedAbility, game]);
+  useLayoutEffect(() => {
+    if (focused && enabled) {
+      showTarget(armedAbility
+        ? { ...center(aim.column, aim.row), keyboardTarget: 'ability' }
+        : { x: slot.x, y: slot.y, keyboardTarget: 'pad' });
+    }
+    return () => showTarget(null);
+  }, [aim, armedAbility, enabled, focused, showTarget, slot]);
   const helpId = useId();
   const row = rows.indexOf(slot.y);
   const column = columns.indexOf(slot.x);
   const tower = game.towers.find((entry) => entry.slot === slot.index);
   const locked = slot.index >= game.unlockedSlots;
   const status = locked ? 'Locked' : tower ? TOWER_DEFS[tower.kind].name : 'Open';
-  const position = `Row ${row + 1}, column ${column + 1}. ${status}.`;
+  const position = armedAbility
+    ? `Row ${aim.row + 1} of ${ROWS}, column ${aim.column + 1} of ${COLS}.`
+    : `Row ${row + 1}, column ${column + 1}. ${status}.`;
+  const help = armedAbility
+    ? 'Use the arrow keys to aim. Hold Shift to move farther. Enter casts and Escape cancels.'
+    : 'Use the arrow keys to select a pad. Enter places or moves an armed tower or inspects the tower on the pad. Arm a tower with 1 through 4.';
   let action = 'Arm a tower with 1–4.';
-  if (game.armedAbility) action = 'Escape cancels ability targeting.';
+  if (armedAbility) action = 'Enter casts. Escape cancels.';
   else if (locked) action = 'Choose an unlocked pad.';
   else if (game.movingTowerId !== null) {
     if (tower?.id === game.movingTowerId) action = 'Enter cancels the move.';
@@ -59,31 +83,38 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
         type="button"
         className="board-pad-key"
         tabIndex={enabled ? 0 : -1}
-        aria-label="Tower pads"
+        aria-label={armedAbility ? "Hero ability target" : "Tower pads"}
         aria-keyshortcuts="B"
         aria-describedby={helpId}
-        onFocus={() => {
-          if (!enabled) return;
-          setFocused(true);
-          showPad(slot);
-        }}
-        onBlur={() => {
-          setFocused(false);
-          showPad(null);
-        }}
+        onFocus={() => { if (enabled) setFocused(true); }}
+        onBlur={() => setFocused(false)}
         onKeyDown={(event) => {
           const direction = directions.get(event.key);
           if (!enabled || !direction || event.altKey || event.ctrlKey || event.metaKey) return;
           event.preventDefault();
           const [dy, dx] = direction;
-          const destination = towerSlots.find((pad) => pad.x === columns[column + dx] && pad.y === rows[row + dy]);
-          if (destination) {
-            setSlot(destination);
-            showPad(destination);
+          if (armedAbility) {
+            const step = event.shiftKey ? 3 : 1;
+            setAim((target) => ({
+              column: Math.min(COLS - 1, Math.max(0, target.column + dx * step)),
+              row: Math.min(ROWS - 1, Math.max(0, target.row + dy * step)),
+            }));
+            return;
           }
+          const destination = towerSlots.find((pad) => pad.x === columns[column + dx] && pad.y === rows[row + dy]);
+          if (destination) setSlot(destination);
         }}
         onClick={(event) => {
-          if (!enabled || game.armedAbility || slot.index >= game.unlockedSlots) return;
+          if (!enabled) return;
+          if (game.armedAbility) {
+            if (!armedAbility) return;
+            const target = center(aim.column, aim.row);
+            audio.resume();
+            game.click(target.x, target.y);
+            refresh();
+            return;
+          }
+          if (armedAbility || slot.index >= game.unlockedSlots) return;
           audio.resume();
           const moving = game.movingTowerId;
           if (moving !== null) {
@@ -98,12 +129,12 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
           refresh();
         }}
       >
-        <span aria-hidden="true">{position} Arrow keys select. {action}</span>
+        <span aria-hidden="true">{position} {armedAbility ? 'Arrow keys aim.' : 'Arrow keys select.'} {action}</span>
       </button>
-      {enabled && shortcutHint && game.selectedTower && !focused && (
-        <span className="board-pad-hint" role="status"><kbd>B</kbd> to choose a tower pad</span>
+      {enabled && !focused && (armedAbility || (shortcutHint && game.selectedTower)) && (
+        <span className="board-pad-hint" role="status"><kbd>B</kbd> {armedAbility ? 'to aim with the keyboard' : 'to choose a tower pad'}</span>
       )}
-      <span id={helpId} className="a11y-only">Use the arrow keys to select a pad. Enter places or moves an armed tower or inspects the tower on the pad. Arm a tower with 1 through 4.</span>
+      <span id={helpId} className="a11y-only">{help}</span>
       <span className="a11y-only" role="status">{focused && enabled ? `${position} ${action}` : ''}</span>
     </>
   );

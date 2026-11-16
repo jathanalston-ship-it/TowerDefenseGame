@@ -2039,6 +2039,7 @@ export class Game {
   /** Close every tower interaction (inspect / move / armed placement). The ESC + right-click
    *  escape hatch (docs/TOWER-MANAGEMENT.md §4). Never touches the hero or the sim clock. */
   cancelInteractions(): void {
+    this.armedAbility = false;
     this.selectedTower = null;
     this.selectedPlacedId = null;
     this.movingTowerId = null;

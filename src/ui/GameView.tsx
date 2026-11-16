@@ -517,7 +517,8 @@ export function GameView({
   lastKillRef.current ??= new LastKillMoment();
   useEffect(() => game.events.on('waveLastKill', (e) => lastKillRef.current!.start(e, game.mode, game.timeScale)), [game]);
   const pointerRef = useRef<Pointer | null>(null);
-  const keyboardPadRef = useRef<Pointer | null>(null);
+  const keyboardTargetRef = useRef<Pointer | null>(null);
+  const showKeyboardTarget = useCallback((target: Pointer | null): void => { keyboardTargetRef.current = target; }, []);
   const keyboardPadButtonRef = useRef<HTMLButtonElement>(null);
   const mutationPanelRef = useRef<HTMLElement>(null);
   const keyboardInspectorId = useRef<number | null>(null);
@@ -844,7 +845,7 @@ export function GameView({
         }
         // The Living Battlefield terrain reads the SAME canonical Assimilation Index as the mood FX
         // above (game.assimilation.index) ⇒ ground evolution, music floor and HUD glow stay coherent.
-        drawGame(ctx, rs, keyboardPadRef.current ?? pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
+        drawGame(ctx, rs, keyboardTargetRef.current ?? pointerRef.current, cosmeticTiers, starTiers, adaptTiers, heroStarTiers, heroEvoRef.current, skins.towers, skins.heroes, mulliganRender, heroGearRender, power, game.assimilation.index, heroSymbioteRender);
         drawImpacts(ctx, now); // boss-fall rings + ult impact frames ride the same camera kick
         runOutro.frame(ctx, now); // run-end outro FX (victory wash clock · defeat drain + cracks) — no-op mid-run
         // Living Organism ambience (docs/LIVING-BATTLEFIELD.md §organisms/audio): the render-side
@@ -1155,7 +1156,7 @@ export function GameView({
         else game.startWave();
       } else if (k === 'Escape') {
         if (mutationPanelRef.current?.contains(target)) returnToTowerPads();
-        game.cancelInteractions(); // close inspect / cancel move / disarm placement
+        game.cancelInteractions(); // close inspection and cancel targeting
       } else {
         return;
       }
@@ -1243,7 +1244,7 @@ export function GameView({
             enabled={!paused && !evoOpen && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
             buttonRef={keyboardPadButtonRef}
             shortcutHint={padShortcutHint}
-            showPad={(slot) => { keyboardPadRef.current = slot ? { x: slot.x, y: slot.y, keyboardPad: true } : null; }}
+            showTarget={showKeyboardTarget}
             onInspect={(towerId) => {
               keyboardInspectorId.current = towerId;
               pendingInspectorFocus.current = true;
@@ -1293,7 +1294,7 @@ export function GameView({
             const p = toCoords(e.clientX, e.clientY);
             // Right-click closes any tower interaction; only re-anchors the hero rally when there
             // was nothing to close (so a stray right-click never yanks the hero mid-build).
-            if (game.selectedTower || game.selectedPlacedId !== null || game.movingTowerId !== null) {
+            if (game.armedAbility || game.selectedTower || game.selectedPlacedId !== null || game.movingTowerId !== null) {
               game.cancelInteractions();
             } else {
               game.setRally(p.x, p.y);

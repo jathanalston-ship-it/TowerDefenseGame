@@ -163,7 +163,10 @@ describe('tower relocation', () => {
     g.selectTower('mortar');
     g.beginMove(g.towers[0].id); // beginMove clears the armed kind
     expect(g.selectedTower).toBeNull();
+    g.armAbility();
+    expect(g.armedAbility).toBe(true);
     g.cancelInteractions();
+    expect(g.armedAbility).toBe(false);
     expect(g.movingTowerId).toBeNull();
     expect(g.selectedPlacedId).toBeNull();
     expect(g.selectedTower).toBeNull();

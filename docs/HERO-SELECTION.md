@@ -81,3 +81,11 @@ Observed attack/pulse cadence: Game keeps presentation-only WeakMaps keyed by he
 Recovery display: Game.heroRecoverySeconds converts the internal recovery work by the same reviveSpeedMult used in updateHero. HUD/selected-hero snapshots, Combat Console and battlefield label use that simulation-second estimate. RenderState supplies an optional per-kind map only while a hero is down. Internal timers, revival behavior and saves are unchanged. Tests compare displayed time to actual revival at1x/2x.
 
 Active ability cycle: presentation-only heroAbilityPeriods records each cast duration. HUD abilityCdMax and selected-hero ability total retain that duration while recharging, then show the resolved next-cast duration when ready. Overdrive purchases never rescale the combat timer; the gauge now preserves that existing rule without jumping backward.
+
+## Keyboard ability targeting
+
+In regular runs, press Q to arm the ready primary hero ability, then B or Tab to
+Hero ability target. The reticle starts in the hero’s current grid cell. Use arrow
+keys to aim and hold Shift to move three cells at a time. The board control names
+the target row and column. Enter casts at that point through the same battlefield
+interaction as a pointer click. Escape or right-click cancels the aim.
