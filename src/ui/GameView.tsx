@@ -544,6 +544,7 @@ export function GameView({
     return true;
   }, [game]);
   const [padShortcutHint, setPadShortcutHint] = useState(false);
+  const [rallyTargeting, setRallyTargeting] = useState(false);
   const downRef = useRef<{ x: number; y: number } | null>(null); // press origin for click-vs-drag
   const traumaRef = useRef(0);
   const peakTierRef = useRef(game.assimilation.peakTier); // the deepest assimilation tier already announced
@@ -1123,6 +1124,7 @@ export function GameView({
       if (k === 'p' || k === 'P') { togglePause(); return; }
       if (pausedRef.current || tutPausedRef.current) return;
       if (k >= '1' && k <= '4') {
+        setRallyTargeting(false);
         // The number row mirrors the DEPLOY DOCK left→right: 1 = the favorite rail card,
         // 2-4 = the conveyor pods (the chips on those cards ARE these keys). The old 1-N
         // TOWER_ORDER map was a classic-rail ghost — it armed kinds the conveyor model can't
@@ -1139,11 +1141,14 @@ export function GameView({
           }
         }
         setPadShortcutHint(!!game.selectedTower);
-      } else if (keyboardBoardEnabled && (k === 'b' || k === 'B')) {
+      } else if ((keyboardBoardEnabled && k.toLowerCase() === 'b') || (!tutorial && k.toLowerCase() === 'r')) {
+        const aimRally = k.toLowerCase() === 'r';
         const pads = keyboardPadButtonRef.current;
         if (pads?.tabIndex === 0) {
           e.preventDefault();
           setPadShortcutHint(false);
+          setRallyTargeting(aimRally);
+          if (aimRally) game.cancelInteractions();
           if (drawers) {
             setLeftOpen(false);
             setRightOpen(false);
@@ -1153,6 +1158,7 @@ export function GameView({
           pads.focus({ preventScroll: true });
         }
       } else if (k === 'q' || k === 'Q') {
+        setRallyTargeting(false);
         const wasArmed = game.armedAbility;
         game.armAbility();
         if (!wasArmed && game.armedAbility) telemetry.emit('ability', { d: heroKind, v: 1 });
@@ -1167,6 +1173,7 @@ export function GameView({
         if (game.phase === 'wave') game.callWaveEarly();
         else game.startWave();
       } else if (k === 'Escape') {
+        setRallyTargeting(false);
         if (mutationPanelRef.current?.contains(target)) returnToTowerPads();
         game.cancelInteractions(); // close inspection and cancel targeting
       } else {
@@ -1256,6 +1263,9 @@ export function GameView({
             enabled={!paused && !evoOpen && !crashed && !outro && (hud.phase === 'prep' || hud.phase === 'wave')}
             buttonRef={keyboardPadButtonRef}
             shortcutHint={padShortcutHint || !!tutorial}
+            rallyShortcut={!tutorial}
+            rallyTargeting={rallyTargeting}
+            onRallyEnd={() => setRallyTargeting(false)}
             showTarget={showKeyboardTarget}
             onInspect={(towerId) => {
               keyboardInspectorId.current = towerId;

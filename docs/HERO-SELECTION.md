@@ -94,3 +94,11 @@ The toolbar names the active ability, including the selected fork, and explains
 mouse, touch and keyboard targeting. While armed, the board ring shows the outer
 edge of ground effects, using the same modifier math as their executors. A small
 reticle marks the cast point for keyboard aiming and effects without a radius.
+
+### Keyboard rally point
+
+In regular runs, press R to aim the primary hero’s rally point. The target
+starts at the current rally cell. Use the arrow keys to choose a cell, hold
+Shift for larger steps and press Enter to confirm. Escape or leaving the
+control cancels the aim. This uses the same rally action as right-clicking
+and participates in the existing replay log.

@@ -15,10 +15,13 @@ const directions = new Map<string, [number, number]>([
   ['ArrowRight', [0, 1]],
 ]);
 
-export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, showTarget, onInspect, refresh }: {
+export function BoardPadNavigator({ game, enabled, shortcutHint, rallyShortcut, rallyTargeting, onRallyEnd, buttonRef, showTarget, onInspect, refresh }: {
   game: Game;
   enabled: boolean;
   shortcutHint: boolean;
+  rallyShortcut: boolean;
+  rallyTargeting: boolean;
+  onRallyEnd: () => void;
   buttonRef: RefObject<HTMLButtonElement>;
   showTarget: (target: Pointer | null) => void;
   onInspect: (towerId: number) => void;
@@ -27,37 +30,44 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
   const [slot, setSlot] = useState(towerSlots[0]);
   const [focused, setFocused] = useState(false);
   const [aim, setAim] = useState({ column: 0, row: 0 });
+  const [rallyFeedback, setRallyFeedback] = useState('');
   const armedAbility = game.armedAbility;
+  const mode = armedAbility ? 'ability' : rallyTargeting ? 'rally' : 'pad';
   useLayoutEffect(() => {
-    if (!armedAbility) return;
-    const hero = game.heroes[0] ?? nucleusPoint;
+    if (mode === 'pad') return;
+    const hero = game.heroes[0];
+    const start = (mode === 'rally' ? hero?.rally : hero) ?? nucleusPoint;
+    setRallyFeedback('');
     setAim({
-      column: Math.min(COLS - 1, Math.max(0, Math.floor(hero.x / CELL))),
-      row: Math.min(ROWS - 1, Math.max(0, Math.floor(hero.y / CELL))),
+      column: Math.min(COLS - 1, Math.max(0, Math.floor(start.x / CELL))),
+      row: Math.min(ROWS - 1, Math.max(0, Math.floor(start.y / CELL))),
     });
-  }, [armedAbility, game]);
+  }, [game, mode]);
   useLayoutEffect(() => {
     if (focused && enabled) {
-      showTarget(armedAbility
-        ? { ...center(aim.column, aim.row), keyboardTarget: 'ability' }
+      showTarget(mode !== 'pad'
+        ? { ...center(aim.column, aim.row), keyboardTarget: mode }
         : { x: slot.x, y: slot.y, keyboardTarget: 'pad' });
     }
     return () => showTarget(null);
-  }, [aim, armedAbility, enabled, focused, showTarget, slot]);
+  }, [aim, enabled, focused, mode, showTarget, slot]);
   const helpId = useId();
   const row = rows.indexOf(slot.y);
   const column = columns.indexOf(slot.x);
   const tower = game.towers.find((entry) => entry.slot === slot.index);
   const locked = slot.index >= game.unlockedSlots;
   const status = locked ? 'Locked' : tower ? TOWER_DEFS[tower.kind].name : 'Open';
-  const position = armedAbility
+  const position = mode !== 'pad'
     ? `Row ${aim.row + 1} of ${ROWS}, column ${aim.column + 1} of ${COLS}.`
     : `Row ${row + 1}, column ${column + 1}. ${status}.`;
   const help = armedAbility
     ? 'Use the arrow keys to aim. Hold Shift to move farther. Enter casts and Escape cancels.'
-    : 'Use the arrow keys to select a pad. Enter places or moves an armed tower or inspects the tower on the pad. Arm a tower with 1 through 4.';
-  let action = 'Arm a tower with 1–4.';
+    : rallyTargeting
+      ? 'Use arrow keys to aim. Hold Shift to move farther. Enter sets the hero rally point and Escape cancels.'
+      : 'Use arrow keys to select a pad. Enter deploys, moves or inspects a tower. Arm with 1 through 4.' + (rallyShortcut ? ' Press R to set the hero rally point.' : '');
+  let action = rallyShortcut ? '1–4 arm a tower. R sets the rally.' : 'Arm a tower with 1–4.';
   if (armedAbility) action = 'Enter casts. Escape cancels.';
+  else if (rallyTargeting) action = 'Enter sets rally. Escape cancels.';
   else if (locked) action = 'Choose an unlocked pad.';
   else if (game.movingTowerId !== null) {
     if (tower?.id === game.movingTowerId) action = 'Enter cancels the move.';
@@ -83,17 +93,22 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
         type="button"
         className="board-pad-key"
         tabIndex={enabled ? 0 : -1}
-        aria-label={armedAbility ? "Hero ability target" : "Tower pads"}
-        aria-keyshortcuts="B"
+        aria-label={mode === 'ability' ? 'Hero ability target' : mode === 'rally' ? 'Hero rally target' : 'Tower pads'}
+        aria-keyshortcuts={rallyShortcut ? 'B R' : 'B'}
         aria-describedby={helpId}
         onFocus={() => { if (enabled) setFocused(true); }}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          setRallyFeedback('');
+          if (rallyTargeting) onRallyEnd();
+        }}
         onKeyDown={(event) => {
           const direction = directions.get(event.key);
           if (!enabled || !direction || event.altKey || event.ctrlKey || event.metaKey) return;
           event.preventDefault();
           const [dy, dx] = direction;
-          if (armedAbility) {
+          setRallyFeedback('');
+          if (mode !== 'pad') {
             const step = event.shiftKey ? 3 : 1;
             setAim((target) => ({
               column: Math.min(COLS - 1, Math.max(0, target.column + dx * step)),
@@ -114,7 +129,18 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
             refresh();
             return;
           }
-          if (armedAbility || slot.index >= game.unlockedSlots) return;
+          if (armedAbility) return;
+          if (rallyTargeting) {
+            const target = center(aim.column, aim.row);
+            game.setRally(target.x, target.y);
+            audio.cue('select');
+            setRallyFeedback(`Hero rally set at row ${aim.row + 1}, column ${aim.column + 1}.`);
+            onRallyEnd();
+            refresh();
+            return;
+          }
+          if (slot.index >= game.unlockedSlots) return;
+          setRallyFeedback('');
           audio.resume();
           const moving = game.movingTowerId;
           if (moving !== null) {
@@ -129,13 +155,13 @@ export function BoardPadNavigator({ game, enabled, shortcutHint, buttonRef, show
           refresh();
         }}
       >
-        <span aria-hidden="true">{position} {armedAbility ? 'Arrow keys aim.' : 'Arrow keys select.'} {action}</span>
+        <span aria-hidden="true">{rallyFeedback || `${position} ${mode === 'pad' ? 'Arrow keys select.' : 'Arrow keys aim.'} ${action}`}</span>
       </button>
       {enabled && !focused && (armedAbility || (shortcutHint && game.selectedTower)) && (
         <span className="board-pad-hint" role="status"><kbd>B</kbd> {armedAbility ? 'to aim with the keyboard' : 'to choose a tower pad'}</span>
       )}
       <span id={helpId} className="a11y-only">{help}</span>
-      <span className="a11y-only" role="status">{focused && enabled ? `${position} ${action}` : ''}</span>
+      <span className="a11y-only" role="status">{focused && enabled ? rallyFeedback || `${position} ${action}` : ''}</span>
     </>
   );
 }

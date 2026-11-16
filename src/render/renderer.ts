@@ -79,7 +79,7 @@ import type { BiomeGround } from './biomeGround';
 export interface Pointer {
   x: number;
   y: number;
-  keyboardTarget?: 'pad' | 'ability';
+  keyboardTarget?: 'pad' | 'ability' | 'rally';
 }
 
 export const SPAWN_BAND = CELL * 1.4; // top "breeding membrane" the swarm pours from
@@ -3122,6 +3122,12 @@ function drawPointer(ctx: CanvasRenderingContext2D, rs: RenderState, pointer: Po
   }
 
   if (pointer.keyboardTarget === 'ability') return;
+  if (pointer.keyboardTarget === 'rally') {
+    ring(ctx, pointer.x, pointer.y, 11, '#030509', 6);
+    ring(ctx, pointer.x, pointer.y, 11, '#fff', 2);
+    labelAt(ctx, pointer.x, pointer.y - 18, 'RALLY', '#fff');
+    return;
+  }
   const slot = slotAt(pointer.x, pointer.y);
   if (!slot) return;
   if (pointer.keyboardTarget === 'pad') {

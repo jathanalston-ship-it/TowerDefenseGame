@@ -77,7 +77,7 @@ export const GUIDES: Guide[] = [
         'Each hero carries a Weapon / Armor / Relic loadout with behavioral affixes and set bonuses — and visibly wears it on the battlefield. Hero Stars (★1–10) climb a permanent upgrade path; at ★5 and ★8 each hero chooses between two <b>ability forks</b> that re-author their kit. Duplicate-set pooling across the team unlocks the deep 4-piece bonuses.',
       ] },
       { h: 'Micro that wins runs', body: [
-        'To aim from the keyboard in a regular run, press <kbd>Q</kbd> when the ability is ready, then press <kbd>B</kbd>. Aim with the arrow keys, hold <kbd>Shift</kbd> to move farther, and press <kbd>Enter</kbd> to cast. Press <kbd>Escape</kbd> to cancel.',
+        'To aim from the keyboard in a regular run, press <kbd>Q</kbd> when the ability is ready, then press <kbd>B</kbd>. Aim with the arrow keys, hold <kbd>Shift</kbd> to move farther, and press <kbd>Enter</kbd> to cast. Press <kbd>R</kbd> to aim and set a rally point with the same keys. Press <kbd>Escape</kbd> to cancel.',
         'Two inputs separate good hero play from great: the <b>rally point</b> and the <b>ability cast</b>. Rally your hero where the wave preview says the pressure will land, not where the last wave hit. Cast the active ability on the breach that is HAPPENING, never the one you fear — a banked ability costs nothing, a wasted one can cost the Core. When a hero goes down mid-wave, their respawn timer is a resource too: pull the rally back to the Core so they return into safety, not into the same claw that dropped them.',
       ] },
     ],
