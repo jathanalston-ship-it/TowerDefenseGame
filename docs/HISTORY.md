@@ -894,3 +894,5 @@
 - `eeb5a4f` **[UI]** Ui: resolve film interface motion with projector _(internal)_
 - `8fad45d` **[Framework]** Release: prepare cinematic playback notes _(internal)_
 - `847c927` **[Gene Cards]** Route Back through Memory Archive playback _(internal)_
+- `1eda2d1` **[Gene Cards]** Prepare memory archive Back note _(internal)_
+- `c832852` **[UI]** Ui: route hub edge gestures through the active dialog _(internal)_

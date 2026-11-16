@@ -25,6 +25,10 @@
       {
         "cat": "UI",
         "text": "Browser Back now works like Escape during Memory Archive replay. The first press opens the final card. The next returns to Watch in the same filtered archive."
+      },
+      {
+        "cat": "UI",
+        "text": "The Hub’s edge swipe follows the replay controls while a memory is open. Swipe once to see the final card and again to return to the same archive view."
       }
     ]
   },

@@ -2279,3 +2279,7 @@ Back to scene, manual progress, guarded transitions and resolved film motion are
 ## 2026-11-16 — browser Back in the Memory Archive
 
 Browser Back follows the replay Escape path through the final card and returns to the original Watch control. Browser probes verified the real history guard, preserved filters, menu music restoration and suppression of repeated Escape. All 22 focused tests passed. This is the fifth game and News note in v2026.11.16.5.
+
+## 2026-11-16 — edge swipe respects open Archive replay
+
+Chrome reproduced a swipe closing the Archive beneath the film. The Hub now gives dismissable layers the gesture first and holds while other modals are open. Native touch verified both replay steps and the return to the same filter and Watch focus. A completed synthetic Hub gesture verified the underlying navigation handler after playback; the native gesture outside the replay did not complete in the probe. All 26 focused tests passed. This is note six for v2026.11.16.5.

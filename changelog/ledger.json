@@ -1,6 +1,6 @@
 {
-  "lastSha": "847c927a5964c67018b49bff87187dc9e948481d",
-  "commitsSinceDraft": 2,
+  "lastSha": "c83285271396c15b837d5c8fec86dcc684a7e737",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -5023,6 +5023,10 @@
         {
           "cat": "UI",
           "text": "Browser Back now works like Escape during Memory Archive replay. The first press opens the final card. The next returns to Watch in the same filtered archive."
+        },
+        {
+          "cat": "UI",
+          "text": "The Hub’s edge swipe follows the replay controls while a memory is open. Swipe once to see the final card and again to return to the same archive view."
         }
       ]
     }
@@ -11809,6 +11813,22 @@
       "date": "2026-11-15",
       "cat": "Gene Cards",
       "text": "Route Back through Memory Archive playback",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "1eda2d1253659816be2fa3a9922ecfa8aea03440",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Prepare memory archive Back note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c83285271396c15b837d5c8fec86dcc684a7e737",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: route hub edge gestures through the active dialog",
       "internal": true,
       "needsReview": false
     }
