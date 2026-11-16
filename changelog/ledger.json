@@ -1,6 +1,6 @@
 {
-  "lastSha": "a02d62b21994ca2dc1a47518b70ac8c128460277",
-  "commitsSinceDraft": 5,
+  "lastSha": "2932697fff32aefdaab3a941ff93cc1d9e58e5d5",
+  "commitsSinceDraft": 6,
   "content": {
     "tower": [
       "needle",
@@ -4939,6 +4939,10 @@
         {
           "cat": "UI",
           "text": "The Hive Intelligence control keeps keyboard focus when you stop or re-enable it during a gene draft. Re-enabling shows the full ten-second countdown immediately."
+        },
+        {
+          "cat": "UI",
+          "text": "Automatic gene drafts pause their countdown when the game is paused or the tab is hidden. The countdown resumes from the time you had left when you return."
         }
       ]
     }
@@ -11477,6 +11481,14 @@
       "date": "2026-11-15",
       "cat": "UI",
       "text": "Ui: explain locked Hive Intelligence runs",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "2932697fff32aefdaab3a941ff93cc1d9e58e5d5",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: retain Hive draft control focus",
       "internal": true,
       "needsReview": false
     }

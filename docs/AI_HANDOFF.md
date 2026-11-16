@@ -4,16 +4,16 @@
 > before committing. Read together with docs/PROJECT_STATUS.md and the latest
 > docs/VALIDATION_REPORT.md. Next session: start at docs/PROJECT_MANIFEST.md.
 
-- **Generated:** 2026-11-16 02:10 UTC · **Diff scope:** working tree vs HEAD
-- **Branch:** codex/hive-autoplay · **HEAD:** a02d62b2
+- **Generated:** 2026-11-16 02:13 UTC · **Diff scope:** working tree vs HEAD
+- **Branch:** codex/hive-autoplay · **HEAD:** 2932697f
 
 ## Summary of work completed
 
-Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v2026.11.16.3 Cinematic Sound and Accessibility has four synced notes including reliable keyboard focus on the Hive draft control.
+Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v2026.11.16.3 Cinematic Sound and Accessibility has five game and website notes. Automatic gene drafts now retain the remaining time through pause and tab visibility changes.
 
 ## Files modified
 
-- Source (3): `src/changelog/releases.gen.ts`, `src/ui/DraftModal.tsx`, `src/ui/GameView.css`
+- Source (2): `src/changelog/releases.gen.ts`, `src/ui/DraftModal.tsx`
 - Tests (0): —
 - Docs (6): `docs/HISTORY.md`, `docs/HIVE-MIND.md`, `docs/PROJECT_MANIFEST.md`, `docs/devlog/DRAFT-2026-11-09.md`, `docs/devlog/DRAFT-2026-11-10.md`, `docs/devlog/DRAFT-2026-11-15.md`
 
@@ -25,15 +25,15 @@ Production v2026.11.16.2 Clearer Cinematic Controls remains verified. Unsealed v
 
 ## Power Score changes
 
-None. Draft recommendation, automation gate and run mechanics are unchanged.
+None. Countdown presentation and elapsed-time accounting only.
 
 ## UI changes
 
-DraftModal keeps one Enable/Stop Hive button mounted while it changes action. Re-enabling displays ten seconds immediately. Chrome reproduced the old lost focus then confirmed three successive keyboard toggles, no auto pick after stopping and the countdown reset. Existing card, reroll, pause, text-input and recommended Enter keyboard checks passed. All 57 focused tests passed across the draft, Hive, UI and website suites.
+DraftModal counts visible, unpaused time. Stop clears and resets the timer for the next activation. Chrome reproduced the old pause reset, then verified pause and hide interruptions preserve elapsed time and choose exactly once. The Hive focus regression rechecked manual stop, re-enable and no unwanted picks. All 57 focused tests passed.
 
 ## Documentation changes
 
-HIVE-MIND and PROJECT_MANIFEST describe the single control. Website and game notes synchronized.
+HIVE-MIND and PROJECT_MANIFEST document visible countdown time. Website and game notes synchronized.
 
 ## Save changes
 
@@ -41,16 +41,16 @@ None — save layer untouched.
 
 ## Known edge cases
 
-A paused draft still uses the existing pause behavior. The parent browser fixture models GameView’s changing Hive state and stable callbacks. Preserve all three untracked devlog drafts.
+Synthetic visibility browser checks exercise the actual listeners in DraftModal. Preserve all three untracked devlog drafts.
 
 ## Remaining technical debt
 
-Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
+Local Chrome mobile gate uses MOBILECHECK_CHROMIUM and parent chrome-probe-compat.cjs preload.
 
 ## Recommended next tasks
 
-Continue toward the next deployment around 02:58 UTC. Seal and regenerate, run full validator, push production and verify normal public game, homepage and website notes.
+Continue toward the next deployment around 02:58 UTC. Seal and regenerate, run full validator, push production and verify public game, homepage and all website notes.
 
 ## Future expansion hooks
 
-Parent draft-hive-focus-check.cjs and draft-keyboard-current-check.cjs use Vite port 5174. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.
+Parent draft-visible-time-check.cjs and draft-hive-focus-check.cjs use Vite port 5174. Production push git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Public verifier ../verify-current-release.ps1.

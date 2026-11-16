@@ -25,6 +25,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "The Hive Intelligence control keeps keyboard focus when you stop or re-enable it during a gene draft. Re-enabling shows the full ten-second countdown immediately."
+      },
+      {
+        "cat": "UI",
+        "text": "Automatic gene drafts pause their countdown when the game is paused or the tab is hidden. The countdown resumes from the time you had left when you return."
       }
     ]
   },

@@ -926,3 +926,5 @@ Cinematic audio: audio/cinematicBeats.ts schedules authored cues on visible scen
 Locked Hive Intelligence uses the shared ChipPopover in the run controls, giving touch and keyboard users the exact automation gate reason. See HIVE-MIND.md.
 
 In-draft Hive Intelligence uses one Enable/Stop button so keyboard focus survives taking over or restarting automation. See HIVE-MIND.md.
+
+Automatic gene drafts count only visible, unpaused time. DraftModal retains the remaining time on pause/hide and resets it when automation is stopped. See HIVE-MIND.md.

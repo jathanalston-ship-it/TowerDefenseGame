@@ -2207,3 +2207,7 @@ Locked Hive opens the existing reason from touch or keyboard. Browser checks pas
 ## 2026-11-16 — Hive draft focus verified locally
 
 One Enable/Stop control retains focus and immediately displays the full countdown on re-enable. The browser reproduced the old focus loss, then passed repeated keyboard toggles, stop-and-wait, and existing draft keyboard shortcuts. All 57 focused tests passed. Four website and game notes are prepared.
+
+## 2026-11-16 — automatic draft visible-time countdown
+
+Chrome reproduced a pause resetting a draft countdown to ten seconds. Updated countdown preserves remaining visible time across pause and hidden tabs, then picks once. Manual Stop/Enable focus and cancellation rechecked. All 57 focused tests passed. Five website and game notes are prepared.

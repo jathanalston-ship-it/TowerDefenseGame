@@ -180,6 +180,7 @@ export function DraftModal({
   const [stopped, setStopped] = useState(false);
   const auto = !stopped && !forceManual && (autoOverride ?? standaloneAuto);
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
+  const remainingMs = useRef(AUTO_SECONDS * 1000);
   const hiveAction = autoOverride ? onStopAuto : onStartAuto;
 
   // Detail expansion state. Hover dwell + Shift are NON-blocking (a click still drafts);
@@ -257,20 +258,49 @@ export function DraftModal({
     };
   }, []);
 
-  // Countdown → auto-pick the recommended card. A manual pick unmounts the modal, whose
-  // cleanup clears the interval — i.e. selecting "immediately cancels the timer".
+  // Count visible, unpaused draft time. Stopping automation resets the clock for the next
+  // activation. Pausing or hiding the tab keeps the exact time left.
   useEffect(() => {
-    if (!auto || paused) return;
-    const start = performance.now();
-    const id = window.setInterval(() => {
-      const left = Math.max(0, AUTO_SECONDS - (performance.now() - start) / 1000);
-      setRemaining(left);
-      if (left <= 0) {
-        window.clearInterval(id);
+    if (!auto) {
+      remainingMs.current = AUTO_SECONDS * 1000;
+      return;
+    }
+    if (paused) {
+      setRemaining(remainingMs.current / 1000);
+      return;
+    }
+    let startedAt: number | null = null;
+    let interval: number | undefined;
+    const stopClock = (): void => {
+      if (startedAt !== null) remainingMs.current = Math.max(0, remainingMs.current - (performance.now() - startedAt));
+      startedAt = null;
+      window.clearInterval(interval);
+    };
+    const tick = (): void => {
+      if (document.hidden || startedAt === null) return;
+      const left = Math.max(0, remainingMs.current - (performance.now() - startedAt));
+      setRemaining(left / 1000);
+      if (left === 0) {
+        stopClock();
         pick(recIdRef.current);
       }
-    }, 100);
-    return () => window.clearInterval(id);
+    };
+    const visibilityChanged = (): void => {
+      if (document.hidden) {
+        stopClock();
+        setRemaining(remainingMs.current / 1000);
+      } else if (startedAt === null && !picked.current) {
+        startedAt = performance.now();
+        interval = window.setInterval(tick, 100);
+        tick();
+      }
+    };
+    document.addEventListener('visibilitychange', visibilityChanged);
+    visibilityChanged();
+    return () => {
+      stopClock();
+      document.removeEventListener('visibilitychange', visibilityChanged);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, paused]);
 

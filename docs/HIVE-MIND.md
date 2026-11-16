@@ -13,7 +13,7 @@ starts off each run. When locked, the same spot opens the current unlock or mode
 seconds, starts waves after the normal setup countdown, and picks the recommended gene after
 its visible ten-second countdown. Manual gene picks override the recommendation. Stop Hive
 Intelligence in the draft or toggle it off on the battlefield to take control. Pause freezes
-purchases and wave starts; draft auto-picks wait while paused. Standalone Auto Wave and Auto Gene
+purchases and wave starts. Draft auto-pick counts visible, unpaused time and resumes from its remaining time after pausing or switching tabs. Standalone Auto Wave and Auto Gene
 preferences are preserved. Each purchase retains its normal effects and the action ticker.
 The toggle ends with the run; it does not launch the next campaign stage or spend hub currencies.
 
