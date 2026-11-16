@@ -922,3 +922,5 @@ Opening and story cinematics share the browser-local cutsceneManualPref. Remembe
 Cinematic short-screen layout keeps controls visible and allows caption overflow to scroll. The opening title uses compact spacing. See CUTSCENES.md.
 
 Cinematic audio: audio/cinematicBeats.ts schedules authored cues on visible scene time for InitCutscene and CutscenePlayer. Animation and stills share their cue timeline. See CUTSCENES.md and AUDIO.md.
+
+Locked Hive Intelligence uses the shared ChipPopover in the run controls, giving touch and keyboard users the exact automation gate reason. See HIVE-MIND.md.

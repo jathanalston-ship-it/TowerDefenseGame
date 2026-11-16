@@ -861,3 +861,4 @@
 - `189fcd6` **[Framework]** Release: publish clearer cinematic controls _(internal)_
 - `0517f41` **[Framework]** Docs: record cinematic release verification _(internal)_
 - `0352b1d` **[Audio]** Keep cinematic cues with reduced motion _(internal)_
+- `c842159` **[Audio]** Add a tower shot volume preview _(internal)_

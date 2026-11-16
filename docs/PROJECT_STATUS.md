@@ -2199,3 +2199,7 @@ Both cinematics dispatch their authored cues over still images through the share
 ## 2026-11-16 — effects preview verified locally
 
 Preview effects plays an existing tower shot at the current effects level in Settings and pause. The 320px browser probe verified cue dispatch, keyboard use, mute, zero volume and compact controls. All 54 focused tests passed. The next release has two game and website notes.
+
+## 2026-11-16 — Hive Intelligence lock help verified locally
+
+Locked Hive opens the existing reason from touch or keyboard. Browser checks passed Stage 5, frontier Threat, Boss Rush, enabled toggle, phone layout and focus return. All 44 focused tests passed. Three website and game notes are prepared.

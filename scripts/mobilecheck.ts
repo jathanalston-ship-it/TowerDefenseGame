@@ -483,7 +483,7 @@ function runChromeContract(page: import('playwright-core').Page, vpName: string)
       const r = el.getBoundingClientRect();
       return r.width > 1 && r.height > 1;
     };
-    const sels = ['.hud', '.run-ctl > .speed-ctl', '.run-ctl > .hive-mind-btn', '.run-ctl > .pause-btn', '.run-ctl > .hive-ticker', '.run-ctl > .speed-note',
+    const sels = ['.hud', '.run-ctl > .speed-ctl', '.run-ctl .hive-mind-btn', '.run-ctl > .pause-btn', '.run-ctl > .hive-ticker', '.run-ctl > .speed-note',
       '.build-controls.is-visible .build-bar', '.boss-banner', '.mega-banner', '.toolbar', '.tower-rail', '.hero-pod', '.panel-rail', '.side-panel'];
     const els: { s: string; el: Element; r: DOMRect }[] = [];
     for (const s of sels) for (const el of document.querySelectorAll(s)) if (vis(el)) els.push({ s, el, r: el.getBoundingClientRect() });

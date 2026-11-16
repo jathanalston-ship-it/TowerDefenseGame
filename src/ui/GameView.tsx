@@ -32,6 +32,7 @@ import { announceMasteryLevelUp } from '../state/masteryEvents';
 import type { LiveMasteryView } from '../state/masteryEvents';
 import { MasteryToaster } from './components/MasteryToaster';
 import { AudioToggles } from './components/AudioToggles';
+import { ChipPopover } from './components/ChipPopover';
 import { MotionSettings } from './components/MotionSettings';
 import { MASTERY, TOWER_DEFS, FX } from '../core/config';
 import { resolveDoctrine } from '../core/doctrines';
@@ -1276,27 +1277,38 @@ export function GameView({
         {/* HIVE INTELLIGENCE (docs/HIVE-MIND.md): the run-local toggle automates purchases, hero control, waves
             and drafts — glowing while active or when a purchase is affordable.
             Manual play is untouched; the ticker names each action the hive took. */}
-        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (
+        {!tutorial && (hud.phase === 'prep' || hud.phase === 'wave') && (automation.allowed ? (
           <button
             className={`hive-mind-btn${hud.hiveActive || hud.hiveReady ? ' is-ready' : ''}`}
+            aria-label="Hive Intelligence"
             aria-pressed={hud.hiveActive}
-            disabled={!automation.allowed}
             onClick={() => {
               audio.resume();
               game.setHiveActive(!game.hiveActive);
               refresh();
             }}
-            title={!automation.allowed
-              ? `Hive Intelligence — ${automation.reason}`
-              : hud.hiveReady
-                ? 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks. Turn off any time to take over.'
-                : 'Toggle automatic purchases, hero abilities, wave starts and recommended gene picks'}
+            title="Toggle automatic purchases, hero abilities, wave starts and recommended gene picks. Turn off any time to take over."
           >
             <i className="hive-mind-core" aria-hidden />
             ◈ HIVE INTELLIGENCE {hud.hiveActive ? 'ON' : 'OFF'}
-            {!automation.allowed && <small className="hive-mind-why">{automation.reason}</small>}
           </button>
-        )}
+        ) : (
+          <ChipPopover
+            className="hive-mind-lock"
+            buttonClassName="hive-mind-btn is-locked"
+            face={<span aria-hidden>◈ HIVE INTELLIGENCE 🔒</span>}
+            ariaLabel="Hive Intelligence locked"
+            popLabel={`Hive Intelligence is locked. ${automation.reason ?? ''}`.trim()}
+          >
+            {(close) => (
+              <>
+                <span className="chip-pop-h">Hive Intelligence is locked</span>
+                <span className="chip-pop-p">{automation.reason}</span>
+                <button type="button" className="chip-pop-go" onClick={close}>Close</button>
+              </>
+            )}
+          </ChipPopover>
+        ))}
         {/* SPLICE (docs/CARDS.md §splice): banked Biomass → an extra gene draft (pick 1 of 3). Shown only
             once the bank reaches the price (the price IS the threshold) — optional, never a nag. */}
         {!tutorial && hud.phase === 'prep' && hud.spliceCost !== undefined && hud.spliceCost > 0 && hud.biomass >= hud.spliceCost && (

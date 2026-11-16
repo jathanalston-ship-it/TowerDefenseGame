@@ -1,6 +1,6 @@
 {
-  "lastSha": "0352b1d84238f8aa298e9ef06234435f27965cc6",
-  "commitsSinceDraft": 3,
+  "lastSha": "c8421591015c4f22ba8439a0d896239fa478d46a",
+  "commitsSinceDraft": 4,
   "content": {
     "tower": [
       "needle",
@@ -4931,6 +4931,10 @@
         {
           "cat": "UI",
           "text": "Use Preview effects in Settings or the pause menu to hear a tower shot at your current effects volume. The preview is unavailable when effects are off or volume is zero."
+        },
+        {
+          "cat": "UI",
+          "text": "Tap the locked Hive Intelligence control to see why automation is unavailable in this run. The explanation also opens from the keyboard and shows the relevant Stage 5, mode, or Threat requirement."
         }
       ]
     }
@@ -11453,6 +11457,14 @@
       "date": "2026-11-15",
       "cat": "Audio",
       "text": "Keep cinematic cues with reduced motion",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c8421591015c4f22ba8439a0d896239fa478d46a",
+      "date": "2026-11-15",
+      "cat": "Audio",
+      "text": "Add a tower shot volume preview",
       "internal": true,
       "needsReview": false
     }

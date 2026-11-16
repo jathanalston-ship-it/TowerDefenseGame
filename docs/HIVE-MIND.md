@@ -9,7 +9,7 @@
 ## The player contract
 
 Complete Campaign Stage 5 on any difficulty to unlock **HIVE INTELLIGENCE**. Its ON/OFF button
-starts off each run. While on, the hive buys through the existing planner every two simulation
+starts off each run. When locked, the same spot opens the current unlock or mode explanation by touch or keyboard. Escape or Close returns focus to the locked control. While on, the hive buys through the existing planner every two simulation
 seconds, starts waves after the normal setup countdown, and picks the recommended gene after
 its visible ten-second countdown. Manual gene picks override the recommendation. Stop Hive
 Intelligence in the draft or toggle it off on the battlefield to take control. Pause freezes

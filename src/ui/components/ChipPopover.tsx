@@ -9,8 +9,9 @@ import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, ty
 
 const POP_MAX_W = 300; // matches .chip-pop max-width — the clamp keeps it on-screen
 
-export function ChipPopover({ className, dataCur, face, ariaLabel, popLabel, children }: {
+export function ChipPopover({ className, buttonClassName, dataCur, face, ariaLabel, popLabel, children }: {
   className: string; // the chip's own wrapper classes (e.g. `hub-cur`)
+  buttonClassName?: string;
   dataCur?: string; // CeremonyLayer flight target (WalletChip) — stays on the wrapper
   face: ReactNode; // what the chip shows (icon + value + label)
   ariaLabel: string; // the button's spoken name
@@ -57,7 +58,7 @@ export function ChipPopover({ className, dataCur, face, ariaLabel, popLabel, chi
   };
   return (
     <span className={`${className} chip-pop-host`} data-cur={dataCur} ref={ref}>
-      <button ref={buttonRef} type="button" className="chip-pop-btn" onClick={toggle} aria-haspopup="dialog" aria-controls={open ? popId : undefined} aria-expanded={open} aria-label={ariaLabel}>
+      <button ref={buttonRef} type="button" className={buttonClassName ?? 'chip-pop-btn'} onClick={toggle} aria-haspopup="dialog" aria-controls={open ? popId : undefined} aria-expanded={open} aria-label={ariaLabel}>
         {face}
       </button>
       {pos && (

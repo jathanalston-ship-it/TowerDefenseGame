@@ -2268,11 +2268,9 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 .hive-mind-btn:hover:not(:disabled) { color: var(--text); }
 
-/* The AUTOMATION GATE (docs/HIVE-MIND.md §solved-content): off on frontier content — the reason
-   rides inside the pill (a disabled button shows no hover tooltip on every browser). */
-.hive-mind-btn:disabled { opacity: 0.72; cursor: not-allowed; }
-
-.hive-mind-why { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; color: var(--muted); text-transform: none; }
+/* Locked runs keep an explanation within reach of touch and keyboard users. */
+.hive-mind-lock { display: inline-flex; flex: none; }
+.hive-mind-lock .chip-pop-go { min-height: 44px; }
 
 .hive-ticker {
   /* Hug the right edge — right:218 (under the button) overlaps the centered Start Wave popup. */
@@ -3130,11 +3128,7 @@ html[data-layout='desktop'] .hud-wave-mod:has(> .phase-emergency) > .phase-hint 
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn::after { content: '◈ HIVE'; font-size: 11px; letter-spacing: 0.06em; }
 
-/* Automation gate on phones: the strip has no room for the reason sentence — the short key wears a
-   lock instead (the full reason stays in the desktop pill and the button's title). */
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn .hive-mind-why { display: none; }
-
-:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn:disabled::after { content: '◈ HIVE 🔒'; }
+:is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .hive-mind-btn.is-locked::after { content: '◈ HIVE 🔒'; }
 
 :is(html[data-layout='portrait'], html[data-layout='landscape']) .run-ctl .speed-ctl { padding: 0 2px; }
 
