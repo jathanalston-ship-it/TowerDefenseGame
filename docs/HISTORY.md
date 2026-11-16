@@ -901,3 +901,5 @@
 - `a46965f` **[Gene Cards]** Show Memory Archive replay length _(internal)_
 - `07b6783` **[Framework]** Release: prepare replay length note _(internal)_
 - `a7981b3` **[Gene Cards]** Sharpen Memory Archive artwork and focus _(internal)_
+- `04f9df1` **[Gene Cards]** Prepare Archive artwork and focus note _(internal)_
+- `3d0be3f` **[Visuals]** Render: show reduced-motion siege windups _(internal)_

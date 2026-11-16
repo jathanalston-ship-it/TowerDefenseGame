@@ -1,6 +1,6 @@
 {
-  "lastSha": "a7981b392a131bb4e8bc15ae4284b6e5e99a572f",
-  "commitsSinceDraft": 9,
+  "lastSha": "3d0be3f3967e76a9a6bee2569c55dbf8a6aec1f7",
+  "commitsSinceDraft": 0,
   "content": {
     "tower": [
       "needle",
@@ -5035,6 +5035,10 @@
         {
           "cat": "UI",
           "text": "Memory Archive thumbnails stay sharp on high-density displays and repaint to fit as the screen changes size. Watch has a two-tone keyboard focus ring over the artwork."
+        },
+        {
+          "cat": "UI",
+          "text": "With reduced motion, enemies winding up at the Hive Core show a fixed arc that fills before the strike. It clears when the attack lands or is interrupted."
         }
       ]
     }
@@ -11877,6 +11881,22 @@
       "date": "2026-11-15",
       "cat": "Gene Cards",
       "text": "Sharpen Memory Archive artwork and focus",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "04f9df1fa94873ac7d7419de7d802c9da2950fab",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Prepare Archive artwork and focus note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "3d0be3f3967e76a9a6bee2569c55dbf8a6aec1f7",
+      "date": "2026-11-15",
+      "cat": "Visuals",
+      "text": "Render: show reduced-motion siege windups",
       "internal": true,
       "needsReview": false
     }

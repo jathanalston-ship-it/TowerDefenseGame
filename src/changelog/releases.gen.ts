@@ -41,6 +41,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Memory Archive thumbnails stay sharp on high-density displays and repaint to fit as the screen changes size. Watch has a two-tone keyboard focus ring over the artwork."
+      },
+      {
+        "cat": "UI",
+        "text": "With reduced motion, enemies winding up at the Hive Core show a fixed arc that fills before the strike. It clears when the attack lands or is interrupted."
       }
     ]
   },

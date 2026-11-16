@@ -2301,3 +2301,9 @@ Each card repaints still artwork to its display dimensions at up to 2x resolutio
 two-tone Watch outline is distinct over the art. Verified real Chrome pixels, canvas
 dimensions at 320/390/844/1366, keyboard Tab focus and card metadata. All 28 focused
 tests passed. This is note eight for v2026.11.16.5.
+
+## 2026-11-16 — reduced-motion siege attack cue
+
+With reduced motion, a fixed arc fills at the attacker instead of moving its body
+during the windup. Chrome Canvas 2D verified the early and late arc, interruption
+and full-motion lunge. All 37 focused tests passed. This is note nine for v2026.11.16.5.
