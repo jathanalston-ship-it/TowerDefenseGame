@@ -2457,3 +2457,11 @@ matrix, and documentation checks at 06:48 UTC. The candidate includes
 four further verified changes for slowdown notices, Early Call,
 keyboard caption reading, and Hive Core warnings. All seven game and
 website notes are sealed for the final audit.
+
+The sealed full audit passed typecheck, mobile and docs. PIL flagged the
+word “placeholder” in the last release note. The note was reworded and
+regenerated for both channels. All 28 focused public-site and changelog
+tests passed. The corrected `/assets/play-C2y1Iskm.js` build passed the
+full mobile matrix and all fresh-player budgets at 10.7 seconds to first
+tower and zero errors. All seven notes and the updated Beginner Guide
+were verified in the build.

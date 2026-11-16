@@ -1,6 +1,6 @@
 {
-  "lastSha": "8d31e3ebd8dbedb31bfc40095ca30ff7f5103271",
-  "commitsSinceDraft": 6,
+  "lastSha": "431e013b5e4bbbc91e29ddf171e82ee7e555e9f0",
+  "commitsSinceDraft": 7,
   "content": {
     "tower": [
       "needle",
@@ -5182,7 +5182,7 @@
         },
         {
           "cat": "UI",
-          "text": "Hive Core warnings announce once when an attack begins, explain the incoming damage without a placeholder countdown, and stay still when motion is reduced or flashes are disabled."
+          "text": "Hive Core warnings announce once when an attack begins. The readout shows incoming damage and gives a survival estimate when the damage is high enough. Warnings stay still when motion is reduced or flashes are disabled."
         }
       ]
     }
@@ -12498,6 +12498,14 @@
       "cat": "Bug Fixes",
       "text": "Ui: make Hive Core danger easier to read",
       "internal": false,
+      "needsReview": false
+    },
+    {
+      "sha": "431e013b5e4bbbc91e29ddf171e82ee7e555e9f0",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: seal battlefield guidance",
+      "internal": true,
       "needsReview": false
     }
   ]

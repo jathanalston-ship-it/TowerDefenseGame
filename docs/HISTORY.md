@@ -960,3 +960,4 @@
 - `7c79cc6` **[Bug Fixes]** Confirm early wave calls accessibly
 - `4718070` **[Bug Fixes]** Cinematics: hold autoplay while reading captions
 - `8d31e3e` **[Bug Fixes]** Ui: make Hive Core danger easier to read
+- `431e013` **[Framework]** Release: seal battlefield guidance _(internal)_

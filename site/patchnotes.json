@@ -32,7 +32,7 @@
       },
       {
         "cat": "UI",
-        "text": "Hive Core warnings announce once when an attack begins, explain the incoming damage without a placeholder countdown, and stay still when motion is reduced or flashes are disabled."
+        "text": "Hive Core warnings announce once when an attack begins. The readout shows incoming damage and gives a survival estimate when the damage is high enough. Warnings stay still when motion is reduced or flashes are disabled."
       }
     ]
   },
