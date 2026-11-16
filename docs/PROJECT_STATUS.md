@@ -2231,3 +2231,7 @@ Sealed v2026.11.16.3 at 8ba4661e with eight game and website notes. Full validat
 ## 2026-11-16 — Hive controls and sound release audit passed
 
 Release v2026.11.16.3 passed typecheck, all 3194 tests, the production mobile layout gate at 320px and 390px, and documentation checks. Verified all eight notes on the built News page and the release heading on the homepage. Built game entry is play-fKGUBR5k.js.
+
+## 2026-11-16 — Clearer Hive Controls and Sound is live
+
+Production run 43793412424 deployed commit a66dc998 and passed the exact-commit guard. The normal custom-domain Play page serves play-fKGUBR5k.js with HTTP 200. Verified the homepage release heading and all eight v2026.11.16.3 notes on News.
