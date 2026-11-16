@@ -32,7 +32,7 @@ import type { IntroVisual } from '../render/introScenes';
 import type { CutsceneBeat, CutsceneCamera, CutsceneCopyAt } from '../core/cutscenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import { markIntroSeen, setIntroPlaying } from './introState';
-import { useFilmCaptionScroll } from './useFilmCaptionScroll';
+import { useFilmAutoAdvance, useFilmCaptionScroll } from './useFilmCaptionScroll';
 import './InitCutscene.css';
 
 /** A copy line staged onto the film at a scene-relative time (seconds). */
@@ -246,36 +246,7 @@ export function InitCutscene({ onDone }: { onDone: (dived?: boolean) => void }):
     else setIdx((current) => current === idx ? idx + 1 : current);
   };
 
-  // Auto-advance each scene after its hold (a tap advances sooner; the title — durMs 0 — waits).
-  useEffect(() => {
-    if (manual || phase !== 'film' || scene.durMs === 0) return undefined;
-    let remaining = scene.durMs;
-    let started: number | null = null;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let fired = false;
-    const update = (): void => {
-      if (fired) return;
-      if (document.hidden) {
-        if (started !== null) remaining = Math.max(0, remaining - (performance.now() - started));
-        started = null;
-        clearTimeout(timer);
-      } else if (started === null) {
-        started = performance.now();
-        timer = setTimeout(() => {
-          started = null;
-          remaining = 0;
-          if (document.hidden) return;
-          fired = true;
-          if (phaseRef.current === 'film') {
-            setIdx((current) => current === idx ? Math.min(idx + 1, SCENES.length - 1) : current);
-          }
-        }, remaining);
-      }
-    };
-    document.addEventListener('visibilitychange', update);
-    update();
-    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
-  }, [phase, idx, scene.durMs, manual]);
+  useFilmAutoAdvance(stageRef, scene.id, manual || phase !== 'film' ? 0 : scene.durMs, advance);
 
   // Scene change → film clocks + cut whoosh + score swell (the intensity seam walks 0 → 1).
   useEffect(() => {

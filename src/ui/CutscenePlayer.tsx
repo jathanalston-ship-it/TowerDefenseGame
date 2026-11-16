@@ -16,7 +16,7 @@ import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cut
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
 import { useDismiss } from './browserBack';
-import { useFilmCaptionScroll } from './useFilmCaptionScroll';
+import { useFilmAutoAdvance, useFilmCaptionScroll } from './useFilmCaptionScroll';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
@@ -125,35 +125,11 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
     music.setIntensity(coda ? 1 : def.scenes.length > 1 ? idx / (def.scenes.length - 1) : 1);
   }, [idx, coda, def.scenes.length]);
 
-  // Auto-advance each scene after its hold; the coda auto-continues after its own hold.
-  useEffect(() => {
-    if (manual) return;
-    let remaining = coda ? CUTSCENE_FINAL_CARD_MS : scene.durMs;
-    let started: number | null = null;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let fired = false;
-    const update = (): void => {
-      if (fired) return;
-      if (document.hidden) {
-        if (started !== null) remaining = Math.max(0, remaining - (performance.now() - started));
-        started = null;
-        clearTimeout(timer);
-      } else if (started === null) {
-        started = performance.now();
-        timer = setTimeout(() => {
-          started = null;
-          remaining = 0;
-          if (document.hidden) return;
-          fired = true;
-          if (coda) finish(); else advance();
-        }, remaining);
-      }
-    };
-    document.addEventListener('visibilitychange', update);
-    update();
-    return () => { clearTimeout(timer); document.removeEventListener('visibilitychange', update); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- this timer belongs to the scene captured by idx
-  }, [idx, coda, scene.durMs, manual]);
+  const hold = coda ? CUTSCENE_FINAL_CARD_MS : scene.durMs;
+  useFilmAutoAdvance(stageRef, coda ? 'final' : scene.id, manual ? 0 : hold, () => {
+    if (!coda) advance();
+    else if (codaRef.current) finish();
+  });
 
   // Scene change → film clocks + the cut whoosh.
   useEffect(() => {

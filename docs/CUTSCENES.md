@@ -190,3 +190,5 @@ keeps the opening lines in view when text overflows at short heights or large si
 When the caption is taller than its pane, Tab can reach the named caption region.
 Page Up, Page Down and the standard scrolling keys work while it has focus, which
 stays inside the film's Tab loop. The extra stop drops away when the text fits.
+Auto-play holds the current scene while that pane has focus. Tab away to resume
+with the remaining scene time. The soundtrack and caption reveals continue during reading.
