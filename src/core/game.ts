@@ -7018,6 +7018,7 @@ export class Game {
     this.castRangeMult = 1;
     if (delay === 0 && ab.particle) this.spawnParticles(px, py, PARTICLE[ab.particle], ab.fxColor); // the ult's unique cast VFX (fork-recoloured); a delayed payload bursts on LANDING instead
     if (this.relicHooks.length) this.fireRelicHooks('abilityCast', null, px, py); // relic/rule hooks fire at the cast point
+    if (h === this.primaryHero) this.armedAbility = false;
     h.abilityCd = this.heroAbilityCooldownFor(h);
     this.heroAbilityPeriods.set(h, h.abilityCd);
     this.pushSfx('ability');

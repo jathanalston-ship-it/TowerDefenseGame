@@ -287,7 +287,11 @@ describe('continuous Hive Intelligence', () => {
 describe('Hive hero combat', () => {
   it('casts the lead ability without buying autocast; stopping restores manual control', () => {
     const g = new Game(1, NO_META, undefined, 'shepherd', undefined, { mode: 'endless', automationAllowed: true });
-    g.isolateEvents(); g.setHiveActive(true); g.startWave(); g.advance(SIM_DT);
+    g.isolateEvents();
+    g.armAbility();
+    expect(g.armedAbility).toBe(true);
+    g.setHiveActive(true); g.startWave(); g.advance(SIM_DT);
+    expect(g.armedAbility).toBe(false);
     expect(g.heroes[0].abilityCd).toBeGreaterThan(0);
     expect(g.autocastUnlocked).toBe(false); expect(g.autocastOn).toBe(false);
     g.setHiveActive(false); g.heroes[0].abilityCd = 0; g.advance(SIM_DT);

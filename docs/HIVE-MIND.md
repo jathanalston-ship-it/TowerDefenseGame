@@ -169,3 +169,6 @@ relocation, early-call overlaps, paid rerolls, hub spending or next-run launch i
 A successful Hive Intelligence pulse plays one quiet two-note confirmation for the batch.
 Individual placements and upgrades still play their own feedback. The confirmation uses
 the UI mix and leaves the score and camera steady.
+
+A successful primary hero cast clears its aiming state. An automatic cast made
+while the player is aiming retires the reticle and keeps board keyboard focus.
