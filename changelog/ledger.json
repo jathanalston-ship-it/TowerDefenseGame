@@ -1,6 +1,6 @@
 {
-  "lastSha": "3e5a7fe5a714f7ea0241161ecb08e828a2e84a97",
-  "commitsSinceDraft": 0,
+  "lastSha": "eb5240d0311192cdfa3a1d28bf4e06b995e54583",
+  "commitsSinceDraft": 5,
   "content": {
     "tower": [
       "needle",
@@ -5127,6 +5127,18 @@
         {
           "cat": "UI",
           "text": "If Hive Intelligence or Auto-Cast uses the primary hero’s ability while you are aiming, the targeting reticle now closes and keyboard focus stays on the board."
+        },
+        {
+          "cat": "UI",
+          "text": "Hero status now gives screen readers live health, shield, recovery and cooldown values. Hero Ops announces a downed hero once while the visible timer keeps counting. Both panels follow motion preferences, and disabling flashes stops the recovery pulse."
+        },
+        {
+          "cat": "UI",
+          "text": "Open Recent Hive decisions from Pause to review the last six automatic wave starts, hero casts and gene picks. The list explains what prompted each action and remains available after you turn Hive Intelligence off."
+        },
+        {
+          "cat": "UI",
+          "text": "The run-end screen shows a focused Continue to summary button. Escape and Browser Back also reach Results, where focus moves to the outcome heading. Reduced motion shows the outcome without the battlefield zoom."
         }
       ]
     }
@@ -12281,6 +12293,46 @@
       "date": "2026-11-15",
       "cat": "Heroes",
       "text": "Clear hero aim when Hive casts the ability",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "bae0083da7d46abc103ad7ceb8ecfa076b12a8b9",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Prepare clearer hero controls",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "36b6e1d7914994eff47cf2ec4124d695d5831586",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Record passing hero controls checkpoint",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e787c3f9d0472d5534d171e0a4445c0159b50d1a",
+      "date": "2026-11-15",
+      "cat": "Heroes",
+      "text": "Make hero status gauges readable and steady",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "c7821008806254cd563ce7f524e8b3fe930b7113",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Ui: show recent automatic Hive decisions",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "eb5240d0311192cdfa3a1d28bf4e06b995e54583",
+      "date": "2026-11-15",
+      "cat": "UI",
+      "text": "Guide the battlefield outro into Results",
       "internal": true,
       "needsReview": false
     }

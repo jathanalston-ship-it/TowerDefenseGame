@@ -940,3 +940,8 @@
 - `7ef5a51` **[Heroes]** Inspect fielded heroes from the keyboard _(internal)_
 - `c7c7ed7` **[UI]** Ui: confirm player rally points on the battlefield _(internal)_
 - `3e5a7fe` **[Heroes]** Clear hero aim when Hive casts the ability _(internal)_
+- `bae0083` **[Heroes]** Prepare clearer hero controls _(internal)_
+- `36b6e1d` **[Heroes]** Record passing hero controls checkpoint _(internal)_
+- `e787c3f` **[Heroes]** Make hero status gauges readable and steady _(internal)_
+- `c782100` **[UI]** Ui: show recent automatic Hive decisions _(internal)_
+- `eb5240d` **[UI]** Guide the battlefield outro into Results _(internal)_

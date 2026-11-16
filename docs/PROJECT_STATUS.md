@@ -2402,3 +2402,11 @@ Integrated keyboard rally and hero inspection, live fork names across hero
 panels, the reduced-motion rally marker, and aim cleanup after automatic casts.
 Chrome verified targeting, cycling and focus at 320 px. v2026.11.16.7 is open
 with five synchronized notes. Production remains v2026.11.16.6.
+
+## 2026-11-16 — hero status, Hive decisions and Results handoff integrated
+
+The first hero-controls audit passed 3,196 tests and the expanded mobile gate.
+The next checkpoint integrates accessible live hero gauges, the six recent Hive
+decisions, and a native Continue to summary action with end-of-run Back and
+Results focus fixes. The four 320px outro probes passed, as did the earlier
+hero-status and Hive probes. The open release has eight game and website notes.

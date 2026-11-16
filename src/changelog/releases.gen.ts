@@ -29,6 +29,18 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "If Hive Intelligence or Auto-Cast uses the primary hero’s ability while you are aiming, the targeting reticle now closes and keyboard focus stays on the board."
+      },
+      {
+        "cat": "UI",
+        "text": "Hero status now gives screen readers live health, shield, recovery and cooldown values. Hero Ops announces a downed hero once while the visible timer keeps counting. Both panels follow motion preferences, and disabling flashes stops the recovery pulse."
+      },
+      {
+        "cat": "UI",
+        "text": "Open Recent Hive decisions from Pause to review the last six automatic wave starts, hero casts and gene picks. The list explains what prompted each action and remains available after you turn Hive Intelligence off."
+      },
+      {
+        "cat": "UI",
+        "text": "The run-end screen shows a focused Continue to summary button. Escape and Browser Back also reach Results, where focus moves to the outcome heading. Reduced motion shows the outcome without the battlefield zoom."
       }
     ]
   },
