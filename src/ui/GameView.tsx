@@ -1728,6 +1728,7 @@ export function GameView({
             mutationPanelRef={mutationPanelRef}
             hud={hud}
             heroAbility={game.heroAbilityDefinition(hud.hero.kind)}
+            keyboardTargeting={keyboardBoardEnabled}
             liveMastery={liveMastery}
             mulliganStates={mulliganOverride ?? meta.get().mulligans}
             onCollapse={closeRight}

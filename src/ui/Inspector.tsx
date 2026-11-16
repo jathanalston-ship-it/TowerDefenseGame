@@ -231,6 +231,7 @@ function MulliganLive({ state, kind }: { state: MulliganState | undefined; kind:
 export function Inspector({
   hud,
   heroAbility,
+  keyboardTargeting,
   liveMastery,
   mulliganStates,
   mutationPanelRef,
@@ -243,6 +244,7 @@ export function Inspector({
 }: {
   hud: HudSnapshot;
   heroAbility: HeroAbilityDef;
+  keyboardTargeting: boolean;
   liveMastery?: Partial<Record<string, LiveMasteryView>>;
   mulliganStates?: Partial<Record<TowerKind, MulliganState>>; // this RUN's organisms (docs/MULLIGANS.md §inspect)
   mutationPanelRef?: Ref<HTMLElement>;
@@ -469,8 +471,10 @@ export function Inspector({
   const abPct = hud.hero.down ? 0 : hud.hero.abilityReady ? 1 : Math.max(0, Math.min(1, 1 - hud.hero.abilityCd / abMax));
   const abilityStatus = hud.hero.down
     ? `Hero recovering — ${Math.ceil(hud.hero.respawn)}s`
-    : hud.armedAbility ? 'Armed — click the battlefield to cast.'
-      : hud.hero.abilityReady ? 'Ready (Q)' : `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`;
+    : !hud.hero.abilityReady ? `Recharging — ${Math.ceil(hud.hero.abilityCd)}s`
+      : hud.armedAbility
+        ? keyboardTargeting ? 'Armed. Click or tap to cast, or press B to aim with the keyboard.' : 'Armed. Click or tap to cast.'
+        : 'Ready (Q)';
   const save = meta.get();
   const loadout = save.equipment.loadouts[hud.hero.kind];
   const inv = save.equipment.inventory;
@@ -529,13 +533,14 @@ export function Inspector({
             <b>{heroAbility.name} · {abilityStatus}</b><br />{heroAbility.blurb}
           </p>
         )}
+        <span className="a11y-only" role="status">{hud.hero.down ? `${heroDef.name} is downed and regenerating.` : ''}</span>
         {hud.hero.down ? (
-          <div className="ho-down" role="status">REGENERATING · {Math.ceil(hud.hero.respawn)}s</div>
+          <div className="ho-down">REGENERATING · {Math.ceil(hud.hero.respawn)}s</div>
         ) : (
           <div className="ho-vitals">
             <ProgressBar value={hud.hero.hp} max={hud.hero.maxHp} color={heroDef.color} height={10} className="bar-hero" label="Hero HP" />
             <span className="ho-hp">{Math.round(hud.hero.hp)}<i>/{Math.ceil(hud.hero.maxHp)}</i></span>
-            {hud.hero.shield > 0 && <span className="ho-shield" title="Shield">⛨ {hud.hero.shield}</span>}
+            {hud.hero.shield > 0 && <span className="ho-shield" title="Shield"><span aria-hidden>⛨</span><span className="a11y-only">Shield</span> {hud.hero.shield}</span>}
           </div>
         )}
 

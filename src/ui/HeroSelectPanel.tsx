@@ -33,6 +33,11 @@ export function HeroSelectPanel({ hero, ability, panelRef, keyboardNavigation, o
   const color = def?.color ?? 'var(--gold)';
   const hpPct = hero.maxHp > 0 ? Math.max(0, Math.min(1, hero.hp / hero.maxHp)) : 0;
   const shieldPct = hero.maxHp > 0 ? Math.min(1, hero.shield / hero.maxHp) : 0;
+  const hp = Math.round(hero.hp);
+  const hpMax = Math.round(hero.maxHp);
+  const hpValue = hero.down
+    ? `Downed. Returns in ${Math.ceil(hero.respawn)} seconds.`
+    : `${hp} of ${hpMax} health${hero.shield > 0 ? `, with ${hero.shield} shield` : ''}.`;
 
   // Permanent (meta) profile — level, stars, gear, Power. Locked during a run, so memoize by kind;
   // the live combat state comes from the snapshot `hero` view instead.
@@ -71,11 +76,13 @@ export function HeroSelectPanel({ hero, ability, panelRef, keyboardNavigation, o
       </div>
 
       {/* Health (with a shield overlay) */}
-      <div className="hp-bar" title={`${Math.round(hero.hp)} / ${Math.round(hero.maxHp)}${hero.shield ? ` (+${hero.shield} shield)` : ''}`}>
+      <div className="hp-bar" role="meter" aria-label="Health" aria-valuemin={0}
+        aria-valuemax={Math.max(1, hpMax)} aria-valuenow={Math.round(hpPct * hpMax)}
+        aria-valuetext={hpValue} title={hpValue}>
         <div className="hp-bar-fill" style={{ width: `${hpPct * 100}%` }} />
         {hero.shield > 0 && <div className="hp-bar-shield" style={{ width: `${shieldPct * 100}%` }} />}
         <span className="hp-bar-num">
-          {hero.down ? `Down · respawn ${Math.ceil(hero.respawn)}s` : `${Math.round(hero.hp)} / ${Math.round(hero.maxHp)}`}
+          {hero.down ? `Down · respawn ${Math.ceil(hero.respawn)}s` : `${hp} / ${hpMax}`}
           {hero.shield > 0 && !hero.down ? ` +${hero.shield}` : ''}
         </span>
       </div>
@@ -92,15 +99,19 @@ export function HeroSelectPanel({ hero, ability, panelRef, keyboardNavigation, o
       {keyboardNavigation && <p className="hp-shortcuts">H next hero · Shift+H previous hero</p>}
 
       {/* Cooldown gauges (live) */}
-      <div className="hp-cds">
+      <div className="hp-cds" role="group" aria-label="Cooldowns">
         {hero.cooldowns.map((cd) => {
           const ready = !hero.down && cd.remaining <= 0.001;
           const frac = hero.down ? 0 : cd.total > 0 ? Math.max(0, Math.min(1, 1 - cd.remaining / cd.total)) : 1;
+          const remaining = cd.remaining.toFixed(1);
+          const description = hero.down ? 'Unavailable while downed' : ready ? 'Ready' : `${remaining} seconds until ready`;
           return (
-            <div key={cd.id} className={`hp-cd ${ready ? 'ready' : ''}`}>
+            <div key={cd.id} className={`hp-cd ${ready ? 'ready' : ''}`} role="progressbar"
+              aria-label={cd.label} aria-valuemin={0} aria-valuemax={100}
+              aria-valuenow={Math.round(frac * 100)} aria-valuetext={description}>
               <div className="hp-cd-track"><div className="hp-cd-fill" style={{ width: `${frac * 100}%` }} /></div>
               <span className="hp-cd-l">{cd.label}</span>
-              <span className="hp-cd-v">{hero.down ? 'Unavailable' : ready ? 'Ready' : `${cd.remaining.toFixed(1)}s`}</span>
+              <span className="hp-cd-v">{hero.down ? 'Unavailable' : ready ? 'Ready' : `${remaining}s`}</span>
             </div>
           );
         })}

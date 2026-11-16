@@ -1787,6 +1787,8 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
 
 @media (pointer: coarse) { .hp-close { width: 44px; height: 44px; } }
 .hp-shortcuts { margin: 0; color: var(--muted); font-size: 11px; }
+[data-motion='reduced'] .hero-panel { animation: none; }
+[data-motion='reduced'] :is(.hp-bar-fill, .hp-cd-fill) { transition: none; }
 .hp-close:hover { color: var(--text); border-color: var(--danger); }
 
 .hp-bar { position: relative; height: 16px; border-radius: var(--r-xs); background: rgba(0, 0, 0, 0.5); border: 1px solid var(--line); overflow: hidden; }
@@ -2743,6 +2745,10 @@ html[data-layout='portrait'] .hud-biomass > .tt-bubble::after { left: 24px; }
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.12); }
 }
+
+[data-motion='reduced'] .hero-ops :is(.ho-port-core, .ho-ab-icon, .ho-down),
+[data-flashes='off'] .hero-ops .ho-down { animation: none; }
+[data-motion='reduced'] .hero-ops :is(.ho-ab-wheel, .bar-hero .bar-fill) { transition: none; }
 
 .ho-vitals { display: flex; align-items: center; gap: 8px; }
 

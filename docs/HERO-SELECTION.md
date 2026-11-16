@@ -115,3 +115,8 @@ control. Deselect measures 44px on touch screens.
 A player-set rally point gets a brief marker drawn in battlefield coordinates.
 It confirms keyboard and pointer placement and uses a still marker in reduced
 motion. Hero casts and Hive Intelligence use their own feedback.
+
+The selected-hero health meter and cooldown gauges expose live values and name
+shield, recovery and readiness states. Hero Ops announces when the hero goes
+down while its visible timer counts down. The two hero panels honor live motion
+preferences, and turning flashes off stills the Hero Ops recovery warning.
