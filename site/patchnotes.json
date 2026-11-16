@@ -17,6 +17,10 @@
       {
         "cat": "UI",
         "text": "The tower placement preview labels open, occupied, and locked pads. Solid and dashed outlines distinguish open pads from the others, and occupied pads say Inspect."
+      },
+      {
+        "cat": "UI",
+        "text": "Use Exact values in the gene draft to compare the full numbers for every card. Each panel shows its gene name, and the comparison stays open after rerolling."
       }
     ]
   },

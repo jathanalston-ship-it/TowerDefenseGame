@@ -2239,3 +2239,7 @@ Production run 43793412424 deployed commit a66dc998 and passed the exact-commit 
 ## 2026-11-16 — draft and placement follow-up started
 
 Integrated gene draft Pause, named automatic draft choice, and labels and patterned outlines for tower placement. Isolated browser checks covered 320px pause and resume, retained countdown, focus return, reroll and choice status. Chrome Canvas 2D checked all three placement labels and outline patterns and the occupied-pad inspection action. The 53 focused draft tests and five renderer tests passed. Open v2026.11.16.4 has three game and website notes.
+
+## 2026-11-16 — tap or type to compare exact gene values
+
+The Exact values toggle shows all draft comparisons under the corresponding gene names. Chrome at 320px verified touch, keyboard activation and focus, reroll, Pause, Shift blur and manual selection. Typecheck and 62 focused tests passed. The fourth game and News note is generated for v2026.11.16.4.

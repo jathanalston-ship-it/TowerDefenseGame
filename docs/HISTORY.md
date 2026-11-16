@@ -874,3 +874,5 @@
 - `6bfe5ce` **[Gene Cards]** Make Pause accessible during gene drafts _(internal)_
 - `204cd43` **[Gene Cards]** Name the automatic gene choice _(internal)_
 - `35774e6` **[Towers]** Label tower placement targets _(internal)_
+- `25b4457` **[Framework]** Release: prepare draft and placement notes _(internal)_
+- `205ab64` **[Gene Cards]** Make exact gene values available by tap _(internal)_

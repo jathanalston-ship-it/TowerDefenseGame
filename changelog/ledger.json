@@ -1,6 +1,6 @@
 {
-  "lastSha": "35774e6c23259d309bb29367de7f4c9b7e53ce5c",
-  "commitsSinceDraft": 6,
+  "lastSha": "205ab64f115daadc2d73d1857d1da119f241f92a",
+  "commitsSinceDraft": 8,
   "content": {
     "tower": [
       "needle",
@@ -4975,6 +4975,10 @@
         {
           "cat": "UI",
           "text": "The tower placement preview labels open, occupied, and locked pads. Solid and dashed outlines distinguish open pads from the others, and occupied pads say Inspect."
+        },
+        {
+          "cat": "UI",
+          "text": "Use Exact values in the gene draft to compare the full numbers for every card. Each panel shows its gene name, and the comparison stays open after rerolling."
         }
       ]
     }
@@ -11601,6 +11605,22 @@
       "date": "2026-11-15",
       "cat": "Towers",
       "text": "Label tower placement targets",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "25b4457479844793210bb03fad7d05442df0dd00",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare draft and placement notes",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "205ab64f115daadc2d73d1857d1da119f241f92a",
+      "date": "2026-11-15",
+      "cat": "Gene Cards",
+      "text": "Make exact gene values available by tap",
       "internal": true,
       "needsReview": false
     }
