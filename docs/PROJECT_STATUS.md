@@ -2294,3 +2294,10 @@ onboarding. Rechecked with all diagnostic code removed.
 ## 2026-11-16 — replay length in the Memory Archive
 
 Recovered memories disclose scene count and approximate autoplay runtime including the final card. Chrome verified the runtime, Watch accessibility description, locked-card concealment and archive regression checks at 320px, 390px and desktop. All 21 focused tests passed. This is note seven for v2026.11.16.5.
+
+## 2026-11-16 — sharper Memory Archive thumbnails and Watch focus
+
+Each card repaints still artwork to its display dimensions at up to 2x resolution. The
+two-tone Watch outline is distinct over the art. Verified real Chrome pixels, canvas
+dimensions at 320/390/844/1366, keyboard Tab focus and card metadata. All 28 focused
+tests passed. This is note eight for v2026.11.16.5.

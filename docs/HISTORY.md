@@ -899,3 +899,5 @@
 - `ada9fc5` **[Gene Cards]** Prepare archive edge swipe note _(internal)_
 - `9df9823` **[Gene Cards]** Record native Archive swipe verification _(internal)_
 - `a46965f` **[Gene Cards]** Show Memory Archive replay length _(internal)_
+- `07b6783` **[Framework]** Release: prepare replay length note _(internal)_
+- `a7981b3` **[Gene Cards]** Sharpen Memory Archive artwork and focus _(internal)_
