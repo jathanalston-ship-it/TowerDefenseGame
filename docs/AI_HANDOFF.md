@@ -64,3 +64,11 @@ Production is verified. The cinematic confirmation audit is recorded. Keyboard B
 ## Future expansion hooks
 
 Main production push uses git push origin HEAD:refs/heads/claude/zen-hawking-rh1gxl. Run ../verify-current-release.ps1 before preparing the next ledger. For pad navigation, reuse core/map.ts towerSlots and the existing game.click path. The isolated Vite server is session 51454 on port 5175.
+
+Final audit 15830 is running on sealed candidate `e8ec3f96` against production `f495ca8f`, with output in `clearer-hero-controls-release-validation.log`. Check the exact build and run the fresh-player probe before pushing around 06:15 UTC. Keep the separate Pause shortcut change `3d07557d` for the following release. Chrome verified the disclosure, paused shortcut suppression, and scroll and focus behavior at 844 × 340. Its isolated typecheck passed.
+
+The prepared Pause shortcut reference passed 29 focused tests. Isolated commit `64e177f4` also returns keyboard focus to Tower pads after entering a wave through Start Wave. `../wave-launch-focus-check.cjs` reproduced lost focus on the baseline and verified Enter, 320px Space, and pointer launches after the fix. Keep this change with the following release.
+
+Final audit 15830 passed on `e8ec3f96` at 06:03 UTC with 3,197 tests, typecheck, the expanded mobile gate and documentation checks. The build has `/assets/play-BfeZNU-6.js`, all ten News notes, and the revised Beginner and Heroes guides. Fresh-player probe 59578 is running on the audited `dist` at port 4334. Isolated keyboard launch focus typecheck and all 17 focused tests also passed.
+
+Fresh-player probe 59578 stalled on the Stage 2 draft. Retry 10664 passed all six budgets on the same audited build after correcting the browser driver to target the visible Start Wave control, reset pad tracking between runs and report paused drafts. It completed the tutorial, two Campaign stages and the reward coach with zero errors, 11.4s to first tower, 504 KB boot JS gzip and 51.7 KB boot CSS gzip. Preserve the audited game bundle during deployment.

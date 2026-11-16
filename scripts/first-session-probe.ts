@@ -223,6 +223,10 @@ async function playRun(page: Page, o: RunOpts): Promise<void> {
     if (o.onTick) await o.onTick(page, text);
     if (!M.timeToFirstWave && /hostiles? in the field|enemies incoming/i.test(text)) { M.timeToFirstWave = +now().toFixed(1); log(`first wave in combat @ ${M.timeToFirstWave}s`); }
     if (!M.timeToFirstReward && /Genome Cores/i.test(text) && /LINE HOLDS|VICTORY|STAGE CLEAR|\+\d+ Genome/i.test(text)) { M.timeToFirstReward = +now().toFixed(1); log(`first reward @ ${M.timeToFirstReward}s`); }
+    // A paused draft stays mounted behind the pause dialog. Surface the obstruction.
+    if (await page.$('.draft-dialog[aria-hidden="true"] .cards')) {
+      throw new StepError(currentStep, 'The gene draft is paused. Inspect the preceding gameplay inputs.');
+    }
     // gene-card draft
     if (await page.$('.overlay .cards')) {
       await page.keyboard.press('1');
@@ -237,7 +241,8 @@ async function playRun(page: Page, o: RunOpts): Promise<void> {
       if (!/skip/i.test(label)) { await clickBox(page, '.tut-callout button'); await sleep(350); continue; }
     }
     // build phase: deploy what we can afford, start the wave
-    const start = await page.$('button:has-text("Start Wave")');
+    const startWave = '.build-controls.is-visible button.start-btn';
+    const start = await page.$(startWave);
     if (start) {
       for (let k = 0; k < 4; k++) {
         const free = await page.$('.conveyor button:has-text("Deploy")');
@@ -254,7 +259,7 @@ async function playRun(page: Page, o: RunOpts): Promise<void> {
       if (o.speed5 && !speedSet) { speedSet = await clickBox(page, '.speed-btn', { text: /5×|5x/ }); }
       await page.keyboard.press('Space');
       await sleep(250);
-      if (await page.$('button:has-text("Start Wave")')) await clickBox(page, 'button:has-text("Start Wave")');
+      if (await page.$(startWave)) await clickBox(page, startWave);
       continue;
     }
     // Tutorial objectives (no Start Wave button — deployment is scripted): do the one obvious thing per tick.
@@ -506,6 +511,7 @@ async function session(ctx: BrowserContext, dist: string): Promise<Page> {
 
   // 8 ── Campaign Stage 2 (the coach deployed it)
   step('campaign-stage-2');
+  usedSlots.clear();
   await playRun(page, {
     name: 'campaign-2', maxSec: 420, speed5: true,
     stopWhen: async (_p, text) => /VICTORY|DEFEAT|STAGE CLEAR|HIVE FELL|OVERRUN|RUN COMPLETE/i.test(text) || !!(await page.$('.results-screen')),

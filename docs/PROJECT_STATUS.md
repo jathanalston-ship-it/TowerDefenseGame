@@ -2417,3 +2417,19 @@ Audit 26154 passed the hero, Hive and run-end checkpoint with all 3,196
 tests. The sealed candidate adds reward reading and the empty-field wave
 readout. Both pass focused Chrome probes and regression suites. Ten game and
 website notes are ready for the final audit.
+
+The final audit is running on `e8ec3f96` in session 15830. The next
+release adds a Keyboard controls reference to Pause, with matching Beginner
+Guide instructions. Chrome verified keyboard access and scrolling on a short
+landscape viewport. That change remains isolated in `3d07557d`.
+
+The sealed build passed its final audit at 06:03 UTC with 3,197 tests,
+typecheck, mobile layout and documentation checks. The production build
+contains all ten News notes and the updated Beginner and Heroes guides.
+
+The fresh-player probe initially stalled at the second Campaign draft.
+The probe now targets the visible Start Wave control, resets pad tracking
+between runs and reports paused drafts explicitly. The retry on the same
+production build completed the tutorial, both stages and the reward coach
+with zero page or console errors. First placement took 11.4 seconds and all
+six probe budgets passed.
