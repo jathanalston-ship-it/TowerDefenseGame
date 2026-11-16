@@ -903,3 +903,5 @@
 - `a7981b3` **[Gene Cards]** Sharpen Memory Archive artwork and focus _(internal)_
 - `04f9df1` **[Gene Cards]** Prepare Archive artwork and focus note _(internal)_
 - `3d0be3f` **[Visuals]** Render: show reduced-motion siege windups _(internal)_
+- `e834c2c` **[Framework]** Release: prepare reduced-motion siege note _(internal)_
+- `47c154b` **[Audio]** Audio: give Hive purchases a distinct confirmation _(internal)_

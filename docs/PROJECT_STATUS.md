@@ -2307,3 +2307,10 @@ tests passed. This is note eight for v2026.11.16.5.
 With reduced motion, a fixed arc fills at the attacker instead of moving its body
 during the windup. Chrome Canvas 2D verified the early and late arc, interruption
 and full-motion lunge. All 37 focused tests passed. This is note nine for v2026.11.16.5.
+
+## 2026-11-16 — distinct Hive Intelligence purchase confirmation
+
+Each successful Hive batch adds a light two-note UI cue. Purchases retain their usual
+sounds. Chrome offline audit of hiveAction, place and splice measured the new cue at
+-33.78 momentary LUFS and -19.17 dBFS peak, with no clipping or hard stops. All 39
+focused tests passed. This is note ten for v2026.11.16.5.

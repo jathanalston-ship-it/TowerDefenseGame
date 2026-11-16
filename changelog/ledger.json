@@ -1,6 +1,6 @@
 {
-  "lastSha": "3d0be3f3967e76a9a6bee2569c55dbf8a6aec1f7",
-  "commitsSinceDraft": 0,
+  "lastSha": "47c154b962faefe984f83b7efd721ac63a758388",
+  "commitsSinceDraft": 2,
   "content": {
     "tower": [
       "needle",
@@ -5039,6 +5039,10 @@
         {
           "cat": "UI",
           "text": "With reduced motion, enemies winding up at the Hive Core show a fixed arc that fills before the strike. It clears when the attack lands or is interrupted."
+        },
+        {
+          "cat": "Audio",
+          "text": "Hive Intelligence plays a quiet two-note confirmation after a successful batch of purchases. Each placement or upgrade still has its own sound."
         }
       ]
     }
@@ -11897,6 +11901,22 @@
       "date": "2026-11-15",
       "cat": "Visuals",
       "text": "Render: show reduced-motion siege windups",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "e834c2c36edb8e6f7099800c3a22c5467f94e10c",
+      "date": "2026-11-15",
+      "cat": "Framework",
+      "text": "Release: prepare reduced-motion siege note",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "47c154b962faefe984f83b7efd721ac63a758388",
+      "date": "2026-11-15",
+      "cat": "Audio",
+      "text": "Audio: give Hive purchases a distinct confirmation",
       "internal": true,
       "needsReview": false
     }

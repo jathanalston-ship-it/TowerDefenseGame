@@ -45,6 +45,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "With reduced motion, enemies winding up at the Hive Core show a fixed arc that fills before the strike. It clears when the attack lands or is interrupted."
+      },
+      {
+        "cat": "Audio",
+        "text": "Hive Intelligence plays a quiet two-note confirmation after a successful batch of purchases. Each placement or upgrade still has its own sound."
       }
     ]
   },
