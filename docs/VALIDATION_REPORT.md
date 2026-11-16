@@ -58,3 +58,7 @@
 ## Final release verification
 
 The sealed v2026.11.16 Clearer Affix Controls release passed release validation. The initial audit passed production build, mobile layout and documentation. The Threat assertion was corrected to compare the complete Power outcomes of matched runs. Final-tree typecheck passed and all 3,194 tests across 354 files passed in the full rerun. Production source and assets match the mobile-tested build /assets/play-BC-EWbxo.js. Both website and in-game notes are generated.
+
+## 2026-11-16 — production verified
+
+Clearer Affix Controls v2026.11.16 is live. Commit f89a9f889783e867a4a8c0c829071a5666356235 passed GitHub Actions run 43785632332 and production job 133032503684, including the exact commit check. The normal public play URL serves the tested asset /assets/play-BC-EWbxo.js. Public homepage and both news notes verified. The initial public asset lag cleared on recheck.
