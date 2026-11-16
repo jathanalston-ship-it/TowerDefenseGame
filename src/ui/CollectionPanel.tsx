@@ -12,7 +12,7 @@ import { music } from '../audio/music';
 import { motionPrefs, onMotionPrefs, resolveMotion, systemReducedMotion } from '../state/prefs';
 import { RANK_COLORS, rankMilestones } from '../core/collection';
 import type { BonusLine, CollectionCategory, CollectionEntry, CollectionRank, CollectionRankUp, RewardKind } from '../core/collection';
-import type { CutsceneDef } from '../core/cutscenes';
+import { CUTSCENE_FINAL_CARD_MS, type CutsceneDef } from '../core/cutscenes';
 import { drawCutsceneStill } from '../render/cutsceneScenes';
 import { CutscenePlayer } from './CutscenePlayer';
 import './CollectionPanel.css';
@@ -32,6 +32,9 @@ const KEYFRAMES = `
  *  unlocked; locked cards show the silhouette + the unlock hint (docs/CUTSCENES.md §archive). */
 function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boolean; onPlay: () => void }): JSX.Element {
   const cvRef = useRef<HTMLCanvasElement>(null);
+  const lengthId = useId();
+  const sceneCount = def.scenes.length;
+  const autoplaySeconds = Math.round(def.scenes.reduce((ms, scene) => ms + scene.durMs, CUTSCENE_FINAL_CARD_MS) / 1000);
   useEffect(() => {
     const cv = cvRef.current;
     const ctx = cv?.getContext('2d');
@@ -53,9 +56,10 @@ function MemoryCard({ def, unlocked, onPlay }: { def: CutsceneDef; unlocked: boo
         <h3 className="mem-title">{unlocked ? def.title : 'Unrecovered memory'}</h3>
         <span className="mem-sub">{unlocked ? def.subtitle : def.unlockHint}</span>
         <span className="mem-boost">{unlocked ? `✦ ${def.boost.label}` : '✦ Unlock for a small permanent boost'}</span>
+        {unlocked && <span id={lengthId} className="mem-sub">{sceneCount} {sceneCount === 1 ? 'scene' : 'scenes'} · About {autoplaySeconds} seconds on autoplay</span>}
       </div>
       {unlocked ? (
-        <button className="mem-play" onClick={onPlay} aria-label={`Watch ${def.title}`}>▶ Watch</button>
+        <button type="button" className="mem-play" onClick={onPlay} aria-label={`Watch ${def.title}`} aria-describedby={lengthId}>▶ Watch</button>
       ) : (
         <span className="mem-lock" aria-hidden>🔒</span>
       )}

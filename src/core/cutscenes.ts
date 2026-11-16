@@ -80,6 +80,9 @@ export interface CutsceneDef {
   scenes: CutsceneScene[];
 }
 
+/** Time the final card stays open when the film plays automatically. */
+export const CUTSCENE_FINAL_CARD_MS = 6200;
+
 // ── The films ─────────────────────────────────────────────────────────────────────────────
 // One continuous arc: the megas are the CHOIR — organ-lords serving something deeper. Each
 // defeat names it a little more clearly; the story beats carry the Core's own awakening.

@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { audio } from '../audio/sound';
 import { scheduleCinematicBeats } from '../audio/cinematicBeats';
 import { music } from '../audio/music';
-import type { CutsceneDef } from '../core/cutscenes';
+import { CUTSCENE_FINAL_CARD_MS, type CutsceneDef } from '../core/cutscenes';
 import { cutsceneMegaId, cutsceneStillT, drawCutsceneFrame } from '../render/cutsceneScenes';
 import type { CutsceneFrameSpec } from '../render/cutsceneScenes';
 import { cutsceneManualPref, motionPrefs, onMotionPrefs, resolveMotion, setCutsceneManualPref, systemReducedMotion } from '../state/prefs';
@@ -19,7 +19,6 @@ import { useDismiss } from './browserBack';
 import './CutscenePlayer.css';
 
 const FADE_MS = 850; // scene-to-scene cross-dissolve (the intro's cut length)
-const CODA_MS = 6200; // how long the coda holds before auto-continue
 
 export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () => void }): JSX.Element {
   // Reduced motion = THE motionScale (OS request unless Settings → Motion overrides it): one still
@@ -127,7 +126,7 @@ export function CutscenePlayer({ def, onDone }: { def: CutsceneDef; onDone: () =
   // Auto-advance each scene after its hold; the coda auto-continues after its own hold.
   useEffect(() => {
     if (manual) return;
-    let remaining = coda ? CODA_MS : scene.durMs;
+    let remaining = coda ? CUTSCENE_FINAL_CARD_MS : scene.durMs;
     let started: number | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let fired = false;

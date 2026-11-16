@@ -176,3 +176,6 @@ film. Caption and finale animation timelines survive a live preference change.
 
 In a Memory Archive replay, browser Back follows Escape. The first press opens the final card
 and the next returns to the same archive view, restoring focus to Watch.
+
+Recovered Archive cards show scene count and approximate autoplay time, including the
+final card's hold. The same duration describes the Watch button for assistive technology.
