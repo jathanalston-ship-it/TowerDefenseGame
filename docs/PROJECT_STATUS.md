@@ -2380,3 +2380,12 @@ clipped keyboard stop. The gate now audits the focused stop after B. Accurate
 hero ground-effect previews, the manual recharge cue, and tutorial lesson focus
 and announcements are integrated. The public News page and the game briefing
 carry ten matching notes for the sealed v2026.11.16.6 candidate.
+
+## 2026-11-16 — keyboard battlefield release checks passed
+
+Full audit 32542 passed all 3,196 tests, typecheck, the expanded mobile gate,
+and documentation checks. Verified build play-D9UbQ_W5.js, ten website notes,
+and the updated Tower and Hero Guides. First-session probe 48188 passed the
+full fresh-account loop with zero errors, zero dialogs after the first run,
+and first deployment at 8.3 seconds. The Windows preview launch now uses a
+native filesystem path.

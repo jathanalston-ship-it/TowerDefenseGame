@@ -22,6 +22,7 @@ import { spawn, execSync, type ChildProcess } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { HEIGHT, WIDTH, towerSlots } from '../src/core/map';
 import { SLOTS as SLOTS_CFG } from '../src/core/config';
@@ -40,7 +41,7 @@ const args = process.argv.slice(2).filter((a) => a !== '--');
 const flag = (n: string): boolean => args.includes(`--${n}`);
 const opt = (n: string): string | undefined => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : undefined; };
 const PORT = Number(opt('port') ?? 4331);
-const ROOT = new URL('..', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SHOTS = opt('shots');
 const BASE = `http://localhost:${PORT}`;
 
