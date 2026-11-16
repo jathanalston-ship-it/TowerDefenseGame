@@ -53,3 +53,7 @@
 ## 2026-11-16 — cinematic release validated
 
 Clearer Cinematic Controls v2026.11.16.2 passed full validator 69343 at 01:55 UTC. All 3,194 tests, typecheck, production mobile check and documentation checks passed. Production asset /assets/play-B_AtZuk-.js and all five notes were verified in the built pages. Targeted phone browser checks covered caption announcements, keyboard navigation, remembering pace and short-viewport layouts.
+
+## 2026-11-16 — cinematic release live
+
+Clearer Cinematic Controls v2026.11.16.2 is live. Commit 189fcd63733930c73671ac96d90bb00ac1c41a2d passed Actions run 43789154181 and production job 133043400708, including the exact commit check. The public game serves /assets/play-B_AtZuk-.js, matching the audited build. Homepage and all five website notes verified.
