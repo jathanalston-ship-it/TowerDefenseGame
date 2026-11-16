@@ -586,6 +586,7 @@ Post-run `RewardReveal` preserves Continue focus when its focused Skip control d
   (15-track data library, 8 intensity-gated layers, scene/rotation/progression-weighted
   selection, stable per-boss themes, reward stingers, near-death duress, bar-aligned equal-power
   crossfades, mastering compressor).
+- **Volume preview:** AudioToggles offers a tower-shot sample in Settings and pause at the selected effects level.
 - **Dependencies:** WebAudio; volume/on-off persisted (`audioOn` key); `core/events.ts`
   (`bossKilled` → the bossDown stinger).
 - **Files:** `audio/sound.ts` (SFX bus + all synths + the cue→stinger `STING` bridge),

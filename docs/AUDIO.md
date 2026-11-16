@@ -121,7 +121,7 @@ lands every reward and alert in full — frequent combat can only ever fill its 
 ## 8. Settings (`AudioToggles` — Settings + the in-run pause menu)
 
 Sound effects On/Off + **Effects volume**, Music On/Off + **Music volume** (0–100 % of each engine's
-designed level; the effects slider previews itself with a UI click; a muted engine's slider disables).
+designed level. The effects slider previews with a UI click. Preview effects plays a tower shot through the effects bus and is disabled at zero volume or when effects are off. A muted engine’s slider is disabled.)
 Device prefs `assimilate.sfxVolume` / `assimilate.musicVolume` (state/prefs.ts, in
 `DEVICE_PREF_KEYS`); App applies them on boot (`audio.setVolume` / `music.setVolume`). Both
 `setVolume`s take the player's 0..1 level — 1 plays the mix exactly as measured.

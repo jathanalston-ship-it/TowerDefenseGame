@@ -13,6 +13,10 @@ export const RELEASES: Release[] = [
       {
         "cat": "UI",
         "text": "Cinematic sound effects now play with reduced motion. Both the opening and Memory Archive films keep their timed cues over still images, pause cues in hidden tabs, and resume without repeating sounds."
+      },
+      {
+        "cat": "UI",
+        "text": "Use Preview effects in Settings or the pause menu to hear a tower shot at your current effects volume. The preview is unavailable when effects are off or volume is zero."
       }
     ]
   },

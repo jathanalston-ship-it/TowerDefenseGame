@@ -2195,3 +2195,7 @@ Clearer Cinematic Controls v2026.11.16.2 is live. Commit 189fcd63733930c73671ac9
 ## 2026-11-16 — reduced-motion film audio verified locally
 
 Both cinematics dispatch their authored cues over still images through the shared audio/cinematicBeats.ts scheduler. Four browser probes passed motion switches, one-time delivery, hidden pause and dismissal. All 67 focused tests passed. One note is prepared in unsealed v2026.11.16.3.
+
+## 2026-11-16 — effects preview verified locally
+
+Preview effects plays an existing tower shot at the current effects level in Settings and pause. The 320px browser probe verified cue dispatch, keyboard use, mute, zero volume and compact controls. All 54 focused tests passed. The next release has two game and website notes.

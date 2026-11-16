@@ -4175,6 +4175,8 @@ html[data-layout='landscape'] .mc-campaign > .mc-ledger { order: 3; }
 @media (max-width: 640px) { .speed-ctl { right: 96px; } }
 .audio-toggles.is-compact .set-switch { padding: 4px 14px; }
 .audio-toggles.is-compact .motion-shake input[type="range"] { width: 100px; }
+.audio-preview { display: flex; justify-content: flex-end; margin-top: 8px; }
+.audio-preview button { min-height: 44px; font-size: 12px; }
 
 /* ═══ HERO LAB — Champion Select (HEROES.md) ════════════════════════════════════ */
 .heroes-screen { display: flex; flex-direction: column; gap: 16px; }

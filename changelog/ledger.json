@@ -1,6 +1,6 @@
 {
-  "lastSha": "0517f41797db67320b0651ca33508c61006ba574",
-  "commitsSinceDraft": 2,
+  "lastSha": "0352b1d84238f8aa298e9ef06234435f27965cc6",
+  "commitsSinceDraft": 3,
   "content": {
     "tower": [
       "needle",
@@ -4927,6 +4927,10 @@
         {
           "cat": "UI",
           "text": "Cinematic sound effects now play with reduced motion. Both the opening and Memory Archive films keep their timed cues over still images, pause cues in hidden tabs, and resume without repeating sounds."
+        },
+        {
+          "cat": "UI",
+          "text": "Use Preview effects in Settings or the pause menu to hear a tower shot at your current effects volume. The preview is unavailable when effects are off or volume is zero."
         }
       ]
     }
@@ -11441,6 +11445,14 @@
       "date": "2026-11-15",
       "cat": "Framework",
       "text": "Docs: record cinematic release verification",
+      "internal": true,
+      "needsReview": false
+    },
+    {
+      "sha": "0352b1d84238f8aa298e9ef06234435f27965cc6",
+      "date": "2026-11-15",
+      "cat": "Audio",
+      "text": "Keep cinematic cues with reduced motion",
       "internal": true,
       "needsReview": false
     }

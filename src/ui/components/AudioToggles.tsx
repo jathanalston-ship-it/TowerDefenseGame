@@ -2,7 +2,7 @@
 // menu (docs/GAME-FEEL.md). Independent switches: killing the music keeps combat cues, and
 // vice versa. Writes the device prefs and drives the live engines immediately.
 // Each engine also has a VOLUME (docs/AUDIO.md §settings): 0–100 % of its designed, measured level;
-// the effects slider previews itself with a UI click so the player hears the level they pick.
+// the effects slider previews itself with a UI click, and Preview effects plays a tower shot.
 
 import { useState } from 'react';
 import { audio } from '../../audio/sound';
@@ -49,6 +49,12 @@ export function AudioToggles({ compact = false }: { compact?: boolean }): JSX.El
         </button>
       </label>
       <VolumeRow label="Effects volume" value={sfxVol} enabled={sfx} onChange={changeSfxVol} />
+      <div className="audio-preview">
+        <button type="button" disabled={!sfx || sfxVol === 0} onClick={() => {
+          audio.resume();
+          audio.cue('tfire_ting');
+        }}>Preview effects</button>
+      </div>
       <label className="set-toggle">
         <span>Music{!compact && <small>The composed soundtrack (menu, combat, bosses).</small>}</span>
         <button aria-label="Music" className={`set-switch ${mus ? 'on' : ''}`} onClick={toggleMusic} aria-pressed={mus}>
