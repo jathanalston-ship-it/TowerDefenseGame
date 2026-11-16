@@ -749,3 +749,5 @@ live deck refreshes. Reading keys do not dispatch battlefield shortcuts; Escape 
 its normal handling. Draft choices, stacking math and effects are unchanged.
 
 Gene drafts expose a named dialog with keyboard instructions. Focus enters the dialog and Tab wraps across enabled draft buttons. Closing restores the prior control if it still exists. Use Pause or P to open the pause sheet during a regular draft. It keeps the auto-pick countdown at its remaining time and returns focus to the draft when play resumes.
+
+The draft header names the current automatic pick beside the timer. The dialog description adds that choice when automation is active, and the status announces changes after a reroll without announcing every countdown tick.

@@ -184,9 +184,11 @@ export function DraftModal({
   const [remaining, setRemaining] = useState(auto ? AUTO_SECONDS : 0);
   const remainingMs = useRef(AUTO_SECONDS * 1000);
   const hiveAction = autoOverride ? onStopAuto : onStartAuto;
+  const automaticPick = auto ? options[best]?.name : undefined;
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const instructionsId = useId();
+  const automaticPickId = useId();
 
   useLayoutEffect(() => {
     const dialog = dialogRef.current;
@@ -361,7 +363,7 @@ export function DraftModal({
       aria-modal={!paused}
       aria-hidden={paused || undefined}
       aria-labelledby={titleId}
-      aria-describedby={instructionsId}
+      aria-describedby={automaticPick ? `${instructionsId} ${automaticPickId}` : instructionsId}
       tabIndex={-1}
       onKeyDown={(event) => {
         if (paused || event.key !== 'Tab') return;
@@ -403,15 +405,17 @@ export function DraftModal({
           </div>
         )}
         {auto && (
-          <div className="draft-auto" role="timer">
+          <div className="draft-auto" role="timer" aria-label="Time until automatic gene pick">
             <span className="draft-auto-k">◆ AUTO-DRAFT</span>
-            <span className="draft-auto-bar">
+            <span className="draft-auto-bar" aria-hidden>
               <span className="draft-auto-fill" style={{ width: `${(remaining / AUTO_SECONDS) * 100}%` }} />
             </span>
             <span className="draft-auto-n">{Math.ceil(remaining)}s</span>
-            <span className="draft-auto-hint">pick any card to override</span>
           </div>
         )}
+        <p id={automaticPickId} className="draft-auto-hint" role="status">
+          {automaticPick && <>Will pick <strong>{automaticPick}</strong>. Pick any card to override.</>}
+        </p>
       </div>
       <div className="cards">
         {options.map((o, i) => {
